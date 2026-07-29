@@ -1,16 +1,11 @@
 import type { Metadata } from "next";
-import {
-  CalendarDays,
-  Check,
-  Sparkles,
-} from "lucide-react";
+import { CalendarDays } from "lucide-react";
 import Link from "next/link";
 
-import {
-  getPublicWebsiteSettings,
-} from "@/features/admin/settings/services/admin-settings.service";
+import { getPublicWebsiteSettings } from "@/features/admin/settings/services/admin-settings.service";
 
 import { ServicesCatalog } from "@/features/services/components/services-catalog";
+import { ServicesHero } from "@/features/public/components/services/services-hero";
 import {
   getPublicServiceCategories,
   getPublicServices,
@@ -35,11 +30,7 @@ export default async function ServicesPage({
 }: ServicesPageProps) {
   const { categorie } = await searchParams;
 
-  const [
-    categories,
-    services,
-    websiteSettings,
-  ] = await Promise.all([
+  const [categories, services, websiteSettings] = await Promise.all([
     getPublicServiceCategories(),
     getPublicServices(),
     getPublicWebsiteSettings(),
@@ -47,65 +38,20 @@ export default async function ServicesPage({
 
   return (
     <main className="bg-[#FFF9F8]">
-      <section className="relative overflow-hidden border-b border-[#241A1D]/7">
-        <div className="absolute -left-36 top-10 size-[420px] rounded-full bg-[#E8B4B8]/20 blur-3xl" />
-        <div className="absolute -right-32 bottom-0 size-[420px] rounded-full bg-[#C9A36A]/12 blur-3xl" />
+      <ServicesHero
+        categoriesCount={categories.length}
+        servicesCount={services.length}
+      />
 
-        <div className="relative mx-auto max-w-7xl px-5 py-20 lg:px-8 lg:py-28">
-          <div className="max-w-4xl">
-            <div className="inline-flex items-center gap-2 rounded-full border border-[#B8899A]/20 bg-white px-4 py-2 text-xs font-semibold uppercase tracking-[0.2em] text-[#956B7B] shadow-sm">
-              <Sparkles className="size-4" />
-              Prestations & tarifs
-            </div>
-
-            <h1 className="mt-7 font-serif text-5xl leading-[1.02] text-[#241A1D] sm:text-6xl lg:text-7xl">
-              Choisissez la prestation qui vous
-              <span className="text-[#B8899A]">
-                {" "}
-                ressemble.
-              </span>
-            </h1>
-
-            <p className="mt-7 max-w-2xl text-base leading-8 text-[#75636A] sm:text-lg">
-              Chaque prestation est réalisée avec soin
-              et adaptée à vos ongles, votre style et vos
-              envies.
-            </p>
-
-            <div className="mt-8 flex flex-wrap gap-x-7 gap-y-4 text-sm text-[#5F5056]">
-              <span className="flex items-center gap-2">
-                <Check className="size-4 text-[#B8899A]" />
-                Tarifs transparents
-              </span>
-
-              <span className="flex items-center gap-2">
-                <Check className="size-4 text-[#B8899A]" />
-                Durée indiquée
-              </span>
-
-              <span className="flex items-center gap-2">
-                <Check className="size-4 text-[#B8899A]" />
-                Réservation immédiate
-              </span>
-            </div>
-          </div>
-        </div>
-      </section>
-
-      <section className="mx-auto max-w-7xl px-5 py-16 lg:px-8 lg:py-20">
+      <section
+        id="services-catalog"
+        className="mx-auto max-w-7xl scroll-mt-24 px-5 py-16 lg:px-8 lg:py-20"
+      >
         <ServicesCatalog
-          categories={
-            categories
-          }
-          services={
-            services
-          }
-          initialCategory={
-            categorie
-          }
-          defaultImageUrl={
-            websiteSettings.defaultServiceImageUrl
-          }
+          categories={categories}
+          services={services}
+          initialCategory={categorie}
+          defaultImageUrl={websiteSettings.defaultServiceImageUrl}
         />
       </section>
 
@@ -121,9 +67,8 @@ export default async function ServicesPage({
             </h2>
 
             <p className="mt-4 max-w-2xl leading-7 text-white/60">
-              Envoyez votre modèle ou expliquez votre
-              besoin. La prestation pourra être ajustée
-              avant le rendez-vous.
+              Envoyez votre modèle ou expliquez votre besoin. La prestation
+              pourra être ajustée avant le rendez-vous.
             </p>
           </div>
 

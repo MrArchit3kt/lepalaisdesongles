@@ -1,6 +1,6 @@
 "use client";
 
-import { CalendarDays, Menu, Sparkles, UserRound, X } from "lucide-react";
+import { CalendarDays, Menu, UserRound, X } from "lucide-react";
 
 import Image from "next/image";
 import Link from "next/link";
@@ -56,6 +56,9 @@ export function PublicHeader({
 }: PublicHeaderProps) {
   const pathname = usePathname();
 
+  const resolvedLogoUrl =
+    logoUrl.trim() || "/images/logo/logo-palais-des-ongles.png";
+
   const [menuIsOpen, setMenuIsOpen] = useState(false);
 
   function closeMenu() {
@@ -66,34 +69,16 @@ export function PublicHeader({
     <header className="sticky top-0 z-50 border-b border-[#241A1D]/7 bg-[#FFF9F8]/90 backdrop-blur-xl">
       <div className="mx-auto flex h-20 max-w-7xl items-center justify-between px-5 lg:px-8">
         <Link href="/" className="flex items-center gap-3" onClick={closeMenu}>
-          {logoUrl ? (
-            <span className="relative block h-12 w-44 sm:w-52">
-              <Image
-                src={logoUrl}
-                alt={`Logo ${siteTitle}`}
-                fill
-                priority
-                sizes="(max-width: 640px) 176px, 208px"
-                className="object-contain object-left"
-              />
-            </span>
-          ) : (
-            <>
-              <span className="flex size-11 items-center justify-center rounded-full bg-[#241A1D] text-[#E8B4B8] shadow-lg shadow-black/10">
-                <Sparkles className="size-5" />
-              </span>
-
-              <span>
-                <span className="block font-serif text-xl font-semibold leading-none text-[#241A1D] sm:text-2xl">
-                  {siteTitle}
-                </span>
-
-                <span className="mt-1 hidden text-[10px] uppercase tracking-[0.25em] text-[#98747F] sm:block">
-                  Prothésiste ongulaire
-                </span>
-              </span>
-            </>
-          )}
+          <span className="relative block size-14 shrink-0 sm:size-16">
+            <Image
+              src={resolvedLogoUrl}
+              alt={`Logo ${siteTitle}`}
+              fill
+              priority
+              sizes="(max-width: 640px) 56px, 64px"
+              className="rounded-full object-contain"
+            />
+          </span>
         </Link>
 
         <nav className="hidden items-center gap-7 xl:flex">

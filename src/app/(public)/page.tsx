@@ -16,44 +16,40 @@ export const metadata: Metadata = {
 
 export const dynamic = "force-dynamic";
 
+const DEFAULT_HOME_HERO_IMAGE = "/images/home/hero-nails-premium.png";
+
 export default async function HomePage() {
   const data = await getHomePageData();
+
+  const heroImageUrl =
+    data.websiteSettings.homeHeroImageUrl || DEFAULT_HOME_HERO_IMAGE;
+
+  const heroMobileImageUrl =
+    data.websiteSettings.homeHeroMobileImageUrl ||
+    data.websiteSettings.homeHeroImageUrl ||
+    DEFAULT_HOME_HERO_IMAGE;
 
   return (
     <main>
       <HomeHero
-        heroImageUrl={
-          data.websiteSettings.homeHeroImageUrl
-        }
-        heroMobileImageUrl={
-          data.websiteSettings.homeHeroMobileImageUrl
-        }
+        heroImageUrl={heroImageUrl}
+        heroMobileImageUrl={heroMobileImageUrl}
       />
 
-      <FeaturedServices
-        services={data.featuredServices}
-      />
+      <FeaturedServices services={data.featuredServices} />
 
       <HomeOffers
         promotion={data.activePromotion}
         contest={data.activeContest}
       />
 
-      <FeaturedReviews
-        reviews={data.featuredReviews}
-      />
+      <FeaturedReviews reviews={data.featuredReviews} />
 
-      <InstagramSection
-        items={data.galleryItems}
-      />
+      <InstagramSection items={data.galleryItems} />
 
       <BookingCta
-        workingHours={
-          data.workingHours
-        }
-        imageUrl={
-          data.websiteSettings.bookingCtaImageUrl
-        }
+        workingHours={data.workingHours}
+        imageUrl={data.websiteSettings.bookingCtaImageUrl}
       />
     </main>
   );

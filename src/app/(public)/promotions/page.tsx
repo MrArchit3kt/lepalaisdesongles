@@ -25,6 +25,8 @@ import {
   getPublicPromotionsPageData,
 } from "@/features/public/services/public-promotions.service";
 
+import { PromotionsHero } from "@/features/public/components/promotions/promotions-hero";
+
 import {
   formatPrice,
 } from "@/lib/utils";
@@ -420,60 +422,17 @@ export default async function PromotionsPage() {
       {/*                               HERO                                 */}
       {/* ------------------------------------------------------------------ */}
 
-      <section className="relative overflow-hidden border-b border-[#241A1D]/7">
-        <div className="absolute -left-36 top-0 size-[430px] rounded-full bg-[#E8B4B8]/25 blur-3xl" />
-
-        <div className="absolute -right-32 bottom-0 size-[430px] rounded-full bg-[#C9A36A]/15 blur-3xl" />
-
-        <div className="relative mx-auto max-w-7xl px-5 py-20 lg:px-8 lg:py-28">
-          <div className="max-w-4xl">
-            <div className="inline-flex items-center gap-2 rounded-full border border-[#B8899A]/20 bg-white px-4 py-2 text-xs font-semibold uppercase tracking-[0.2em] text-[#956B7B] shadow-sm">
-              <BadgePercent className="size-4" />
-
-              Promotions
-            </div>
-
-            <h1 className="mt-7 font-serif text-5xl leading-[1.02] text-[#241A1D] sm:text-6xl lg:text-7xl">
-              Des offres pensées pour
-              <span className="text-[#B8899A]">
-                {" "}
-                vous faire plaisir.
-              </span>
-            </h1>
-
-            <p className="mt-7 max-w-2xl text-base leading-8 text-[#75636A] sm:text-lg">
-              Retrouvez les promotions actuellement disponibles
-              ainsi que les prochaines offres programmées au salon.
-            </p>
-
-            <div className="mt-8 flex flex-wrap gap-3">
-              <span className="rounded-full bg-white px-5 py-3 text-sm font-semibold text-[#241A1D] shadow-sm">
-                {data.statistics.activeCount} offre
-                {data.statistics.activeCount !==
-                1
-                  ? "s"
-                  : ""}{" "}
-                en cours
-              </span>
-
-              <span className="rounded-full bg-white px-5 py-3 text-sm font-semibold text-[#241A1D] shadow-sm">
-                {data.statistics.upcomingCount} offre
-                {data.statistics.upcomingCount !==
-                1
-                  ? "s"
-                  : ""}{" "}
-                à venir
-              </span>
-            </div>
-          </div>
-        </div>
-      </section>
+      <PromotionsHero
+        activeCount={data.statistics.activeCount}
+        upcomingCount={data.statistics.upcomingCount}
+      />
 
       {/* ------------------------------------------------------------------ */}
-      {/*                         PROMOTIONS ACTIVES                          */}
-      {/* ------------------------------------------------------------------ */}
 
-      <section className="mx-auto max-w-7xl px-5 py-16 lg:px-8 lg:py-24">
+      <section
+        id="active-promotions"
+        className="mx-auto max-w-7xl scroll-mt-24 px-5 py-16 lg:px-8 lg:py-24"
+      >
         <div>
           <p className="text-xs font-semibold uppercase tracking-[0.25em] text-[#A06F81]">
             Offres disponibles
