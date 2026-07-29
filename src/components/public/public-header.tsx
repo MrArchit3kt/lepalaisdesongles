@@ -1,12 +1,6 @@
 "use client";
 
-import {
-  CalendarDays,
-  Menu,
-  Sparkles,
-  UserRound,
-  X,
-} from "lucide-react";
+import { CalendarDays, Menu, Sparkles, UserRound, X } from "lucide-react";
 
 import Image from "next/image";
 import Link from "next/link";
@@ -47,6 +41,10 @@ const navigation = [
     href: "/concours",
   },
   {
+    label: "Cartes cadeaux",
+    href: "/carte-cadeau",
+  },
+  {
     label: "Contact",
     href: "/contact",
   },
@@ -58,8 +56,7 @@ export function PublicHeader({
 }: PublicHeaderProps) {
   const pathname = usePathname();
 
-  const [menuIsOpen, setMenuIsOpen] =
-    useState(false);
+  const [menuIsOpen, setMenuIsOpen] = useState(false);
 
   function closeMenu() {
     setMenuIsOpen(false);
@@ -68,17 +65,11 @@ export function PublicHeader({
   return (
     <header className="sticky top-0 z-50 border-b border-[#241A1D]/7 bg-[#FFF9F8]/90 backdrop-blur-xl">
       <div className="mx-auto flex h-20 max-w-7xl items-center justify-between px-5 lg:px-8">
-        <Link
-          href="/"
-          className="flex items-center gap-3"
-          onClick={closeMenu}
-        >
+        <Link href="/" className="flex items-center gap-3" onClick={closeMenu}>
           {logoUrl ? (
             <span className="relative block h-12 w-44 sm:w-52">
               <Image
-                src={
-                  logoUrl
-                }
+                src={logoUrl}
                 alt={`Logo ${siteTitle}`}
                 fill
                 priority
@@ -153,21 +144,11 @@ export function PublicHeader({
 
         <button
           type="button"
-          onClick={() =>
-            setMenuIsOpen((current) => !current)
-          }
+          onClick={() => setMenuIsOpen((current) => !current)}
           className="flex size-11 items-center justify-center rounded-full border border-[#241A1D]/10 bg-white text-[#241A1D] lg:hidden"
-          aria-label={
-            menuIsOpen
-              ? "Fermer le menu"
-              : "Ouvrir le menu"
-          }
+          aria-label={menuIsOpen ? "Fermer le menu" : "Ouvrir le menu"}
         >
-          {menuIsOpen ? (
-            <X className="size-5" />
-          ) : (
-            <Menu className="size-5" />
-          )}
+          {menuIsOpen ? <X className="size-5" /> : <Menu className="size-5" />}
         </button>
       </div>
 

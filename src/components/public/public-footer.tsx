@@ -1,13 +1,7 @@
-import {
-  Mail,
-  MapPin,
-  Phone,
-  Sparkles,
-} from "lucide-react";
+import { Mail, MapPin, Phone, Sparkles } from "lucide-react";
 import Link from "next/link";
 
-const INSTAGRAM_URL =
-  "https://www.instagram.com/le_palais_des_ongles71/";
+const INSTAGRAM_URL = "https://www.instagram.com/le_palais_des_ongles71/";
 
 const FACEBOOK_URL =
   "https://www.facebook.com/p/Le-palais-des-ongles-by-Pauline-61573637075857/";
@@ -38,6 +32,10 @@ const links = [
     href: "/reservation",
   },
   {
+    label: "Cartes cadeaux",
+    href: "/carte-cadeau",
+  },
+  {
     label: "Contact",
     href: "/contact",
   },
@@ -55,27 +53,11 @@ function InstagramIcon() {
       strokeLinecap="round"
       strokeLinejoin="round"
     >
-      <rect
-        x="3"
-        y="3"
-        width="18"
-        height="18"
-        rx="5"
-      />
+      <rect x="3" y="3" width="18" height="18" rx="5" />
 
-      <circle
-        cx="12"
-        cy="12"
-        r="4"
-      />
+      <circle cx="12" cy="12" r="4" />
 
-      <circle
-        cx="17.5"
-        cy="6.5"
-        r="1"
-        fill="currentColor"
-        stroke="none"
-      />
+      <circle cx="17.5" cy="6.5" r="1" fill="currentColor" stroke="none" />
     </svg>
   );
 }
@@ -99,22 +81,16 @@ export function PublicFooter() {
       <div className="mx-auto max-w-7xl px-5 py-16 lg:px-8 lg:py-20">
         <div className="grid gap-12 md:grid-cols-2 xl:grid-cols-4">
           <div>
-            <Link
-              href="/"
-              className="inline-flex items-center gap-3"
-            >
+            <Link href="/" className="inline-flex items-center gap-3">
               <span className="flex size-11 items-center justify-center rounded-full border border-white/15 bg-white/10 text-[#E8B4B8]">
                 <Sparkles className="size-5" />
               </span>
 
-              <span className="font-serif text-2xl">
-                Le Palais des Ongles
-              </span>
+              <span className="font-serif text-2xl">Le Palais des Ongles</span>
             </Link>
 
             <p className="mt-6 max-w-sm text-sm leading-7 text-white/60">
-              Un espace dédié à la beauté,
-              à l&apos;élégance et à la créativité
+              Un espace dédié à la beauté, à l&apos;élégance et à la créativité
               jusqu&apos;au bout des ongles.
             </p>
 
@@ -141,18 +117,13 @@ export function PublicFooter() {
             </div>
 
             <p className="mt-5 text-sm leading-7 text-white/60">
-              Retrouvez toutes nos
-              réalisations, nos nouveautés,
-              nos promotions et nos jeux
-              concours sur nos réseaux
-              sociaux.
+              Retrouvez toutes nos réalisations, nos nouveautés, nos promotions
+              et nos jeux concours sur nos réseaux sociaux.
             </p>
           </div>
 
           <div>
-            <h2 className="font-serif text-xl">
-              Navigation
-            </h2>
+            <h2 className="font-serif text-xl">Navigation</h2>
 
             <ul className="mt-5 space-y-3">
               {links.map((link) => (
@@ -169,9 +140,7 @@ export function PublicFooter() {
           </div>
 
           <div>
-            <h2 className="font-serif text-xl">
-              Informations
-            </h2>
+            <h2 className="font-serif text-xl">Informations</h2>
 
             <ul className="mt-5 space-y-4 text-sm text-white/60">
               <li>
@@ -204,9 +173,7 @@ export function PublicFooter() {
           </div>
 
           <div>
-            <h2 className="font-serif text-xl">
-              Nous contacter
-            </h2>
+            <h2 className="font-serif text-xl">Nous contacter</h2>
 
             <ul className="mt-5 space-y-4 text-sm text-white/60">
               <li className="flex gap-3">
@@ -246,13 +213,11 @@ export function PublicFooter() {
 
         <div className="mt-14 flex flex-col gap-4 border-t border-white/10 pt-7 text-xs text-white/40 sm:flex-row sm:items-center sm:justify-between">
           <p>
-            © {new Date().getFullYear()} Le Palais des Ongles.
-            Tous droits réservés.
+            © {new Date().getFullYear()} Le Palais des Ongles. Tous droits
+            réservés.
           </p>
 
-          <p>
-            Site conçu avec soin pour sublimer votre beauté.
-          </p>
+          <p>Site conçu avec soin pour sublimer votre beauté.</p>
         </div>
       </div>
     </footer>

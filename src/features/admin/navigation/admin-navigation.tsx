@@ -1,12 +1,8 @@
 "use client";
 
-import type {
-  ReactNode,
-} from "react";
+import type { ReactNode } from "react";
 
-import type {
-  LucideIcon,
-} from "lucide-react";
+import type { LucideIcon } from "lucide-react";
 
 import Link from "next/link";
 
@@ -32,17 +28,11 @@ import {
   X,
 } from "lucide-react";
 
-import {
-  usePathname,
-} from "next/navigation";
+import { usePathname } from "next/navigation";
 
-import {
-  useState,
-} from "react";
+import { useState } from "react";
 
-import {
-  AdminNotificationCenter,
-} from "@/features/notifications/components/admin-notification-center";
+import { AdminNotificationCenter } from "@/features/notifications/components/admin-notification-center";
 
 /* -------------------------------------------------------------------------- */
 /*                                   TYPES                                    */
@@ -72,179 +62,133 @@ type NavigationItem = {
 
 const MAIN_NAVIGATION: NavigationItem[] = [
   {
-    label:
-      "Tableau de bord",
+    label: "Tableau de bord",
 
-    href:
-      "/admin/dashboard",
+    href: "/admin/dashboard",
 
-    icon:
-      Home,
+    icon: Home,
 
-    exact:
-      true,
+    exact: true,
   },
   {
-    label:
-      "Agenda",
+    label: "Agenda",
 
-    href:
-      "/admin/agenda",
+    href: "/admin/agenda",
 
-    icon:
-      CalendarDays,
+    icon: CalendarDays,
   },
   {
-    label:
-      "Rendez-vous",
-
-    href:
-      "/admin/rendez-vous",
-
-    icon:
-      CalendarClock,
+    label: "Cartes cadeaux",
+    href: "/admin/cartes-cadeaux",
+    icon: Gift,
   },
   {
-    label:
-      "Prestations",
+    label: "Rendez-vous",
 
-    href:
-      "/admin/prestations",
+    href: "/admin/rendez-vous",
 
-    icon:
-      Sparkles,
+    icon: CalendarClock,
   },
   {
-    label:
-      "Galerie",
+    label: "Prestations",
 
-    href:
-      "/admin/galerie",
+    href: "/admin/prestations",
 
-    icon:
-      ImageIcon,
+    icon: Sparkles,
   },
   {
-    label:
-      "Équipe",
+    label: "Galerie",
 
-    href:
-      "/admin/equipe",
+    href: "/admin/galerie",
 
-    icon:
-      UsersRound,
+    icon: ImageIcon,
+  },
+  {
+    label: "Équipe",
+
+    href: "/admin/equipe",
+
+    icon: UsersRound,
   },
 ];
 
 const MARKETING_NAVIGATION: NavigationItem[] = [
   {
-    label:
-      "Promotions",
+    label: "Promotions",
 
-    href:
-      "/admin/promotions",
+    href: "/admin/promotions",
 
-    icon:
-      Tags,
+    icon: Tags,
   },
   {
-    label:
-      "Programme fidélité",
+    label: "Programme fidélité",
 
-    href:
-      "/admin/fidelite",
+    href: "/admin/fidelite",
 
-    icon:
-      Crown,
+    icon: Crown,
 
-    exact:
-      true,
+    exact: true,
   },
   {
-    label:
-      "Membres VIP",
+    label: "Membres VIP",
 
-    href:
-      "/admin/fidelite/membres",
+    href: "/admin/fidelite/membres",
 
-    icon:
-      UsersRound,
+    icon: UsersRound,
   },
   {
-    label:
-      "Niveaux VIP",
+    label: "Niveaux VIP",
 
-    href:
-      "/admin/fidelite/niveaux",
+    href: "/admin/fidelite/niveaux",
 
-    icon:
-      Star,
+    icon: Star,
   },
   {
-    label:
-      "Récompenses VIP",
+    label: "Récompenses VIP",
 
-    href:
-      "/admin/fidelite/recompenses",
+    href: "/admin/fidelite/recompenses",
 
-    icon:
-      Gift,
+    icon: Gift,
   },
   {
-    label:
-      "Automatisations VIP",
+    label: "Automatisations VIP",
 
-    href:
-      "/admin/fidelite/automatisations",
+    href: "/admin/fidelite/automatisations",
 
-    icon:
-      Settings2,
+    icon: Settings2,
   },
   {
-    label:
-      "Concours",
+    label: "Concours",
 
-    href:
-      "/admin/concours",
+    href: "/admin/concours",
 
-    icon:
-      Trophy,
+    icon: Trophy,
   },
 ];
 
 const HOURS_NAVIGATION: NavigationItem[] = [
   {
-    label:
-      "Horaires du salon",
+    label: "Horaires du salon",
 
-    href:
-      "/admin/horaires",
+    href: "/admin/horaires",
 
-    icon:
-      Clock3,
+    icon: Clock3,
 
-    exact:
-      true,
+    exact: true,
   },
   {
-    label:
-      "Horaires de l’équipe",
+    label: "Horaires de l’équipe",
 
-    href:
-      "/admin/horaires/equipe",
+    href: "/admin/horaires/equipe",
 
-    icon:
-      UserRound,
+    icon: UserRound,
   },
   {
-    label:
-      "Absences et exceptions",
+    label: "Absences et exceptions",
 
-    href:
-      "/admin/horaires/exceptions",
+    href: "/admin/horaires/exceptions",
 
-    icon:
-      CalendarClock,
+    icon: CalendarClock,
   },
 ];
 
@@ -252,69 +196,32 @@ const HOURS_NAVIGATION: NavigationItem[] = [
 /*                                  HELPERS                                   */
 /* -------------------------------------------------------------------------- */
 
-function isItemActive(
-  pathname: string,
-  item: NavigationItem,
-): boolean {
-  if (
-    item.exact
-  ) {
-    return (
-      pathname ===
-      item.href
-    );
+function isItemActive(pathname: string, item: NavigationItem): boolean {
+  if (item.exact) {
+    return pathname === item.href;
   }
 
-  return (
-    pathname ===
-      item.href ||
-    pathname.startsWith(
-      `${item.href}/`,
-    )
-  );
+  return pathname === item.href || pathname.startsWith(`${item.href}/`);
 }
 
-function getInitials(
-  firstName: string,
-  lastName: string,
-): string {
-  const firstInitial =
-    firstName
-      .trim()
-      .charAt(
-        0,
-      );
+function getInitials(firstName: string, lastName: string): string {
+  const firstInitial = firstName.trim().charAt(0);
 
-  const lastInitial =
-    lastName
-      .trim()
-      .charAt(
-        0,
-      );
+  const lastInitial = lastName.trim().charAt(0);
 
-  return (
-    `${firstInitial}${lastInitial}`
-      .toUpperCase() ||
-    "A"
-  );
+  return `${firstInitial}${lastInitial}`.toUpperCase() || "A";
 }
 
 /* -------------------------------------------------------------------------- */
 /*                              LOGO DU SALON                                 */
 /* -------------------------------------------------------------------------- */
 
-function SalonLogo({
-  compact = false,
-}: {
-  compact?: boolean;
-}) {
+function SalonLogo({ compact = false }: { compact?: boolean }) {
   return (
     <Link
       href="/admin/dashboard"
       className={`group flex min-w-0 items-center gap-3 ${
-        compact
-          ? "lg:justify-center"
-          : ""
+        compact ? "lg:justify-center" : ""
       }`}
     >
       <span className="relative grid size-12 shrink-0 place-items-center rounded-[1.1rem] bg-gradient-to-br from-[#C97992] via-[#B45F7A] to-[#843F59] text-white shadow-[0_12px_30px_rgba(132,63,89,0.28)] transition duration-300 group-hover:-translate-y-0.5 group-hover:shadow-[0_16px_34px_rgba(132,63,89,0.34)]">
@@ -323,13 +230,7 @@ function SalonLogo({
         <span className="absolute -right-1 -top-1 size-3 rounded-full border-2 border-[#FFFDFC] bg-[#D6B679]" />
       </span>
 
-      <span
-        className={`min-w-0 ${
-          compact
-            ? "lg:hidden"
-            : ""
-        }`}
-      >
+      <span className={`min-w-0 ${compact ? "lg:hidden" : ""}`}>
         <span className="block truncate font-serif text-[1.05rem] font-semibold text-[#2F2027]">
           Le Palais des Ongles
         </span>
@@ -346,34 +247,15 @@ function SalonLogo({
 /*                              COMPOSANT                                     */
 /* -------------------------------------------------------------------------- */
 
-export function AdminNavigation({
-  user,
-  children,
-}: AdminNavigationProps) {
-  const pathname =
-    usePathname();
+export function AdminNavigation({ user, children }: AdminNavigationProps) {
+  const pathname = usePathname();
 
-  const [
-    mobileOpen,
-    setMobileOpen,
-  ] =
-    useState(
-      false,
-    );
+  const [mobileOpen, setMobileOpen] = useState(false);
 
-  const [
-    collapsed,
-    setCollapsed,
-  ] =
-    useState(
-      false,
-    );
+  const [collapsed, setCollapsed] = useState(false);
 
-  function closeMobileMenu():
-    void {
-    setMobileOpen(
-      false,
-    );
+  function closeMobileMenu(): void {
+    setMobileOpen(false);
   }
 
   return (
@@ -400,18 +282,11 @@ export function AdminNavigation({
         <SalonLogo />
 
         <div className="flex items-center gap-2">
-          <span
-            aria-hidden="true"
-            className="size-10"
-          />
+          <span aria-hidden="true" className="size-10" />
 
           <button
             type="button"
-            onClick={() =>
-              setMobileOpen(
-                true,
-              )
-            }
+            onClick={() => setMobileOpen(true)}
             className="grid size-11 place-items-center rounded-2xl border border-[#EFDDE3] bg-white text-[#843F59] shadow-sm transition hover:border-[#DDBAC5] hover:bg-[#FFF4F7]"
             aria-label="Ouvrir le menu"
           >
@@ -428,9 +303,7 @@ export function AdminNavigation({
         <button
           type="button"
           aria-label="Fermer le menu"
-          onClick={
-            closeMobileMenu
-          }
+          onClick={closeMobileMenu}
           className="fixed inset-0 z-40 bg-[#2F2027]/55 backdrop-blur-sm lg:hidden"
         />
       ) : null}
@@ -441,35 +314,21 @@ export function AdminNavigation({
 
       <aside
         className={`fixed inset-y-0 left-0 z-50 flex flex-col border-r border-[#EFDDE3] bg-[#FFFDFC]/98 shadow-[18px_0_50px_rgba(75,35,51,0.12)] backdrop-blur-xl transition-all duration-300 lg:z-40 lg:shadow-[8px_0_40px_rgba(75,35,51,0.05)] ${
-          mobileOpen
-            ? "translate-x-0"
-            : "-translate-x-full lg:translate-x-0"
-        } ${
-          collapsed
-            ? "lg:w-24"
-            : "w-[310px] lg:w-72"
-        }`}
+          mobileOpen ? "translate-x-0" : "-translate-x-full lg:translate-x-0"
+        } ${collapsed ? "lg:w-24" : "w-[310px] lg:w-72"}`}
       >
         {/* Logo */}
 
         <div
           className={`flex h-[88px] items-center border-b border-[#F1E2E7] px-5 ${
-            collapsed
-              ? "lg:justify-center lg:px-3"
-              : "justify-between"
+            collapsed ? "lg:justify-center lg:px-3" : "justify-between"
           }`}
         >
-          <SalonLogo
-            compact={
-              collapsed
-            }
-          />
+          <SalonLogo compact={collapsed} />
 
           <button
             type="button"
-            onClick={
-              closeMobileMenu
-            }
+            onClick={closeMobileMenu}
             className="grid size-10 place-items-center rounded-2xl text-[#8E747E] transition hover:bg-[#FFF1F5] hover:text-[#843F59] lg:hidden"
             aria-label="Fermer le menu"
           >
@@ -482,85 +341,46 @@ export function AdminNavigation({
         <nav className="flex-1 overflow-y-auto px-3 py-5 [scrollbar-color:#E8B4C0_transparent] [scrollbar-width:thin]">
           <NavigationSection
             title="Gestion du salon"
-            items={
-              MAIN_NAVIGATION
-            }
-            pathname={
-              pathname
-            }
-            collapsed={
-              collapsed
-            }
-            onNavigate={
-              closeMobileMenu
-            }
+            items={MAIN_NAVIGATION}
+            pathname={pathname}
+            collapsed={collapsed}
+            onNavigate={closeMobileMenu}
           />
 
           <NavigationSection
             title="Marketing & fidélité"
-            items={
-              MARKETING_NAVIGATION
-            }
-            pathname={
-              pathname
-            }
-            collapsed={
-              collapsed
-            }
-            onNavigate={
-              closeMobileMenu
-            }
+            items={MARKETING_NAVIGATION}
+            pathname={pathname}
+            collapsed={collapsed}
+            onNavigate={closeMobileMenu}
           />
 
           <NavigationSection
             title="Disponibilités"
-            items={
-              HOURS_NAVIGATION
-            }
-            pathname={
-              pathname
-            }
-            collapsed={
-              collapsed
-            }
-            onNavigate={
-              closeMobileMenu
-            }
+            items={HOURS_NAVIGATION}
+            pathname={pathname}
+            collapsed={collapsed}
+            onNavigate={closeMobileMenu}
           />
 
           <div className="mt-6 border-t border-[#F1E2E7] pt-5">
             <NavigationLink
               item={{
-                label:
-                  "Paramètres",
+                label: "Paramètres",
 
-                href:
-                  "/admin/parametres",
+                href: "/admin/parametres",
 
-                icon:
-                  Settings,
+                icon: Settings,
               }}
-              active={
-                isItemActive(
-                  pathname,
-                  {
-                    label:
-                      "Paramètres",
+              active={isItemActive(pathname, {
+                label: "Paramètres",
 
-                    href:
-                      "/admin/parametres",
+                href: "/admin/parametres",
 
-                    icon:
-                      Settings,
-                  },
-                )
-              }
-              collapsed={
-                collapsed
-              }
-              onNavigate={
-                closeMobileMenu
-              }
+                icon: Settings,
+              })}
+              collapsed={collapsed}
+              onNavigate={closeMobileMenu}
             />
           </div>
         </nav>
@@ -572,9 +392,7 @@ export function AdminNavigation({
         <div className="border-t border-[#F1E2E7] bg-[#FFF9FA] p-3">
           <div
             className={`relative overflow-hidden rounded-[1.35rem] border border-[#EFDDE3] bg-white p-3 shadow-[0_10px_25px_rgba(92,42,60,0.06)] ${
-              collapsed
-                ? "lg:flex lg:justify-center"
-                : ""
+              collapsed ? "lg:flex lg:justify-center" : ""
             }`}
           >
             <div
@@ -584,38 +402,24 @@ export function AdminNavigation({
 
             <div
               className={`relative flex items-center gap-3 ${
-                collapsed
-                  ? "lg:justify-center"
-                  : ""
+                collapsed ? "lg:justify-center" : ""
               }`}
             >
               <div className="grid size-11 shrink-0 place-items-center overflow-hidden rounded-2xl border border-[#E5C8D1] bg-gradient-to-br from-[#F9DCE4] to-[#E8B4C0] text-sm font-black text-[#843F59] shadow-sm">
                 {user.image ? (
                   <img
-                    src={
-                      user.image
-                    }
+                    src={user.image}
                     alt={`${user.firstName} ${user.lastName}`}
                     className="size-full object-cover"
                   />
                 ) : (
-                  getInitials(
-                    user.firstName,
-                    user.lastName,
-                  )
+                  getInitials(user.firstName, user.lastName)
                 )}
               </div>
 
-              <div
-                className={`min-w-0 flex-1 ${
-                  collapsed
-                    ? "lg:hidden"
-                    : ""
-                }`}
-              >
+              <div className={`min-w-0 flex-1 ${collapsed ? "lg:hidden" : ""}`}>
                 <p className="truncate text-sm font-bold text-[#2F2027]">
-                  {user.firstName}{" "}
-                  {user.lastName}
+                  {user.firstName} {user.lastName}
                 </p>
 
                 <p className="mt-0.5 truncate text-xs text-[#8E747E]">
@@ -631,14 +435,7 @@ export function AdminNavigation({
 
           <button
             type="button"
-            onClick={() =>
-              setCollapsed(
-                (
-                  current,
-                ) =>
-                  !current,
-              )
-            }
+            onClick={() => setCollapsed((current) => !current)}
             className="mt-3 hidden h-11 w-full items-center justify-center gap-2 rounded-2xl border border-[#E9D4DB] bg-white text-sm font-semibold text-[#816D75] shadow-sm transition hover:border-[#DDBAC5] hover:bg-[#FFF3F6] hover:text-[#843F59] lg:flex"
           >
             {collapsed ? (
@@ -646,7 +443,6 @@ export function AdminNavigation({
             ) : (
               <>
                 <ChevronLeft className="size-4" />
-
                 Réduire le menu
               </>
             )}
@@ -660,9 +456,7 @@ export function AdminNavigation({
 
       <div
         className={`relative z-10 min-h-screen transition-[padding] duration-300 ${
-          collapsed
-            ? "lg:pl-24"
-            : "lg:pl-72"
+          collapsed ? "lg:pl-24" : "lg:pl-72"
         }`}
       >
         {children}
@@ -694,9 +488,7 @@ function NavigationSection({
     <section className="mb-7">
       <div
         className={`mb-2.5 flex items-center gap-2 px-3 ${
-          collapsed
-            ? "lg:hidden"
-            : ""
+          collapsed ? "lg:hidden" : ""
         }`}
       >
         <span className="h-px w-4 bg-[#D6B679]" />
@@ -707,32 +499,15 @@ function NavigationSection({
       </div>
 
       <div className="space-y-1.5">
-        {items.map(
-          (
-            item,
-          ) => (
-            <NavigationLink
-              key={
-                item.href
-              }
-              item={
-                item
-              }
-              active={
-                isItemActive(
-                  pathname,
-                  item,
-                )
-              }
-              collapsed={
-                collapsed
-              }
-              onNavigate={
-                onNavigate
-              }
-            />
-          ),
-        )}
+        {items.map((item) => (
+          <NavigationLink
+            key={item.href}
+            item={item}
+            active={isItemActive(pathname, item)}
+            collapsed={collapsed}
+            onNavigate={onNavigate}
+          />
+        ))}
       </div>
     </section>
   );
@@ -755,36 +530,19 @@ function NavigationLink({
   collapsed,
   onNavigate,
 }: NavigationLinkProps) {
-  const Icon =
-    item.icon;
+  const Icon = item.icon;
 
   return (
     <Link
-      href={
-        item.href
-      }
-      onClick={
-        onNavigate
-      }
-      title={
-        collapsed
-          ? item.label
-          : undefined
-      }
-      aria-current={
-        active
-          ? "page"
-          : undefined
-      }
+      href={item.href}
+      onClick={onNavigate}
+      title={collapsed ? item.label : undefined}
+      aria-current={active ? "page" : undefined}
       className={`group relative flex min-h-12 items-center gap-3 overflow-hidden rounded-[1rem] px-3 text-sm font-semibold transition-all duration-200 ${
         active
           ? "bg-gradient-to-r from-[#B45F7A] to-[#843F59] text-white shadow-[0_10px_24px_rgba(132,63,89,0.24)]"
           : "text-[#705D65] hover:bg-[#FFF0F4] hover:text-[#843F59]"
-      } ${
-        collapsed
-          ? "lg:justify-center"
-          : ""
-      }`}
+      } ${collapsed ? "lg:justify-center" : ""}`}
     >
       {active ? (
         <>
@@ -810,22 +568,14 @@ function NavigationLink({
         <Icon className="size-[18px]" />
       </span>
 
-      <span
-        className={`relative truncate ${
-          collapsed
-            ? "lg:hidden"
-            : ""
-        }`}
-      >
+      <span className={`relative truncate ${collapsed ? "lg:hidden" : ""}`}>
         {item.label}
       </span>
 
       {active ? (
         <span
           className={`relative ml-auto flex size-5 items-center justify-center ${
-            collapsed
-              ? "lg:hidden"
-              : ""
+            collapsed ? "lg:hidden" : ""
           }`}
         >
           <span className="size-1.5 rounded-full bg-[#F3D79A] shadow-[0_0_8px_rgba(243,215,154,0.9)]" />
@@ -833,9 +583,7 @@ function NavigationLink({
       ) : (
         <ChevronRight
           className={`relative ml-auto size-4 text-[#C7AEB7] opacity-0 transition group-hover:translate-x-0.5 group-hover:opacity-100 ${
-            collapsed
-              ? "lg:hidden"
-              : ""
+            collapsed ? "lg:hidden" : ""
           }`}
         />
       )}
