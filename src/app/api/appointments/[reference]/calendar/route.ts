@@ -1,0 +1,372 @@
+import { getServerSession } from "next-auth";
+import { NextResponse } from "next/server";
+
+import { authOptions } from "@/lib/auth";
+import { prisma } from "@/lib/prisma";
+
+export const runtime = "nodejs";
+export const dynamic = "force-dynamic";
+
+type RouteContext = {
+  params: Promise<{
+    reference: string;
+  }>;
+};
+
+const SALON_NAME = "Le Palais des Ongles";
+const SALON_ADDRESS =
+  "31 route d'Autun, 71140 Maltat, France";
+const SALON_PHONE = "07 49 85 31 88";
+const SALON_EMAIL =
+  "lepalaisdesongles@gmail.com";
+const SALON_WEBSITE =
+  "https://lepalaisdesongles.fr";
+
+function escapeIcsText(value: string): string {
+  return value
+    .replace(/\\/g, "\\\\")
+    .replace(/\r?\n/g, "\\n")
+    .replace(/,/g, "\\,")
+    .replace(/;/g, "\\;");
+}
+
+function formatIcsDate(value: Date): string {
+  return value
+    .toISOString()
+    .replace(/[-:]/g, "")
+    .replace(/\.\d{3}Z$/, "Z");
+}
+
+/**
+ * Les lignes ICS doivent idéalement rester courtes.
+ * Cette fonction replie les lignes longues avec une espace
+ * au début de la ligne suivante.
+ */
+function foldIcsLine(line: string): string {
+  const maximumLength = 73;
+
+  if (line.length <= maximumLength) {
+    return line;
+  }
+
+  const parts: string[] = [];
+  let remaining = line;
+
+  while (remaining.length > maximumLength) {
+    parts.push(
+      remaining.slice(0, maximumLength),
+    );
+
+    remaining = remaining.slice(
+      maximumLength,
+    );
+  }
+
+  parts.push(remaining);
+
+  return parts.join("\r\n ");
+}
+
+function createSafeFilename(
+  reference: string,
+): string {
+  const safeReference = reference.replace(
+    /[^a-zA-Z0-9-_]/g,
+    "-",
+  );
+
+  return `rendez-vous-${safeReference}.ics`;
+}
+
+export async function GET(
+  _request: Request,
+  context: RouteContext,
+) {
+  try {
+    const session =
+      await getServerSession(
+        authOptions,
+      );
+
+    const user =
+      session?.user;
+
+    if (
+      !user?.id ||
+      user.status !== "ACTIVE" ||
+      user.role !== "CLIENT"
+    ) {
+      return NextResponse.json(
+        {
+          error:
+            "Vous devez être connectée pour télécharger ce calendrier.",
+        },
+        {
+          status: 401,
+
+          headers: {
+            "Cache-Control":
+              "private, no-store, no-cache, max-age=0, must-revalidate",
+          },
+        },
+      );
+    }
+
+    const {
+      reference,
+    } =
+      await context.params;
+
+    const cleanReference =
+      reference.trim();
+
+    if (
+      !cleanReference ||
+      cleanReference.length > 80
+    ) {
+      return NextResponse.json(
+        {
+          error:
+            "Référence de rendez-vous manquante",
+        },
+        {
+          status: 400,
+        },
+      );
+    }
+
+    /*
+     * La référence seule ne suffit plus :
+     * le rendez-vous doit appartenir à la
+     * cliente actuellement connectée.
+     */
+    const appointment =
+      await prisma.appointment.findFirst({
+        where: {
+          reference:
+            cleanReference,
+
+          clientId:
+            user.id,
+
+          client: {
+            status:
+              "ACTIVE",
+          },
+        },
+
+        select: {
+          id: true,
+          reference: true,
+          status: true,
+          paymentStatus: true,
+
+          startsAt: true,
+          endsAt: true,
+          updatedAt: true,
+
+          clientComment: true,
+
+          staff: {
+            select: {
+              displayName: true,
+
+              user: {
+                select: {
+                  firstName: true,
+                  lastName: true,
+                },
+              },
+            },
+          },
+
+          services: {
+            orderBy: {
+              sortOrder: "asc",
+            },
+
+            select: {
+              serviceName: true,
+              quantity: true,
+            },
+          },
+        },
+      });
+
+    if (!appointment) {
+      return NextResponse.json(
+        {
+          error: "Rendez-vous introuvable",
+        },
+        {
+          status: 404,
+        },
+      );
+    }
+
+    if (
+      appointment.status === "EXPIRED" ||
+      appointment.status ===
+        "CANCELLED_BY_CLIENT" ||
+      appointment.status ===
+        "CANCELLED_BY_ADMIN" ||
+      appointment.status === "REFUSED"
+    ) {
+      return NextResponse.json(
+        {
+          error:
+            "Ce rendez-vous n'est plus actif",
+        },
+        {
+          status: 410,
+        },
+      );
+    }
+
+    if (
+      appointment.status !== "CONFIRMED"
+    ) {
+      return NextResponse.json(
+        {
+          error:
+            "Le rendez-vous doit être confirmé avant de pouvoir être ajouté au calendrier",
+        },
+        {
+          status: 409,
+        },
+      );
+    }
+
+    const staffName =
+      appointment.staff?.displayName?.trim() ||
+      [
+        appointment.staff?.user.firstName,
+        appointment.staff?.user.lastName,
+      ]
+        .filter(Boolean)
+        .join(" ") ||
+      SALON_NAME;
+
+    const serviceNames =
+      appointment.services.map((service) => {
+        if (service.quantity > 1) {
+          return `${service.serviceName} × ${service.quantity}`;
+        }
+
+        return service.serviceName;
+      });
+
+    const descriptionParts = [
+      `Rendez-vous chez ${SALON_NAME}`,
+      "",
+      `Référence : ${appointment.reference}`,
+      `Prestations : ${serviceNames.join(", ")}`,
+      `Professionnelle : ${staffName}`,
+      "",
+      `Téléphone : ${SALON_PHONE}`,
+      `E-mail : ${SALON_EMAIL}`,
+      `Site : ${SALON_WEBSITE}`,
+      "",
+      "Politique d'annulation : toute annulation effectuée moins de 48 heures avant le rendez-vous entraîne la perte de la somme versée.",
+    ];
+
+    if (appointment.clientComment?.trim()) {
+      descriptionParts.push(
+        "",
+        `Commentaire : ${appointment.clientComment.trim()}`,
+      );
+    }
+
+    const summary =
+      serviceNames.length > 0
+        ? `${SALON_NAME} - ${serviceNames.join(", ")}`
+        : `Rendez-vous - ${SALON_NAME}`;
+
+    const uid =
+      `${appointment.id}@lepalaisdesongles.fr`;
+
+    const lines = [
+      "BEGIN:VCALENDAR",
+      "VERSION:2.0",
+      "CALSCALE:GREGORIAN",
+      "METHOD:PUBLISH",
+      "PRODID:-//Le Palais des Ongles//Reservation//FR",
+      "BEGIN:VEVENT",
+      `UID:${escapeIcsText(uid)}`,
+      `DTSTAMP:${formatIcsDate(new Date())}`,
+      `LAST-MODIFIED:${formatIcsDate(
+        appointment.updatedAt,
+      )}`,
+      `DTSTART:${formatIcsDate(
+        appointment.startsAt,
+      )}`,
+      `DTEND:${formatIcsDate(
+        appointment.endsAt,
+      )}`,
+      `SUMMARY:${escapeIcsText(summary)}`,
+      `DESCRIPTION:${escapeIcsText(
+        descriptionParts.join("\n"),
+      )}`,
+      `LOCATION:${escapeIcsText(
+        SALON_ADDRESS,
+      )}`,
+      `ORGANIZER;CN=${escapeIcsText(
+        SALON_NAME,
+      )}:mailto:${SALON_EMAIL}`,
+      `URL:${SALON_WEBSITE}/reservation/confirmation/${encodeURIComponent(
+        appointment.reference,
+      )}`,
+      "STATUS:CONFIRMED",
+      "TRANSP:OPAQUE",
+      "BEGIN:VALARM",
+      "TRIGGER:-PT24H",
+      "ACTION:DISPLAY",
+      `DESCRIPTION:${escapeIcsText(
+        `Rappel de votre rendez-vous chez ${SALON_NAME}`,
+      )}`,
+      "END:VALARM",
+      "END:VEVENT",
+      "END:VCALENDAR",
+    ];
+
+    const calendarContent = lines
+      .map(foldIcsLine)
+      .join("\r\n")
+      .concat("\r\n");
+
+    return new Response(calendarContent, {
+      status: 200,
+
+      headers: {
+        "Content-Type":
+          "text/calendar; charset=utf-8",
+
+        "Content-Disposition":
+          `attachment; filename="${createSafeFilename(
+            appointment.reference,
+          )}"`,
+
+        "Cache-Control":
+          "private, no-store, max-age=0",
+
+        "X-Content-Type-Options":
+          "nosniff",
+      },
+    });
+  } catch (error) {
+    console.error(
+      "Erreur génération calendrier :",
+      error,
+    );
+
+    return NextResponse.json(
+      {
+        error:
+          "Impossible de générer le fichier calendrier",
+      },
+      {
+        status: 500,
+      },
+    );
+  }
+}

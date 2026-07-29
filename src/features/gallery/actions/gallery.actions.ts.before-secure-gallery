@@ -1,0 +1,171 @@
+"use server";
+
+import { revalidatePath } from "next/cache";
+
+import {
+  createGalleryItem,
+  deleteGalleryItem,
+  toggleFeaturedGalleryItem,
+  togglePublishedGalleryItem,
+  updateGalleryItem,
+} from "@/features/gallery/services/gallery.service";
+
+export type GalleryActionState = {
+  success: boolean;
+  message: string;
+};
+
+function revalidateGallery() {
+  revalidatePath("/galerie");
+  revalidatePath("/admin/galerie");
+}
+
+export async function createGalleryItemAction(
+  _previousState: GalleryActionState,
+  formData: FormData,
+): Promise<GalleryActionState> {
+  try {
+    await createGalleryItem({
+      title: String(formData.get("title") ?? ""),
+      description: String(formData.get("description") ?? "") || null,
+      categoryId: String(formData.get("categoryId") ?? "") || null,
+      serviceName: String(formData.get("serviceName") ?? "") || null,
+      coverUrl: String(formData.get("coverUrl") ?? ""),
+      alt: String(formData.get("alt") ?? "") || null,
+      priceCents: formData.get("priceCents")
+        ? Number(formData.get("priceCents"))
+        : null,
+      durationMinutes: formData.get("durationMinutes")
+        ? Number(formData.get("durationMinutes"))
+        : null,
+      tags: String(formData.get("tags") ?? "")
+        .split(",")
+        .map((tag) => tag.trim())
+        .filter(Boolean),
+      isFeatured: formData.get("isFeatured") === "true",
+      isPublished: formData.get("isPublished") !== "false",
+    });
+
+    revalidateGallery();
+
+    return {
+      success: true,
+      message: "La réalisation a été créée avec succès.",
+    };
+  } catch (error) {
+    console.error(error);
+
+    return {
+      success: false,
+      message: "Impossible de créer la réalisation.",
+    };
+  }
+}
+
+export async function updateGalleryItemAction(
+  id: string,
+  formData: FormData,
+): Promise<GalleryActionState> {
+  try {
+    await updateGalleryItem(id, {
+      title: String(formData.get("title") ?? ""),
+      description: String(formData.get("description") ?? "") || null,
+      categoryId: String(formData.get("categoryId") ?? "") || null,
+      serviceName: String(formData.get("serviceName") ?? "") || null,
+      coverUrl: String(formData.get("coverUrl") ?? ""),
+      alt: String(formData.get("alt") ?? "") || null,
+      priceCents: formData.get("priceCents")
+        ? Number(formData.get("priceCents"))
+        : null,
+      durationMinutes: formData.get("durationMinutes")
+        ? Number(formData.get("durationMinutes"))
+        : null,
+      tags: String(formData.get("tags") ?? "")
+        .split(",")
+        .map((tag) => tag.trim())
+        .filter(Boolean),
+      isFeatured: formData.get("isFeatured") === "true",
+      isPublished: formData.get("isPublished") !== "false",
+    });
+
+    revalidateGallery();
+
+    return {
+      success: true,
+      message: "La réalisation a été mise à jour.",
+    };
+  } catch (error) {
+    console.error(error);
+
+    return {
+      success: false,
+      message: "Impossible de mettre à jour la réalisation.",
+    };
+  }
+}
+
+export async function deleteGalleryItemAction(
+  id: string,
+): Promise<GalleryActionState> {
+  try {
+    await deleteGalleryItem(id);
+
+    revalidateGallery();
+
+    return {
+      success: true,
+      message: "La réalisation a été supprimée.",
+    };
+  } catch (error) {
+    console.error(error);
+
+    return {
+      success: false,
+      message: "Impossible de supprimer la réalisation.",
+    };
+  }
+}
+
+export async function toggleGalleryPublishedAction(
+  id: string,
+): Promise<GalleryActionState> {
+  try {
+    await togglePublishedGalleryItem(id);
+
+    revalidateGallery();
+
+    return {
+      success: true,
+      message: "Le statut de publication a été modifié.",
+    };
+  } catch (error) {
+    console.error(error);
+
+    return {
+      success: false,
+      message: "Impossible de modifier la publication.",
+    };
+  }
+}
+
+export async function toggleGalleryFeaturedAction(
+  id: string,
+): Promise<GalleryActionState> {
+  try {
+    await toggleFeaturedGalleryItem(id);
+
+    revalidateGallery();
+
+    return {
+      success: true,
+      message: "La mise en avant a été modifiée.",
+    };
+  } catch (error) {
+    console.error(error);
+
+    return {
+      success: false,
+      message: "Impossible de modifier la mise en avant.",
+    };
+  }
+}

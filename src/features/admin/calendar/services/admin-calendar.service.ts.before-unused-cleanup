@@ -1,0 +1,2281 @@
+import {
+  AppointmentStatus,
+  DayOfWeek,
+  type Prisma,
+} from "@/generated/prisma/client";
+
+import { prisma } from "@/lib/prisma";
+import { createNotification } from "@/features/notifications/services/notification.service";
+import { systemNotification } from "@/features/notifications/utils/notification-helper";
+import { validateCalendarMove } from "@/features/admin/calendar/services/calendar-move-validation.service";
+
+/**
+ * Fuseau horaire utilisé par le salon.
+ *
+ * Les dates sont stockées en UTC dans PostgreSQL, mais les horaires
+ * d'ouverture et les heures affichées dans l'agenda sont interprétés
+ * dans le fuseau Europe/Paris.
+ */
+const CALENDAR_TIME_ZONE = "Europe/Paris";
+
+const DEFAULT_RANGE_DAYS = 7;
+const MAX_RANGE_DAYS = 62;
+
+const DEFAULT_DAY_START = "08:00";
+const DEFAULT_DAY_END = "20:00";
+const DEFAULT_SLOT_INTERVAL_MINUTES = 15;
+
+const ACTIVE_ADMIN_ROLES = [
+  "SUPER_ADMIN",
+  "ADMIN",
+  "STAFF",
+] as const;
+
+const BLOCKING_STATUSES: AppointmentStatus[] = [
+  AppointmentStatus.PENDING,
+  AppointmentStatus.CONFIRMED,
+  AppointmentStatus.IN_PROGRESS,
+];
+
+const VISIBLE_APPOINTMENT_STATUSES: AppointmentStatus[] = [
+  AppointmentStatus.PENDING,
+  AppointmentStatus.CONFIRMED,
+  AppointmentStatus.IN_PROGRESS,
+  AppointmentStatus.COMPLETED,
+  AppointmentStatus.REFUSED,
+  AppointmentStatus.CANCELLED_BY_CLIENT,
+  AppointmentStatus.CANCELLED_BY_ADMIN,
+  AppointmentStatus.NO_SHOW,
+  AppointmentStatus.EXPIRED,
+];
+
+const DAY_OF_WEEK_BY_NUMBER: Record<number, DayOfWeek> = {
+  1: DayOfWeek.MONDAY,
+  2: DayOfWeek.TUESDAY,
+  3: DayOfWeek.WEDNESDAY,
+  4: DayOfWeek.THURSDAY,
+  5: DayOfWeek.FRIDAY,
+  6: DayOfWeek.SATURDAY,
+  7: DayOfWeek.SUNDAY,
+};
+
+const APPOINTMENT_STATUS_LABELS: Record<AppointmentStatus, string> = {
+  [AppointmentStatus.PENDING]: "En attente",
+  [AppointmentStatus.CONFIRMED]: "Confirmé",
+  [AppointmentStatus.IN_PROGRESS]: "En cours",
+  [AppointmentStatus.COMPLETED]: "Terminé",
+  [AppointmentStatus.REFUSED]: "Refusé",
+  [AppointmentStatus.CANCELLED_BY_CLIENT]: "Annulé par la cliente",
+  [AppointmentStatus.CANCELLED_BY_ADMIN]: "Annulé par le salon",
+  [AppointmentStatus.NO_SHOW]: "Absente",
+  [AppointmentStatus.EXPIRED]: "Expiré",
+};
+
+const APPOINTMENT_STATUS_COLORS: Record<AppointmentStatus, string> = {
+  [AppointmentStatus.PENDING]: "#f59e0b",
+  [AppointmentStatus.CONFIRMED]: "#10b981",
+  [AppointmentStatus.IN_PROGRESS]: "#3b82f6",
+  [AppointmentStatus.COMPLETED]: "#64748b",
+  [AppointmentStatus.REFUSED]: "#ef4444",
+  [AppointmentStatus.CANCELLED_BY_CLIENT]: "#f43f5e",
+  [AppointmentStatus.CANCELLED_BY_ADMIN]: "#be123c",
+  [AppointmentStatus.NO_SHOW]: "#7c3aed",
+  [AppointmentStatus.EXPIRED]: "#94a3b8",
+};
+
+type CalendarEventKind =
+  | "APPOINTMENT"
+  | "STAFF_BREAK"
+  | "STAFF_TIME_OFF"
+  | "STAFF_CLOSED"
+  | "BUSINESS_BREAK"
+  | "BUSINESS_TIME_OFF"
+  | "BUSINESS_CLOSED";
+
+type CalendarEventSource =
+  | "APPOINTMENT"
+  | "STAFF_WORKING_HOUR"
+  | "STAFF_WORKING_HOUR_OVERRIDE"
+  | "STAFF_TIME_OFF"
+  | "WORKING_HOUR"
+  | "WORKING_HOUR_OVERRIDE"
+  | "TIME_OFF";
+
+type CalendarRange = {
+  startsAt: Date;
+  endsAt: Date;
+  startsAtIso: string;
+  endsAtIso: string;
+  numberOfDays: number;
+};
+
+type CalendarStaffResource = {
+  id: string;
+  userId: string;
+  name: string;
+  firstName: string;
+  lastName: string;
+  color: string;
+  isOwner: boolean;
+  isActive: boolean;
+  acceptsOnlineBooking: boolean;
+  slotIntervalMinutes: number;
+  defaultCleanupMinutes: number;
+  sortOrder: number;
+};
+
+type CalendarWorkstationResource = {
+  id: string;
+  name: string;
+  slug: string;
+  description: string | null;
+  color: string;
+  isActive: boolean;
+  availableForBooking: boolean;
+  sortOrder: number;
+};
+
+type CalendarServiceSummary = {
+  id: string;
+  serviceId: string;
+  name: string;
+  quantity: number;
+  unitPriceCents: number;
+  durationMinutes: number;
+  comment: string | null;
+  sortOrder: number;
+};
+
+type CalendarAppointmentImageSummary = {
+  id: string;
+  url: string;
+  fileName: string | null;
+  mimeType: string | null;
+  sizeBytes: number | null;
+};
+
+type CalendarClientSummary = {
+  id: string;
+  firstName: string;
+  lastName: string;
+  fullName: string;
+  email: string;
+  phone: string | null;
+  image: string | null;
+};
+
+type AdminCalendarEvent = {
+  id: string;
+  key: string;
+  kind: CalendarEventKind;
+  source: CalendarEventSource;
+
+  title: string;
+  subtitle: string | null;
+  description: string | null;
+
+  startsAt: string;
+  endsAt: string;
+  allDay: boolean;
+
+  color: string;
+  textColor: string;
+  backgroundColor: string;
+  borderColor: string;
+
+  staffId: string | null;
+  workstationId: string | null;
+  reference: string | null;
+  status: AppointmentStatus | null;
+  statusLabel: string | null;
+
+  draggable: boolean;
+  resizable: boolean;
+  blocking: boolean;
+  editable: boolean;
+
+  client: CalendarClientSummary | null;
+  services: CalendarServiceSummary[];
+  images: CalendarAppointmentImageSummary[];
+
+  totalDurationMinutes: number | null;
+  totalPriceCents: number | null;
+  depositCents: number | null;
+
+  clientComment: string | null;
+  adminComment: string | null;
+  cancellationReason: string | null;
+
+  metadata: Record<string, unknown>;
+};
+
+type CalendarLegacyAppointment = {
+  id: string;
+  reference: string;
+  status: AppointmentStatus;
+  startsAt: string;
+  endsAt: string;
+
+  clientName: string;
+  clientEmail: string;
+  clientPhone: string | null;
+
+  staffId: string | null;
+  staffName: string | null;
+  staffColor: string | null;
+
+  workstationId: string | null;
+  workstationName: string | null;
+
+  serviceNames: string[];
+  images: CalendarAppointmentImageSummary[];
+
+  totalDurationMinutes: number;
+  totalPriceCents: number;
+  depositCents: number;
+
+  clientComment: string | null;
+  adminComment: string | null;
+};
+
+type AdminCalendarPayload = {
+  range: {
+    startsAt: string;
+    endsAt: string;
+    numberOfDays: number;
+    timeZone: string;
+  };
+
+  staff: CalendarStaffResource[];
+  workstations: CalendarWorkstationResource[];
+
+  events: AdminCalendarEvent[];
+
+  /**
+   * Ancien format conservé temporairement afin que le composant actuel
+   * continue de fonctionner pendant la migration.
+   */
+  appointments: CalendarLegacyAppointment[];
+
+  businessHours: {
+    dayStart: string;
+    dayEnd: string;
+    slotIntervalMinutes: number;
+  };
+
+  statistics: {
+    totalAppointments: number;
+    pendingAppointments: number;
+    confirmedAppointments: number;
+    inProgressAppointments: number;
+    completedAppointments: number;
+    cancelledAppointments: number;
+    totalRevenueCents: number;
+    totalBookedMinutes: number;
+  };
+};
+
+type GetAdminCalendarInput = {
+  actorId: string;
+  startsAt?: string | Date | null;
+  endsAt?: string | Date | null;
+  staffId?: string | null;
+  workstationId?: string | null;
+  statuses?: AppointmentStatus[] | null;
+  search?: string | null;
+};
+
+type MoveCalendarAppointmentInput = {
+  reference: string;
+  actorId: string;
+  startsAt: string;
+  endsAt: string;
+  staffId?: string | null;
+  workstationId?: string | null;
+};
+
+type CalendarAppointmentRecord = Prisma.AppointmentGetPayload<{
+  include: {
+    client: {
+      select: {
+        id: true;
+        firstName: true;
+        lastName: true;
+        email: true;
+        phone: true;
+        image: true;
+      };
+    };
+    staff: {
+      include: {
+        user: {
+          select: {
+            firstName: true;
+            lastName: true;
+          };
+        };
+      };
+    };
+    workstation: {
+      select: {
+        id: true;
+        name: true;
+        slug: true;
+        color: true;
+      };
+    };
+    services: {
+      orderBy: {
+        sortOrder: "asc";
+      };
+      select: {
+        id: true;
+        serviceId: true;
+        serviceName: true;
+        unitPriceCents: true;
+        durationMinutes: true;
+        quantity: true;
+        comment: true;
+        sortOrder: true;
+      };
+    };
+
+    images: {
+      select: {
+        id: true;
+        url: true;
+        fileName: true;
+        mimeType: true;
+        sizeBytes: true;
+      };
+    };
+  };
+}>;
+
+type CalendarStaffRecord = Prisma.StaffProfileGetPayload<{
+  include: {
+    user: {
+      select: {
+        firstName: true;
+        lastName: true;
+      };
+    };
+    workingHours: true;
+    overrides: true;
+    timeOffs: true;
+  };
+}>;
+
+type CalendarBusinessData = {
+  workingHours: Awaited<ReturnType<typeof prisma.workingHour.findMany>>;
+  overrides: Awaited<ReturnType<typeof prisma.workingHourOverride.findMany>>;
+  timeOffs: Awaited<ReturnType<typeof prisma.timeOff.findMany>>;
+};
+
+function parseDate(value: string | Date | null | undefined): Date | null {
+  if (!value) {
+    return null;
+  }
+
+  const date = value instanceof Date ? new Date(value) : new Date(value);
+
+  return Number.isNaN(date.getTime()) ? null : date;
+}
+
+function startOfUtcDay(date: Date): Date {
+  const result = new Date(date);
+
+  result.setUTCHours(0, 0, 0, 0);
+
+  return result;
+}
+
+function endOfUtcDay(date: Date): Date {
+  const result = new Date(date);
+
+  result.setUTCHours(23, 59, 59, 999);
+
+  return result;
+}
+
+function addUtcDays(date: Date, amount: number): Date {
+  const result = new Date(date);
+
+  result.setUTCDate(result.getUTCDate() + amount);
+
+  return result;
+}
+
+function differenceInCalendarDays(startsAt: Date, endsAt: Date): number {
+  const start = startOfUtcDay(startsAt).getTime();
+  const end = startOfUtcDay(endsAt).getTime();
+
+  return Math.floor((end - start) / 86_400_000);
+}
+
+function clamp(value: number, minimum: number, maximum: number): number {
+  return Math.min(Math.max(value, minimum), maximum);
+}
+
+function normalizeCalendarRange(input: {
+  startsAt?: string | Date | null;
+  endsAt?: string | Date | null;
+}): CalendarRange {
+  const now = new Date();
+
+  const parsedStart = parseDate(input.startsAt);
+  const parsedEnd = parseDate(input.endsAt);
+
+  const startsAt = startOfUtcDay(parsedStart ?? now);
+
+  const requestedEnd =
+    parsedEnd ??
+    addUtcDays(startsAt, DEFAULT_RANGE_DAYS - 1);
+
+  let endsAt = endOfUtcDay(requestedEnd);
+
+  if (endsAt <= startsAt) {
+    endsAt = endOfUtcDay(
+      addUtcDays(startsAt, DEFAULT_RANGE_DAYS - 1),
+    );
+  }
+
+  const requestedDays =
+    differenceInCalendarDays(startsAt, endsAt) + 1;
+
+  const numberOfDays = clamp(
+    requestedDays,
+    1,
+    MAX_RANGE_DAYS,
+  );
+
+  const limitedEndsAt = endOfUtcDay(
+    addUtcDays(startsAt, numberOfDays - 1),
+  );
+
+  return {
+    startsAt,
+    endsAt: limitedEndsAt,
+    startsAtIso: startsAt.toISOString(),
+    endsAtIso: limitedEndsAt.toISOString(),
+    numberOfDays,
+  };
+}
+
+function isValidTimeString(value: string | null | undefined): value is string {
+  if (!value) {
+    return false;
+  }
+
+  return /^([01]\d|2[0-3]):[0-5]\d$/.test(value);
+}
+
+function splitTime(value: string): {
+  hours: number;
+  minutes: number;
+} {
+  if (!isValidTimeString(value)) {
+    throw new Error(`Heure invalide : ${value}`);
+  }
+
+  const [hours, minutes] = value
+    .split(":")
+    .map((part) => Number.parseInt(part, 10));
+
+  return {
+    hours,
+    minutes,
+  };
+}
+
+function combineDateAndTime(date: Date, time: string): Date {
+  const { hours, minutes } = splitTime(time);
+
+  const result = new Date(date);
+
+  result.setUTCHours(hours, minutes, 0, 0);
+
+  return result;
+}
+
+function getIsoDayNumber(date: Date): number {
+  const nativeDay = date.getUTCDay();
+
+  return nativeDay === 0 ? 7 : nativeDay;
+}
+
+function getDayOfWeek(date: Date): DayOfWeek {
+  return DAY_OF_WEEK_BY_NUMBER[getIsoDayNumber(date)];
+}
+
+function formatPersonName(input: {
+  firstName: string;
+  lastName: string;
+}): string {
+  return `${input.firstName} ${input.lastName}`.trim();
+}
+
+function getStaffDisplayName(input: {
+  displayName: string | null;
+  user: {
+    firstName: string;
+    lastName: string;
+  };
+}): string {
+  const displayName = input.displayName?.trim();
+
+  if (displayName) {
+    return displayName;
+  }
+
+  return formatPersonName(input.user);
+}
+
+function normalizeHexColor(
+  color: string | null | undefined,
+  fallback: string,
+): string {
+  const value = color?.trim();
+
+  if (!value) {
+    return fallback;
+  }
+
+  if (/^#[0-9a-f]{6}$/i.test(value)) {
+    return value;
+  }
+
+  if (/^#[0-9a-f]{3}$/i.test(value)) {
+    const expanded = value
+      .slice(1)
+      .split("")
+      .map((character) => character.repeat(2))
+      .join("");
+
+    return `#${expanded}`;
+  }
+
+  return fallback;
+}
+
+function hexToRgba(hex: string, alpha: number): string {
+  const normalized = normalizeHexColor(hex, "#64748b");
+  const value = normalized.slice(1);
+
+  const red = Number.parseInt(value.slice(0, 2), 16);
+  const green = Number.parseInt(value.slice(2, 4), 16);
+  const blue = Number.parseInt(value.slice(4, 6), 16);
+
+  return `rgba(${red}, ${green}, ${blue}, ${alpha})`;
+}
+
+function rangesOverlap(input: {
+  firstStartsAt: Date;
+  firstEndsAt: Date;
+  secondStartsAt: Date;
+  secondEndsAt: Date;
+}): boolean {
+  return (
+    input.firstStartsAt < input.secondEndsAt &&
+    input.firstEndsAt > input.secondStartsAt
+  );
+}
+
+function clipRange(input: {
+  startsAt: Date;
+  endsAt: Date;
+  minimum: Date;
+  maximum: Date;
+}): {
+  startsAt: Date;
+  endsAt: Date;
+} | null {
+  const startsAt =
+    input.startsAt < input.minimum
+      ? new Date(input.minimum)
+      : new Date(input.startsAt);
+
+  const endsAt =
+    input.endsAt > input.maximum
+      ? new Date(input.maximum)
+      : new Date(input.endsAt);
+
+  if (endsAt <= startsAt) {
+    return null;
+  }
+
+  return {
+    startsAt,
+    endsAt,
+  };
+}
+
+function getAppointmentStatusLabel(
+  status: AppointmentStatus,
+): string {
+  return APPOINTMENT_STATUS_LABELS[status];
+}
+
+function getAppointmentColor(
+  appointment: CalendarAppointmentRecord,
+): string {
+  const staffColor = normalizeHexColor(
+    appointment.staff?.color,
+    "",
+  );
+
+  if (staffColor) {
+    return staffColor;
+  }
+
+  return APPOINTMENT_STATUS_COLORS[appointment.status];
+}
+
+function isAppointmentCancelled(
+  status: AppointmentStatus,
+): boolean {
+  return (
+    status === AppointmentStatus.CANCELLED_BY_CLIENT ||
+    status === AppointmentStatus.CANCELLED_BY_ADMIN ||
+    status === AppointmentStatus.REFUSED ||
+    status === AppointmentStatus.EXPIRED
+  );
+}
+
+function isAppointmentEditable(
+  status: AppointmentStatus,
+): boolean {
+  return BLOCKING_STATUSES.includes(status);
+}
+
+function formatCalendarDate(date: Date): string {
+  return new Intl.DateTimeFormat("fr-FR", {
+    timeZone: CALENDAR_TIME_ZONE,
+    dateStyle: "long",
+    timeStyle: "short",
+  }).format(date);
+}
+
+function createEventKey(
+  kind: CalendarEventKind,
+  id: string,
+  startsAt: Date,
+): string {
+  return `${kind}:${id}:${startsAt.toISOString()}`;
+}
+
+function normalizeSearch(value: string | null | undefined): string {
+  return value
+    ?.trim()
+    .toLocaleLowerCase("fr-FR")
+    .normalize("NFD")
+    .replace(/\p{Diacritic}/gu, "") ?? "";
+}
+
+function containsNormalizedText(
+  source: string | null | undefined,
+  search: string,
+): boolean {
+  if (!search) {
+    return true;
+  }
+
+  const normalizedSource = normalizeSearch(source);
+
+  return normalizedSource.includes(search);
+}
+
+async function assertCalendarActor(actorId: string): Promise<{
+  id: string;
+}> {
+  const actor = await prisma.user.findFirst({
+    where: {
+      id: actorId,
+      role: {
+        in: [...ACTIVE_ADMIN_ROLES],
+      },
+      status: "ACTIVE",
+    },
+    select: {
+      id: true,
+    },
+  });
+
+  if (!actor) {
+    throw new Error("Accès administrateur refusé.");
+  }
+
+  return actor;
+}
+function mapStaffResource(
+  staff: CalendarStaffRecord,
+): CalendarStaffResource {
+  return {
+    id: staff.id,
+    userId: staff.userId,
+    name: getStaffDisplayName(staff),
+    firstName: staff.user.firstName,
+    lastName: staff.user.lastName,
+    color: normalizeHexColor(staff.color, "#ec4899"),
+    isOwner: staff.isOwner,
+    isActive: staff.isActive,
+    acceptsOnlineBooking: staff.acceptsOnlineBooking,
+    slotIntervalMinutes:
+      staff.slotIntervalMinutes > 0
+        ? staff.slotIntervalMinutes
+        : DEFAULT_SLOT_INTERVAL_MINUTES,
+    defaultCleanupMinutes: staff.defaultCleanupMinutes,
+    sortOrder: staff.sortOrder,
+  };
+}
+
+function mapWorkstationResource(
+  workstation: {
+    id: string;
+    name: string;
+    slug: string;
+    description: string | null;
+    color: string | null;
+    isActive: boolean;
+    availableForBooking: boolean;
+    sortOrder: number;
+  },
+): CalendarWorkstationResource {
+  return {
+    id: workstation.id,
+    name: workstation.name,
+    slug: workstation.slug,
+    description: workstation.description,
+    color: normalizeHexColor(workstation.color, "#8b5cf6"),
+    isActive: workstation.isActive,
+    availableForBooking: workstation.availableForBooking,
+    sortOrder: workstation.sortOrder,
+  };
+}
+
+function mapCalendarService(
+  item: CalendarAppointmentRecord["services"][number],
+): CalendarServiceSummary {
+  return {
+    id: item.id,
+    serviceId: item.serviceId,
+    name: item.serviceName,
+    quantity: item.quantity,
+    unitPriceCents: item.unitPriceCents,
+    durationMinutes: item.durationMinutes,
+    comment: item.comment,
+    sortOrder: item.sortOrder,
+  };
+}
+function mapCalendarImage(
+  image: CalendarAppointmentRecord["images"][number],
+): CalendarAppointmentImageSummary {
+  return {
+    id: image.id,
+    url: image.url,
+    fileName: image.fileName,
+    mimeType: image.mimeType,
+    sizeBytes: image.sizeBytes,
+  };
+}
+
+function mapCalendarClient(
+  appointment: CalendarAppointmentRecord,
+): CalendarClientSummary {
+  const client = appointment.client;
+
+  return {
+    id: client.id,
+    firstName: client.firstName,
+    lastName: client.lastName,
+    fullName: formatPersonName(client),
+    email: client.email,
+    phone: client.phone,
+    image: client.image,
+  };
+}
+
+function mapAppointmentEvent(
+  appointment: CalendarAppointmentRecord,
+): AdminCalendarEvent {
+  const client = mapCalendarClient(appointment);
+  const services = appointment.services.map(mapCalendarService);
+  const images =appointment.images.map(mapCalendarImage);
+  const serviceNames = services.map((service) => service.name);
+  const color = getAppointmentColor(appointment);
+  const editable = isAppointmentEditable(appointment.status);
+
+  return {
+    id: appointment.id,
+    key: createEventKey(
+      "APPOINTMENT",
+      appointment.id,
+      appointment.startsAt,
+    ),
+    kind: "APPOINTMENT",
+    source: "APPOINTMENT",
+
+    title: client.fullName,
+    subtitle:
+      serviceNames.length > 0
+        ? serviceNames.join(", ")
+        : "Rendez-vous",
+    description: appointment.clientComment,
+
+    startsAt: appointment.startsAt.toISOString(),
+    endsAt: appointment.endsAt.toISOString(),
+    allDay: false,
+
+    color,
+    textColor: "#ffffff",
+    backgroundColor: hexToRgba(color, 0.18),
+    borderColor: color,
+
+    staffId: appointment.staffId,
+    workstationId: appointment.workstationId,
+    reference: appointment.reference,
+    status: appointment.status,
+    statusLabel: getAppointmentStatusLabel(appointment.status),
+
+    draggable: editable,
+    resizable: editable,
+    blocking: BLOCKING_STATUSES.includes(appointment.status),
+    editable,
+
+    client,
+    services,
+    images,
+
+    totalDurationMinutes: appointment.totalDurationMinutes,
+    totalPriceCents: appointment.totalPriceCents,
+    depositCents: appointment.depositCents,
+
+    clientComment: appointment.clientComment,
+    adminComment: appointment.adminComment,
+    cancellationReason: appointment.cancellationReason,
+
+    metadata: {
+      paymentStatus: appointment.paymentStatus,
+      paymentMethod: appointment.paymentMethod,
+      staffName: appointment.staff
+        ? getStaffDisplayName(appointment.staff)
+        : null,
+      staffColor: appointment.staff?.color ?? null,
+      workstationName: appointment.workstation?.name ?? null,
+      workstationSlug: appointment.workstation?.slug ?? null,
+      createdAt: appointment.createdAt.toISOString(),
+      updatedAt: appointment.updatedAt.toISOString(),
+      confirmedAt: appointment.confirmedAt?.toISOString() ?? null,
+      cancelledAt: appointment.cancelledAt?.toISOString() ?? null,
+      completedAt: appointment.completedAt?.toISOString() ?? null,
+    },
+  };
+}
+
+function mapLegacyAppointment(
+  appointment: CalendarAppointmentRecord,
+): CalendarLegacyAppointment {
+  const clientName = formatPersonName(appointment.client);
+
+  return {
+    id: appointment.id,
+    reference: appointment.reference,
+    status: appointment.status,
+    startsAt: appointment.startsAt.toISOString(),
+    endsAt: appointment.endsAt.toISOString(),
+
+    clientName,
+    clientEmail: appointment.client.email,
+    clientPhone: appointment.client.phone,
+
+    staffId: appointment.staffId,
+    staffName: appointment.staff
+      ? getStaffDisplayName(appointment.staff)
+      : null,
+    staffColor: appointment.staff?.color ?? null,
+
+    workstationId: appointment.workstationId,
+    workstationName: appointment.workstation?.name ?? null,
+
+    serviceNames: appointment.services.map(
+      (service) => service.serviceName,
+    ),
+    images: appointment.images.map(
+      mapCalendarImage,
+    ),
+    totalDurationMinutes: appointment.totalDurationMinutes,
+    totalPriceCents: appointment.totalPriceCents,
+    depositCents: appointment.depositCents,
+
+    clientComment: appointment.clientComment,
+    adminComment: appointment.adminComment,
+  };
+}
+
+function buildStaffBreakEvent(input: {
+  staff: CalendarStaffRecord;
+  date: Date;
+  startsAt: Date;
+  endsAt: Date;
+  source:
+    | "STAFF_WORKING_HOUR"
+    | "STAFF_WORKING_HOUR_OVERRIDE";
+  label?: string | null;
+}): AdminCalendarEvent {
+  const color = normalizeHexColor(input.staff.color, "#ec4899");
+  const staffName = getStaffDisplayName(input.staff);
+
+  return {
+    id: `${input.staff.id}:${input.startsAt.toISOString()}`,
+    key: createEventKey(
+      "STAFF_BREAK",
+      input.staff.id,
+      input.startsAt,
+    ),
+    kind: "STAFF_BREAK",
+    source: input.source,
+
+    title: "Pause",
+    subtitle: staffName,
+    description: input.label ?? null,
+
+    startsAt: input.startsAt.toISOString(),
+    endsAt: input.endsAt.toISOString(),
+    allDay: false,
+
+    color,
+    textColor: "#475569",
+    backgroundColor: "rgba(148, 163, 184, 0.18)",
+    borderColor: color,
+
+    staffId: input.staff.id,
+    workstationId: null,
+    reference: null,
+    status: null,
+    statusLabel: null,
+
+    draggable: false,
+    resizable: false,
+    blocking: true,
+    editable: false,
+
+    client: null,
+    services: [],
+    images: [],
+
+    totalDurationMinutes: Math.round(
+      (input.endsAt.getTime() - input.startsAt.getTime()) / 60_000,
+    ),
+    totalPriceCents: null,
+    depositCents: null,
+
+    clientComment: null,
+    adminComment: null,
+    cancellationReason: null,
+
+    metadata: {
+      staffName,
+      date: input.date.toISOString(),
+    },
+  };
+}
+
+function buildStaffClosedEvent(input: {
+  staff: CalendarStaffRecord;
+  date: Date;
+  source:
+    | "STAFF_WORKING_HOUR"
+    | "STAFF_WORKING_HOUR_OVERRIDE";
+  reason?: string | null;
+}): AdminCalendarEvent {
+  const startsAt = startOfUtcDay(input.date);
+  const endsAt = endOfUtcDay(input.date);
+  const staffName = getStaffDisplayName(input.staff);
+
+  return {
+    id: `${input.staff.id}:${startsAt.toISOString()}`,
+    key: createEventKey(
+      "STAFF_CLOSED",
+      input.staff.id,
+      startsAt,
+    ),
+    kind: "STAFF_CLOSED",
+    source: input.source,
+
+    title: "Indisponible",
+    subtitle: staffName,
+    description: input.reason ?? "Employée non disponible",
+
+    startsAt: startsAt.toISOString(),
+    endsAt: endsAt.toISOString(),
+    allDay: true,
+
+    color: "#94a3b8",
+    textColor: "#475569",
+    backgroundColor: "rgba(148, 163, 184, 0.14)",
+    borderColor: "#94a3b8",
+
+    staffId: input.staff.id,
+    workstationId: null,
+    reference: null,
+    status: null,
+    statusLabel: null,
+
+    draggable: false,
+    resizable: false,
+    blocking: true,
+    editable: false,
+
+    client: null,
+    services: [],
+    images: [],
+
+    totalDurationMinutes: null,
+    totalPriceCents: null,
+    depositCents: null,
+
+    clientComment: null,
+    adminComment: null,
+    cancellationReason: null,
+
+    metadata: {
+      staffName,
+      reason: input.reason ?? null,
+    },
+  };
+}
+
+function buildStaffTimeOffEvent(input: {
+  staff: CalendarStaffRecord;
+  timeOff: CalendarStaffRecord["timeOffs"][number];
+  range: CalendarRange;
+}): AdminCalendarEvent | null {
+  const clipped = clipRange({
+    startsAt: input.timeOff.startsAt,
+    endsAt: input.timeOff.endsAt,
+    minimum: input.range.startsAt,
+    maximum: input.range.endsAt,
+  });
+
+  if (!clipped) {
+    return null;
+  }
+
+  const staffName = getStaffDisplayName(input.staff);
+
+  return {
+    id: input.timeOff.id,
+    key: createEventKey(
+      "STAFF_TIME_OFF",
+      input.timeOff.id,
+      clipped.startsAt,
+    ),
+    kind: "STAFF_TIME_OFF",
+    source: "STAFF_TIME_OFF",
+
+    title: input.timeOff.title,
+    subtitle: staffName,
+    description: input.timeOff.reason,
+
+    startsAt: clipped.startsAt.toISOString(),
+    endsAt: clipped.endsAt.toISOString(),
+    allDay: input.timeOff.allDay,
+
+    color: "#dc2626",
+    textColor: "#7f1d1d",
+    backgroundColor: "rgba(239, 68, 68, 0.16)",
+    borderColor: "#dc2626",
+
+    staffId: input.staff.id,
+    workstationId: null,
+    reference: null,
+    status: null,
+    statusLabel: null,
+
+    draggable: false,
+    resizable: false,
+    blocking: true,
+    editable: false,
+
+    client: null,
+    services: [],
+    images: [],
+
+    totalDurationMinutes: Math.round(
+      (clipped.endsAt.getTime() - clipped.startsAt.getTime()) /
+        60_000,
+    ),
+    totalPriceCents: null,
+    depositCents: null,
+
+    clientComment: null,
+    adminComment: null,
+    cancellationReason: null,
+
+    metadata: {
+      staffName,
+      originalStartsAt: input.timeOff.startsAt.toISOString(),
+      originalEndsAt: input.timeOff.endsAt.toISOString(),
+      reason: input.timeOff.reason,
+    },
+  };
+}
+
+function buildBusinessBreakEvent(input: {
+  date: Date;
+  startsAt: Date;
+  endsAt: Date;
+  source: "WORKING_HOUR" | "WORKING_HOUR_OVERRIDE";
+  label?: string | null;
+}): AdminCalendarEvent {
+  return {
+    id: `business-break:${input.startsAt.toISOString()}`,
+    key: createEventKey(
+      "BUSINESS_BREAK",
+      "business",
+      input.startsAt,
+    ),
+    kind: "BUSINESS_BREAK",
+    source: input.source,
+
+    title: "Pause du salon",
+    subtitle: null,
+    description: input.label ?? null,
+
+    startsAt: input.startsAt.toISOString(),
+    endsAt: input.endsAt.toISOString(),
+    allDay: false,
+
+    color: "#64748b",
+    textColor: "#475569",
+    backgroundColor: "rgba(100, 116, 139, 0.14)",
+    borderColor: "#64748b",
+
+    staffId: null,
+    workstationId: null,
+    reference: null,
+    status: null,
+    statusLabel: null,
+
+    draggable: false,
+    resizable: false,
+    blocking: true,
+    editable: false,
+
+    client: null,
+    services: [],
+    images: [],
+
+    totalDurationMinutes: Math.round(
+      (input.endsAt.getTime() - input.startsAt.getTime()) / 60_000,
+    ),
+    totalPriceCents: null,
+    depositCents: null,
+
+    clientComment: null,
+    adminComment: null,
+    cancellationReason: null,
+
+    metadata: {
+      date: input.date.toISOString(),
+    },
+  };
+}
+
+function buildBusinessClosedEvent(input: {
+  date: Date;
+  source: "WORKING_HOUR" | "WORKING_HOUR_OVERRIDE";
+  reason?: string | null;
+}): AdminCalendarEvent {
+  const startsAt = startOfUtcDay(input.date);
+  const endsAt = endOfUtcDay(input.date);
+
+  return {
+    id: `business-closed:${startsAt.toISOString()}`,
+    key: createEventKey(
+      "BUSINESS_CLOSED",
+      "business",
+      startsAt,
+    ),
+    kind: "BUSINESS_CLOSED",
+    source: input.source,
+
+    title: "Salon fermé",
+    subtitle: null,
+    description: input.reason ?? "Fermeture du salon",
+
+    startsAt: startsAt.toISOString(),
+    endsAt: endsAt.toISOString(),
+    allDay: true,
+
+    color: "#991b1b",
+    textColor: "#7f1d1d",
+    backgroundColor: "rgba(153, 27, 27, 0.14)",
+    borderColor: "#991b1b",
+
+    staffId: null,
+    workstationId: null,
+    reference: null,
+    status: null,
+    statusLabel: null,
+
+    draggable: false,
+    resizable: false,
+    blocking: true,
+    editable: false,
+
+    client: null,
+    services: [],
+    images: [],
+
+    totalDurationMinutes: null,
+    totalPriceCents: null,
+    depositCents: null,
+
+    clientComment: null,
+    adminComment: null,
+    cancellationReason: null,
+
+    metadata: {
+      reason: input.reason ?? null,
+    },
+  };
+}
+
+function buildBusinessTimeOffEvent(input: {
+  timeOff: CalendarBusinessData["timeOffs"][number];
+  range: CalendarRange;
+}): AdminCalendarEvent | null {
+  const clipped = clipRange({
+    startsAt: input.timeOff.startsAt,
+    endsAt: input.timeOff.endsAt,
+    minimum: input.range.startsAt,
+    maximum: input.range.endsAt,
+  });
+
+  if (!clipped) {
+    return null;
+  }
+
+  return {
+    id: input.timeOff.id,
+    key: createEventKey(
+      "BUSINESS_TIME_OFF",
+      input.timeOff.id,
+      clipped.startsAt,
+    ),
+    kind: "BUSINESS_TIME_OFF",
+    source: "TIME_OFF",
+
+    title: input.timeOff.title,
+    subtitle: "Salon",
+    description: input.timeOff.reason,
+
+    startsAt: clipped.startsAt.toISOString(),
+    endsAt: clipped.endsAt.toISOString(),
+    allDay: input.timeOff.allDay,
+
+    color: "#7f1d1d",
+    textColor: "#7f1d1d",
+    backgroundColor: "rgba(127, 29, 29, 0.15)",
+    borderColor: "#7f1d1d",
+
+    staffId: null,
+    workstationId: null,
+    reference: null,
+    status: null,
+    statusLabel: null,
+
+    draggable: false,
+    resizable: false,
+    blocking: true,
+    editable: false,
+
+    client: null,
+    services: [],
+    images: [],
+
+    totalDurationMinutes: Math.round(
+      (clipped.endsAt.getTime() - clipped.startsAt.getTime()) /
+        60_000,
+    ),
+    totalPriceCents: null,
+    depositCents: null,
+
+    clientComment: null,
+    adminComment: null,
+    cancellationReason: null,
+
+    metadata: {
+      originalStartsAt: input.timeOff.startsAt.toISOString(),
+      originalEndsAt: input.timeOff.endsAt.toISOString(),
+      reason: input.timeOff.reason,
+    },
+  };
+}
+
+async function loadCalendarAppointments(input: {
+  range: CalendarRange;
+  staffId?: string | null;
+  workstationId?: string | null;
+  statuses?: AppointmentStatus[] | null;
+}): Promise<CalendarAppointmentRecord[]> {
+  const statuses =
+    input.statuses && input.statuses.length > 0
+      ? input.statuses
+      : VISIBLE_APPOINTMENT_STATUSES;
+
+  return prisma.appointment.findMany({
+    where: {
+      startsAt: {
+        lt: input.range.endsAt,
+      },
+      endsAt: {
+        gt: input.range.startsAt,
+      },
+      status: {
+        in: statuses,
+      },
+      ...(input.staffId
+        ? {
+            staffId: input.staffId,
+          }
+        : {}),
+      ...(input.workstationId
+        ? {
+            workstationId: input.workstationId,
+          }
+        : {}),
+    },
+    include: {
+      client: {
+        select: {
+          id: true,
+          firstName: true,
+          lastName: true,
+          email: true,
+          phone: true,
+          image: true,
+        },
+      },
+      staff: {
+        include: {
+          user: {
+            select: {
+              firstName: true,
+              lastName: true,
+            },
+          },
+        },
+      },
+      workstation: {
+        select: {
+          id: true,
+          name: true,
+          slug: true,
+          color: true,
+        },
+      },
+      services: {
+        orderBy: {
+          sortOrder: "asc",
+        },
+        select: {
+          id: true,
+          serviceId: true,
+          serviceName: true,
+          unitPriceCents: true,
+          durationMinutes: true,
+          quantity: true,
+          comment: true,
+          sortOrder: true,
+        },
+      },
+      images: {
+        select: {
+          id: true,
+          url: true,
+          fileName: true,
+          mimeType: true,
+          sizeBytes: true,
+        },
+        orderBy: {
+          createdAt: "asc",
+        },
+      },
+    },
+    orderBy: [
+      {
+        startsAt: "asc",
+      },
+      {
+        createdAt: "asc",
+      },
+    ],
+  });
+}
+
+async function loadCalendarStaff(input: {
+  range: CalendarRange;
+  staffId?: string | null;
+}): Promise<CalendarStaffRecord[]> {
+  return prisma.staffProfile.findMany({
+    where: {
+      isActive: true,
+      ...(input.staffId
+        ? {
+            id: input.staffId,
+          }
+        : {}),
+    },
+    include: {
+      user: {
+        select: {
+          firstName: true,
+          lastName: true,
+        },
+      },
+      workingHours: true,
+      overrides: {
+        where: {
+          date: {
+            gte: startOfUtcDay(input.range.startsAt),
+            lte: startOfUtcDay(input.range.endsAt),
+          },
+        },
+        orderBy: {
+          date: "asc",
+        },
+      },
+      timeOffs: {
+        where: {
+          startsAt: {
+            lt: input.range.endsAt,
+          },
+          endsAt: {
+            gt: input.range.startsAt,
+          },
+        },
+        orderBy: {
+          startsAt: "asc",
+        },
+      },
+    },
+    orderBy: [
+      {
+        sortOrder: "asc",
+      },
+      {
+        createdAt: "asc",
+      },
+    ],
+  });
+}
+
+async function loadCalendarWorkstations(input: {
+  workstationId?: string | null;
+}): Promise<CalendarWorkstationResource[]> {
+  const workstations = await prisma.workstation.findMany({
+    where: {
+      isActive: true,
+      ...(input.workstationId
+        ? {
+            id: input.workstationId,
+          }
+        : {}),
+    },
+    select: {
+      id: true,
+      name: true,
+      slug: true,
+      description: true,
+      color: true,
+      isActive: true,
+      availableForBooking: true,
+      sortOrder: true,
+    },
+    orderBy: [
+      {
+        sortOrder: "asc",
+      },
+      {
+        name: "asc",
+      },
+    ],
+  });
+
+  return workstations.map(mapWorkstationResource);
+}
+
+async function loadCalendarBusinessData(
+  range: CalendarRange,
+): Promise<CalendarBusinessData> {
+  const [workingHours, overrides, timeOffs] =
+    await prisma.$transaction([
+      prisma.workingHour.findMany({
+        orderBy: {
+          dayOfWeek: "asc",
+        },
+      }),
+      prisma.workingHourOverride.findMany({
+        where: {
+          date: {
+            gte: startOfUtcDay(range.startsAt),
+            lte: startOfUtcDay(range.endsAt),
+          },
+        },
+        orderBy: {
+          date: "asc",
+        },
+      }),
+      prisma.timeOff.findMany({
+        where: {
+          startsAt: {
+            lt: range.endsAt,
+          },
+          endsAt: {
+            gt: range.startsAt,
+          },
+        },
+        orderBy: {
+          startsAt: "asc",
+        },
+      }),
+    ]);
+
+  return {
+    workingHours,
+    overrides,
+    timeOffs,
+  };
+}
+
+function findStaffOverrideForDate(
+  staff: CalendarStaffRecord,
+  date: Date,
+) {
+  const dateKey = startOfUtcDay(date).getTime();
+
+  return staff.overrides.find(
+    (override) =>
+      startOfUtcDay(override.date).getTime() === dateKey,
+  );
+}
+
+function findStaffWorkingHourForDate(
+  staff: CalendarStaffRecord,
+  date: Date,
+) {
+  const dayOfWeek = getDayOfWeek(date);
+
+  return staff.workingHours.find(
+    (workingHour) => workingHour.dayOfWeek === dayOfWeek,
+  );
+}
+
+function findBusinessOverrideForDate(
+  businessData: CalendarBusinessData,
+  date: Date,
+) {
+  const dateKey = startOfUtcDay(date).getTime();
+
+  return businessData.overrides.find(
+    (override) =>
+      startOfUtcDay(override.date).getTime() === dateKey,
+  );
+}
+
+function findBusinessWorkingHourForDate(
+  businessData: CalendarBusinessData,
+  date: Date,
+) {
+  const dayOfWeek = getDayOfWeek(date);
+
+  return businessData.workingHours.find(
+    (workingHour) => workingHour.dayOfWeek === dayOfWeek,
+  );
+}
+
+function buildStaffScheduleEvents(input: {
+  staff: CalendarStaffRecord[];
+  range: CalendarRange;
+}): AdminCalendarEvent[] {
+  const events: AdminCalendarEvent[] = [];
+
+  for (const staff of input.staff) {
+    for (
+      let cursor = startOfUtcDay(input.range.startsAt);
+      cursor <= input.range.endsAt;
+      cursor = addUtcDays(cursor, 1)
+    ) {
+      const date = new Date(cursor);
+      const override = findStaffOverrideForDate(staff, date);
+      const regularWorkingHour =
+        findStaffWorkingHourForDate(staff, date);
+
+      if (override) {
+        if (!override.isOpen) {
+          events.push(
+            buildStaffClosedEvent({
+              staff,
+              date,
+              source: "STAFF_WORKING_HOUR_OVERRIDE",
+              reason: override.reason,
+            }),
+          );
+
+          continue;
+        }
+
+        if (
+          override.hasBreak &&
+          isValidTimeString(override.breakStart) &&
+          isValidTimeString(override.breakEnd)
+        ) {
+          const startsAt = combineDateAndTime(
+            date,
+            override.breakStart,
+          );
+          const endsAt = combineDateAndTime(
+            date,
+            override.breakEnd,
+          );
+
+          if (endsAt > startsAt) {
+            events.push(
+              buildStaffBreakEvent({
+                staff,
+                date,
+                startsAt,
+                endsAt,
+                source: "STAFF_WORKING_HOUR_OVERRIDE",
+                label: override.reason,
+              }),
+            );
+          }
+        }
+
+        continue;
+      }
+
+      if (!regularWorkingHour?.isOpen) {
+        events.push(
+          buildStaffClosedEvent({
+            staff,
+            date,
+            source: "STAFF_WORKING_HOUR",
+          }),
+        );
+
+        continue;
+      }
+
+      if (
+        regularWorkingHour.hasBreak &&
+        isValidTimeString(regularWorkingHour.breakStart) &&
+        isValidTimeString(regularWorkingHour.breakEnd)
+      ) {
+        const startsAt = combineDateAndTime(
+          date,
+          regularWorkingHour.breakStart,
+        );
+        const endsAt = combineDateAndTime(
+          date,
+          regularWorkingHour.breakEnd,
+        );
+
+        if (endsAt > startsAt) {
+          events.push(
+            buildStaffBreakEvent({
+              staff,
+              date,
+              startsAt,
+              endsAt,
+              source: "STAFF_WORKING_HOUR",
+            }),
+          );
+        }
+      }
+    }
+
+    for (const timeOff of staff.timeOffs) {
+      const event = buildStaffTimeOffEvent({
+        staff,
+        timeOff,
+        range: input.range,
+      });
+
+      if (event) {
+        events.push(event);
+      }
+    }
+  }
+
+  return events;
+}
+
+function buildBusinessScheduleEvents(input: {
+  businessData: CalendarBusinessData;
+  range: CalendarRange;
+}): AdminCalendarEvent[] {
+  const events: AdminCalendarEvent[] = [];
+
+  for (
+    let cursor = startOfUtcDay(input.range.startsAt);
+    cursor <= input.range.endsAt;
+    cursor = addUtcDays(cursor, 1)
+  ) {
+    const date = new Date(cursor);
+    const override = findBusinessOverrideForDate(
+      input.businessData,
+      date,
+    );
+    const regularWorkingHour =
+      findBusinessWorkingHourForDate(
+        input.businessData,
+        date,
+      );
+
+    if (override) {
+      if (!override.isOpen) {
+        events.push(
+          buildBusinessClosedEvent({
+            date,
+            source: "WORKING_HOUR_OVERRIDE",
+            reason: override.reason,
+          }),
+        );
+
+        continue;
+      }
+
+      if (
+        isValidTimeString(override.breakStart) &&
+        isValidTimeString(override.breakEnd)
+      ) {
+        const startsAt = combineDateAndTime(
+          date,
+          override.breakStart,
+        );
+        const endsAt = combineDateAndTime(
+          date,
+          override.breakEnd,
+        );
+
+        if (endsAt > startsAt) {
+          events.push(
+            buildBusinessBreakEvent({
+              date,
+              startsAt,
+              endsAt,
+              source: "WORKING_HOUR_OVERRIDE",
+              label: override.reason,
+            }),
+          );
+        }
+      }
+
+      continue;
+    }
+
+    if (!regularWorkingHour?.isOpen) {
+      events.push(
+        buildBusinessClosedEvent({
+          date,
+          source: "WORKING_HOUR",
+        }),
+      );
+
+      continue;
+    }
+
+    if (
+      isValidTimeString(regularWorkingHour.breakStart) &&
+      isValidTimeString(regularWorkingHour.breakEnd)
+    ) {
+      const startsAt = combineDateAndTime(
+        date,
+        regularWorkingHour.breakStart,
+      );
+      const endsAt = combineDateAndTime(
+        date,
+        regularWorkingHour.breakEnd,
+      );
+
+      if (endsAt > startsAt) {
+        events.push(
+          buildBusinessBreakEvent({
+            date,
+            startsAt,
+            endsAt,
+            source: "WORKING_HOUR",
+          }),
+        );
+      }
+    }
+  }
+
+  for (const timeOff of input.businessData.timeOffs) {
+    const event = buildBusinessTimeOffEvent({
+      timeOff,
+      range: input.range,
+    });
+
+    if (event) {
+      events.push(event);
+    }
+  }
+
+  return events;
+}
+
+function filterAppointmentsBySearch(
+  appointments: CalendarAppointmentRecord[],
+  rawSearch: string | null | undefined,
+): CalendarAppointmentRecord[] {
+  const search = normalizeSearch(rawSearch);
+
+  if (!search) {
+    return appointments;
+  }
+
+  return appointments.filter((appointment) => {
+    const clientName = formatPersonName(appointment.client);
+    const staffName = appointment.staff
+      ? getStaffDisplayName(appointment.staff)
+      : null;
+    const workstationName =
+      appointment.workstation?.name ?? null;
+
+    return (
+      containsNormalizedText(
+        appointment.reference,
+        search,
+      ) ||
+      containsNormalizedText(clientName, search) ||
+      containsNormalizedText(
+        appointment.client.email,
+        search,
+      ) ||
+      containsNormalizedText(
+        appointment.client.phone,
+        search,
+      ) ||
+      containsNormalizedText(staffName, search) ||
+      containsNormalizedText(
+        workstationName,
+        search,
+      ) ||
+      appointment.services.some((service) =>
+        containsNormalizedText(
+          service.serviceName,
+          search,
+        ),
+      )
+    );
+  });
+}
+
+function sortCalendarEvents(
+  events: AdminCalendarEvent[],
+): AdminCalendarEvent[] {
+  return [...events].sort((first, second) => {
+    const startDifference =
+      new Date(first.startsAt).getTime() -
+      new Date(second.startsAt).getTime();
+
+    if (startDifference !== 0) {
+      return startDifference;
+    }
+
+    if (first.allDay !== second.allDay) {
+      return first.allDay ? -1 : 1;
+    }
+
+    return first.title.localeCompare(
+      second.title,
+      "fr-FR",
+    );
+  });
+}
+
+function calculateCalendarStatistics(
+  appointments: CalendarAppointmentRecord[],
+): AdminCalendarPayload["statistics"] {
+  let pendingAppointments = 0;
+  let confirmedAppointments = 0;
+  let inProgressAppointments = 0;
+  let completedAppointments = 0;
+  let cancelledAppointments = 0;
+  let totalRevenueCents = 0;
+  let totalBookedMinutes = 0;
+
+  for (const appointment of appointments) {
+    switch (appointment.status) {
+      case AppointmentStatus.PENDING:
+        pendingAppointments += 1;
+        break;
+
+      case AppointmentStatus.CONFIRMED:
+        confirmedAppointments += 1;
+        break;
+
+      case AppointmentStatus.IN_PROGRESS:
+        inProgressAppointments += 1;
+        break;
+
+      case AppointmentStatus.COMPLETED:
+        completedAppointments += 1;
+        totalRevenueCents += appointment.totalPriceCents;
+        break;
+
+      case AppointmentStatus.REFUSED:
+      case AppointmentStatus.CANCELLED_BY_CLIENT:
+      case AppointmentStatus.CANCELLED_BY_ADMIN:
+      case AppointmentStatus.NO_SHOW:
+      case AppointmentStatus.EXPIRED:
+        cancelledAppointments += 1;
+        break;
+    }
+
+    if (
+      BLOCKING_STATUSES.includes(appointment.status) ||
+      appointment.status === AppointmentStatus.COMPLETED
+    ) {
+      totalBookedMinutes += appointment.totalDurationMinutes;
+    }
+  }
+
+  return {
+    totalAppointments: appointments.length,
+    pendingAppointments,
+    confirmedAppointments,
+    inProgressAppointments,
+    completedAppointments,
+    cancelledAppointments,
+    totalRevenueCents,
+    totalBookedMinutes,
+  };
+}
+
+function calculateBusinessHours(
+  businessData: CalendarBusinessData,
+): AdminCalendarPayload["businessHours"] {
+  const startTimes = businessData.workingHours
+    .filter(
+      (workingHour) =>
+        workingHour.isOpen &&
+        isValidTimeString(workingHour.startTime),
+    )
+    .map((workingHour) => workingHour.startTime as string)
+    .sort();
+
+  const endTimes = businessData.workingHours
+    .filter(
+      (workingHour) =>
+        workingHour.isOpen &&
+        isValidTimeString(workingHour.endTime),
+    )
+    .map((workingHour) => workingHour.endTime as string)
+    .sort();
+
+  return {
+    dayStart: startTimes[0] ?? DEFAULT_DAY_START,
+    dayEnd:
+      endTimes[endTimes.length - 1] ??
+      DEFAULT_DAY_END,
+    slotIntervalMinutes:
+      DEFAULT_SLOT_INTERVAL_MINUTES,
+  };
+}
+
+export async function getAdminCalendar(
+  input: GetAdminCalendarInput,
+): Promise<AdminCalendarPayload> {
+  await assertCalendarActor(input.actorId);
+
+  const range = normalizeCalendarRange({
+    startsAt: input.startsAt,
+    endsAt: input.endsAt,
+  });
+
+  const [
+    rawAppointments,
+    staffRecords,
+    workstations,
+    businessData,
+  ] = await Promise.all([
+    loadCalendarAppointments({
+      range,
+      staffId: input.staffId,
+      workstationId: input.workstationId,
+      statuses: input.statuses,
+    }),
+    loadCalendarStaff({
+      range,
+      staffId: input.staffId,
+    }),
+    loadCalendarWorkstations({
+      workstationId: input.workstationId,
+    }),
+    loadCalendarBusinessData(range),
+  ]);
+
+  const appointments = filterAppointmentsBySearch(
+    rawAppointments,
+    input.search,
+  );
+
+  const appointmentEvents =
+    appointments.map(mapAppointmentEvent);
+
+  const staffScheduleEvents =
+    buildStaffScheduleEvents({
+      staff: staffRecords,
+      range,
+    });
+
+  const businessScheduleEvents =
+    buildBusinessScheduleEvents({
+      businessData,
+      range,
+    });
+
+  const events = sortCalendarEvents([
+    ...appointmentEvents,
+    ...staffScheduleEvents,
+    ...businessScheduleEvents,
+  ]);
+
+  return {
+    range: {
+      startsAt: range.startsAtIso,
+      endsAt: range.endsAtIso,
+      numberOfDays: range.numberOfDays,
+      timeZone: CALENDAR_TIME_ZONE,
+    },
+
+    staff: staffRecords.map(mapStaffResource),
+    workstations,
+
+    events,
+    appointments:
+      appointments.map(mapLegacyAppointment),
+
+    businessHours:
+      calculateBusinessHours(businessData),
+
+    statistics:
+      calculateCalendarStatistics(appointments),
+  };
+}
+
+/* -------------------------------------------------------------------------- */
+/*                           MOVE APPOINTMENT                                  */
+/* -------------------------------------------------------------------------- */
+
+export async function moveCalendarAppointment(input: {
+  reference: string;
+  actorId: string;
+  startsAt: string;
+  endsAt: string;
+  staffId?: string | null;
+  workstationId?: string | null;
+}) {
+  await assertCalendarActor(input.actorId);
+
+  const reference = input.reference.trim();
+
+  if (!reference) {
+    throw new Error("La référence du rendez-vous est obligatoire.");
+  }
+
+  const startsAt = new Date(input.startsAt);
+  const endsAt = new Date(input.endsAt);
+
+  if (
+    Number.isNaN(startsAt.getTime()) ||
+    Number.isNaN(endsAt.getTime())
+  ) {
+    throw new Error("Les dates du rendez-vous sont invalides.");
+  }
+
+  if (endsAt <= startsAt) {
+    throw new Error(
+      "La date de fin doit être postérieure à la date de début.",
+    );
+  }
+
+  const appointment =
+    await prisma.appointment.findUnique({
+      where: {
+        reference,
+      },
+      select: {
+        id: true,
+        reference: true,
+        status: true,
+        staffId: true,
+        workstationId: true,
+      },
+    });
+
+  if (!appointment) {
+    throw new Error("Rendez-vous introuvable.");
+  }
+
+  const movableStatuses = [
+    "PENDING",
+    "CONFIRMED",
+  ] as const;
+
+  if (
+    !movableStatuses.includes(
+      appointment.status as (typeof movableStatuses)[number],
+    )
+  ) {
+    throw new Error(
+      "Ce rendez-vous ne peut plus être déplacé.",
+    );
+  }
+
+  const staffId =
+    input.staffId === undefined
+      ? appointment.staffId
+      : input.staffId;
+
+  const workstationId =
+    input.workstationId === undefined
+      ? appointment.workstationId
+      : input.workstationId;
+
+  if (staffId) {
+    const staff = await prisma.staffProfile.findFirst({
+      where: {
+        id: staffId,
+        isActive: true,
+      },
+      select: {
+        id: true,
+      },
+    });
+
+    if (!staff) {
+      throw new Error(
+        "L'employée sélectionnée est introuvable ou inactive.",
+      );
+    }
+  }
+
+  if (workstationId) {
+    const workstation =
+      await prisma.workstation.findFirst({
+        where: {
+          id: workstationId,
+          isActive: true,
+        },
+        select: {
+          id: true,
+        },
+      });
+
+    if (!workstation) {
+      throw new Error(
+        "Le poste sélectionné est introuvable ou inactif.",
+      );
+    }
+  }
+
+  const conflictConditions = [];
+
+  if (staffId) {
+    conflictConditions.push({
+      staffId,
+    });
+  }
+
+  if (workstationId) {
+    conflictConditions.push({
+      workstationId,
+    });
+  }
+
+  await validateCalendarMove({
+    startsAt,
+    endsAt,
+    staffId,
+  });
+
+  if (conflictConditions.length > 0) {
+    const conflict =
+      await prisma.appointment.findFirst({
+        where: {
+          id: {
+            not: appointment.id,
+          },
+          status: {
+            in: [
+              "PENDING",
+              "CONFIRMED",
+              "IN_PROGRESS",
+            ],
+          },
+          startsAt: {
+            lt: endsAt,
+          },
+          endsAt: {
+            gt: startsAt,
+          },
+          OR: conflictConditions,
+        },
+        select: {
+          reference: true,
+          startsAt: true,
+          endsAt: true,
+          staffId: true,
+          workstationId: true,
+        },
+      });
+
+    if (conflict) {
+      if (
+        staffId &&
+        conflict.staffId === staffId
+      ) {
+        throw new Error(
+          "Cette employée possède déjà un rendez-vous sur ce créneau.",
+        );
+      }
+
+      if (
+        workstationId &&
+        conflict.workstationId === workstationId
+      ) {
+        throw new Error(
+          "Ce poste est déjà utilisé sur ce créneau.",
+        );
+      }
+
+      throw new Error(
+        "Ce créneau est déjà occupé.",
+      );
+    }
+  }
+
+  return prisma.appointment.update({
+    where: {
+      id: appointment.id,
+    },
+    data: {
+      startsAt,
+      endsAt,
+      staffId,
+      workstationId,
+      totalDurationMinutes: Math.ceil(
+        (endsAt.getTime() - startsAt.getTime()) /
+          60_000,
+      ),
+      processedById: input.actorId,
+    },
+  });
+}

@@ -1,0 +1,530 @@
+import Link from "next/link";
+import { notFound } from "next/navigation";
+import {
+  CalendarCheck2,
+  CalendarDays,
+  CheckCircle2,
+  Clock3,
+  CreditCard,
+  Download,
+  Home,
+  MapPin,
+  ReceiptText,
+  UserRound,
+} from "lucide-react";
+
+import { prisma } from "@/lib/prisma";
+
+type ConfirmationPageProps = {
+  params: Promise<{
+    reference: string;
+  }>;
+};
+
+function formatCurrency(cents: number): string {
+  return new Intl.NumberFormat("fr-FR", {
+    style: "currency",
+    currency: "EUR",
+  }).format(cents / 100);
+}
+
+function formatDate(value: Date): string {
+  return new Intl.DateTimeFormat("fr-FR", {
+    timeZone: "Europe/Paris",
+    weekday: "long",
+    day: "numeric",
+    month: "long",
+    year: "numeric",
+  }).format(value);
+}
+
+function formatTime(value: Date): string {
+  return new Intl.DateTimeFormat("fr-FR", {
+    timeZone: "Europe/Paris",
+    hour: "2-digit",
+    minute: "2-digit",
+  }).format(value);
+}
+
+function getStatusContent(
+  status: string,
+  paymentStatus: string,
+  isFullPayment: boolean,
+) {
+  if (status === "CONFIRMED") {
+    return {
+      title: "Votre rendez-vous est confirmé",
+      description:
+        paymentStatus === "PAID"
+          ? isFullPayment
+            ? "Votre paiement intégral a bien été reçu. Votre créneau est définitivement réservé."
+            : "Votre acompte de 35 € a bien été reçu. Votre créneau est définitivement réservé."
+          : "Votre créneau a bien été réservé.",
+      badge: "Rendez-vous confirmé",
+      badgeClass:
+        "border-emerald-200 bg-emerald-50/90 text-emerald-700 shadow-sm",
+      iconClass:
+        "border border-emerald-200 bg-emerald-50 text-emerald-700 shadow-[0_14px_32px_rgba(16,185,129,0.12)]",
+    };
+  }
+
+  if (status === "PENDING") {
+    return {
+      title: "Votre rendez-vous est en attente",
+      description:
+        isFullPayment
+          ? "Votre réservation sera confirmée après le règlement intégral."
+          : "Votre réservation sera confirmée après le règlement de l’acompte de 35 €.",
+      badge: "Paiement en attente",
+      badgeClass:
+        "border-amber-200 bg-amber-50/90 text-amber-700 shadow-sm",
+      iconClass:
+        "border border-amber-200 bg-amber-50 text-amber-700 shadow-[0_14px_32px_rgba(217,119,6,0.12)]",
+    };
+  }
+
+  if (
+    status === "CANCELLED_BY_CLIENT" ||
+    status === "CANCELLED_BY_ADMIN"
+  ) {
+    return {
+      title: "Ce rendez-vous est annulé",
+      description:
+        "Cette réservation n’est plus active. Vous pouvez effectuer une nouvelle demande.",
+      badge: "Rendez-vous annulé",
+      badgeClass:
+        "border-red-200 bg-red-50/90 text-red-700 shadow-sm",
+      iconClass:
+        "border border-red-200 bg-red-50 text-red-700 shadow-[0_14px_32px_rgba(220,38,38,0.10)]",
+    };
+  }
+
+  return {
+    title: "Votre demande a bien été enregistrée",
+    description:
+      "Le salon a bien reçu votre demande de rendez-vous.",
+    badge: "Demande enregistrée",
+    badgeClass:
+      "border-[#E8C3CF] bg-[#FFF8FA] text-[#843F59] shadow-sm",
+    iconClass:
+      "border border-[#E8C3CF] bg-[#FFF3F6] text-[#A5526D] shadow-[0_14px_32px_rgba(132,63,89,0.10)]",
+  };
+}
+
+export default async function ConfirmationPage({
+  params,
+}: ConfirmationPageProps) {
+  const { reference } = await params;
+
+  const appointment =
+    await prisma.appointment.findUnique({
+      where: {
+        reference,
+      },
+
+      select: {
+        id: true,
+        reference: true,
+        status: true,
+        paymentStatus: true,
+        paymentMethod: true,
+
+        startsAt: true,
+        endsAt: true,
+
+        totalPriceCents: true,
+        depositCents: true,
+        paidAt: true,
+
+        client: {
+          select: {
+            firstName: true,
+            lastName: true,
+          },
+        },
+
+        staff: {
+          select: {
+            displayName: true,
+
+            user: {
+              select: {
+                firstName: true,
+                lastName: true,
+              },
+            },
+          },
+        },
+
+        services: {
+          orderBy: {
+            sortOrder: "asc",
+          },
+
+          select: {
+            id: true,
+            serviceName: true,
+            unitPriceCents: true,
+            durationMinutes: true,
+            quantity: true,
+          },
+        },
+      },
+    });
+
+  if (!appointment) {
+    notFound();
+  }
+
+  const isFullPayment =
+    appointment.depositCents ===
+    appointment.totalPriceCents;
+
+  const paidAmountCents =
+    appointment.paymentStatus === "PAID"
+      ? appointment.depositCents
+      : 0;
+
+  const remainingCents = Math.max(
+    appointment.totalPriceCents -
+      paidAmountCents,
+    0,
+  );
+
+  const statusContent = getStatusContent(
+    appointment.status,
+    appointment.paymentStatus,
+    isFullPayment,
+  );
+
+  const clientName = [
+    appointment.client.firstName,
+    appointment.client.lastName,
+  ]
+    .filter(Boolean)
+    .join(" ");
+
+  const staffName =
+    appointment.staff?.displayName?.trim() ||
+    [
+      appointment.staff?.user.firstName,
+      appointment.staff?.user.lastName,
+    ]
+      .filter(Boolean)
+      .join(" ") ||
+    "Le Palais des Ongles";
+
+  const canPay =
+    appointment.status === "PENDING" &&
+    appointment.paymentStatus !== "PAID" &&
+    appointment.depositCents > 0;
+
+  const canDownloadCalendar =
+    appointment.status === "CONFIRMED";
+
+  return (
+    <main className="min-h-screen bg-[linear-gradient(180deg,#FFF8FA_0%,#FFFDFD_46%,#FDF4F7_100%)] px-4 py-10 sm:px-6 lg:py-16">
+      <div className="mx-auto max-w-5xl">
+        <section className="relative overflow-hidden rounded-[2.25rem] border border-[#EFDEE4] bg-white/95 shadow-[0_28px_75px_rgba(85,38,55,0.11)] backdrop-blur">
+          <div className="relative border-b border-[#F0E1E6] bg-gradient-to-br from-white via-[#FFF8FA] to-[#FBECEF] px-6 py-10 text-center sm:px-10 sm:py-12">
+            <div
+              className={`mx-auto flex size-16 items-center justify-center rounded-2xl ${statusContent.iconClass}`}
+            >
+              <CheckCircle2 className="size-8" />
+            </div>
+
+            <span
+              className={`mt-6 inline-flex rounded-full border px-4 py-2 text-[10px] font-black uppercase tracking-[0.15em] ${statusContent.badgeClass}`}
+            >
+              {statusContent.badge}
+            </span>
+
+            <h1 className="mt-5 font-serif text-3xl font-semibold tracking-tight text-[#2F2027] sm:text-4xl lg:text-5xl">
+              {statusContent.title}
+            </h1>
+
+            <p className="mx-auto mt-4 max-w-2xl text-sm leading-7 text-[#816D75] sm:text-base">
+              {statusContent.description}
+            </p>
+
+            <p className="mt-6 inline-flex items-center gap-2 rounded-full border border-[#E8D4DB] bg-white/80 px-4 py-2 text-xs font-medium text-[#816D75] shadow-sm">
+              Référence{" "}
+              <span className="font-black text-[#2F2027]">
+                {appointment.reference}
+              </span>
+            </p>
+          </div>
+
+          <div className="grid gap-8 p-6 sm:p-10 lg:grid-cols-[1.15fr_0.85fr] lg:gap-10">
+            <div>
+              <h2 className="font-serif text-2xl font-semibold tracking-tight text-[#2F2027]">
+                Détails du rendez-vous
+              </h2>
+
+              <div className="mt-5 grid gap-4 sm:grid-cols-2">
+                <div className="flex gap-3 rounded-[1.25rem] border border-[#EFDEE4] bg-gradient-to-br from-white to-[#FFF7F9] p-4 shadow-[0_10px_28px_rgba(85,38,55,0.05)] transition duration-300 hover:-translate-y-0.5 hover:border-[#DDBAC5] hover:shadow-[0_16px_34px_rgba(132,63,89,0.09)]">
+                  <CalendarDays className="mt-0.5 size-5 shrink-0 text-[#A5526D]" />
+
+                  <div>
+                    <p className="text-[10px] font-black uppercase tracking-[0.15em] text-[#A68C96]">
+                      Date
+                    </p>
+
+                    <p className="mt-1 text-sm font-black capitalize leading-6 text-[#2F2027]">
+                      {formatDate(
+                        appointment.startsAt,
+                      )}
+                    </p>
+                  </div>
+                </div>
+
+                <div className="flex gap-3 rounded-[1.25rem] border border-[#EFDEE4] bg-gradient-to-br from-white to-[#FFF7F9] p-4 shadow-[0_10px_28px_rgba(85,38,55,0.05)] transition duration-300 hover:-translate-y-0.5 hover:border-[#DDBAC5] hover:shadow-[0_16px_34px_rgba(132,63,89,0.09)]">
+                  <Clock3 className="mt-0.5 size-5 shrink-0 text-[#A5526D]" />
+
+                  <div>
+                    <p className="text-[10px] font-black uppercase tracking-[0.15em] text-[#A68C96]">
+                      Horaire
+                    </p>
+
+                    <p className="mt-1 text-sm font-black leading-6 text-[#2F2027]">
+                      {formatTime(
+                        appointment.startsAt,
+                      )}
+                      {" – "}
+                      {formatTime(
+                        appointment.endsAt,
+                      )}
+                    </p>
+                  </div>
+                </div>
+
+                <div className="flex gap-3 rounded-[1.25rem] border border-[#EFDEE4] bg-gradient-to-br from-white to-[#FFF7F9] p-4 shadow-[0_10px_28px_rgba(85,38,55,0.05)] transition duration-300 hover:-translate-y-0.5 hover:border-[#DDBAC5] hover:shadow-[0_16px_34px_rgba(132,63,89,0.09)]">
+                  <UserRound className="mt-0.5 size-5 shrink-0 text-[#A5526D]" />
+
+                  <div>
+                    <p className="text-[10px] font-black uppercase tracking-[0.15em] text-[#A68C96]">
+                      Cliente
+                    </p>
+
+                    <p className="mt-1 text-sm font-black leading-6 text-[#2F2027]">
+                      {clientName}
+                    </p>
+                  </div>
+                </div>
+
+                <div className="flex gap-3 rounded-[1.25rem] border border-[#EFDEE4] bg-gradient-to-br from-white to-[#FFF7F9] p-4 shadow-[0_10px_28px_rgba(85,38,55,0.05)] transition duration-300 hover:-translate-y-0.5 hover:border-[#DDBAC5] hover:shadow-[0_16px_34px_rgba(132,63,89,0.09)]">
+                  <CalendarCheck2 className="mt-0.5 size-5 shrink-0 text-[#A5526D]" />
+
+                  <div>
+                    <p className="text-[10px] font-black uppercase tracking-[0.15em] text-[#A68C96]">
+                      Professionnelle
+                    </p>
+
+                    <p className="mt-1 text-sm font-black leading-6 text-[#2F2027]">
+                      {staffName}
+                    </p>
+                  </div>
+                </div>
+              </div>
+
+              <div className="mt-8">
+                <h2 className="font-serif text-2xl font-semibold tracking-tight text-[#2F2027]">
+                  Prestations
+                </h2>
+
+                <div className="mt-4 divide-y divide-[#F0E1E6] overflow-hidden rounded-[1.5rem] border border-[#EFDEE4] bg-gradient-to-br from-white to-[#FFF9FA] px-5 shadow-[0_12px_30px_rgba(85,38,55,0.05)]">
+                  {appointment.services.map(
+                    (service) => (
+                      <div
+                        key={service.id}
+                        className="flex items-start justify-between gap-4 py-4"
+                      >
+                        <div>
+                          <p className="font-black text-[#2F2027]">
+                            {service.serviceName}
+                          </p>
+
+                          <p className="mt-1 text-xs font-medium text-[#8E747E]">
+                            {service.durationMinutes} min
+                            {service.quantity > 1
+                              ? ` × ${service.quantity}`
+                              : ""}
+                          </p>
+                        </div>
+
+                        <p className="shrink-0 rounded-full bg-[#FFF0F4] px-3 py-1.5 text-sm font-black text-[#843F59]">
+                          {formatCurrency(
+                            service.unitPriceCents *
+                              service.quantity,
+                          )}
+                        </p>
+                      </div>
+                    ),
+                  )}
+                </div>
+              </div>
+            </div>
+
+            <aside className="h-fit rounded-[2rem] border border-[#E5C8D1] bg-gradient-to-br from-[#FFFDFD] via-[#FFF7F9] to-[#F8E8ED] p-6 shadow-[0_18px_44px_rgba(132,63,89,0.10)] lg:sticky lg:top-6">
+              <div className="flex items-center gap-3">
+                <ReceiptText className="size-6 text-[#A5526D]" />
+
+                <h2 className="font-serif text-2xl font-semibold tracking-tight text-[#2F2027]">
+                  Paiement
+                </h2>
+              </div>
+
+              <div className="mt-6 space-y-4">
+                <div className="flex items-center justify-between gap-4 text-sm font-medium text-[#816D75]">
+                  <span>Total</span>
+
+                  <span className="font-black text-[#2F2027]">
+                    {formatCurrency(
+                      appointment.totalPriceCents,
+                    )}
+                  </span>
+                </div>
+
+                <div className="flex items-center justify-between gap-4 text-sm font-medium text-[#816D75]">
+                  <span>
+                    {isFullPayment
+                      ? "Paiement demandé"
+                      : "Acompte demandé"}
+                  </span>
+
+                  <span className="font-black text-[#2F2027]">
+                    {formatCurrency(
+                      appointment.depositCents,
+                    )}
+                  </span>
+                </div>
+
+                <div className="flex items-center justify-between gap-4 border-t border-[#E8D4DB] pt-4">
+                  <span className="font-black text-[#2F2027]">
+                    Statut
+                  </span>
+
+                  <span
+                    className={
+                      appointment.paymentStatus ===
+                      "PAID"
+                        ? "font-black text-emerald-700"
+                        : "font-black text-amber-700"
+                    }
+                  >
+                    {appointment.paymentStatus ===
+                    "PAID"
+                      ? isFullPayment
+                        ? "Paiement intégral reçu"
+                        : "Acompte reçu"
+                      : appointment.paymentStatus ===
+                          "NOT_REQUIRED"
+                        ? "Aucun paiement requis"
+                        : "En attente"}
+                  </span>
+                </div>
+
+                {appointment.paymentStatus ===
+                "PAID" ? (
+                  <div className="rounded-[1.25rem] border border-emerald-200 bg-gradient-to-br from-emerald-50 to-white p-4 shadow-[0_10px_26px_rgba(16,185,129,0.07)]">
+                    <div className="flex gap-3">
+                      <CreditCard className="mt-0.5 size-5 shrink-0 text-emerald-700" />
+
+                      <div>
+                        <p className="text-sm font-black text-emerald-900">
+                          {isFullPayment
+                            ? "Paiement intégral reçu"
+                            : "Acompte PayPal reçu"}
+                        </p>
+
+                        {appointment.paidAt ? (
+                          <p className="mt-1 text-xs font-medium text-emerald-700">
+                            Le{" "}
+                            {formatDate(
+                              appointment.paidAt,
+                            )}{" "}
+                            à{" "}
+                            {formatTime(
+                              appointment.paidAt,
+                            )}
+                          </p>
+                        ) : null}
+                      </div>
+                    </div>
+                  </div>
+                ) : null}
+
+                <div className="flex items-center justify-between gap-4 border-t border-[#E8D4DB] pt-4">
+                  <span className="font-black text-[#2F2027]">
+                    Solde restant
+                  </span>
+
+                  <span className="font-serif text-2xl font-semibold text-[#843F59]">
+                    {formatCurrency(
+                      remainingCents,
+                    )}
+                  </span>
+                </div>
+              </div>
+
+              <div className="mt-6 space-y-3">
+                {canPay ? (
+                  <Link
+                    href={`/reservation/paiement/${appointment.reference}`}
+                    className="flex min-h-12 w-full items-center justify-center gap-2 rounded-full bg-gradient-to-r from-[#843F59] via-[#B45F7A] to-[#C97992] px-5 py-3 text-sm font-black text-white shadow-[0_14px_30px_rgba(132,63,89,0.25)] transition duration-300 hover:-translate-y-0.5 hover:shadow-[0_18px_38px_rgba(132,63,89,0.32)]"
+                  >
+                    <CreditCard className="size-4" />
+                    {isFullPayment
+                      ? "Régler la réservation"
+                      : "Régler l’acompte"}
+                  </Link>
+                ) : null}
+
+                {canDownloadCalendar ? (
+                  <a
+                    href={`/api/appointments/${appointment.reference}/calendar`}
+                    className="flex min-h-12 w-full items-center justify-center gap-2 rounded-full border border-[#D8AAB9] bg-white px-5 py-3 text-sm font-black text-[#843F59] shadow-sm transition duration-300 hover:-translate-y-0.5 hover:bg-[#FFF1F5]"
+                  >
+                    <Download className="size-4" />
+                    Ajouter au calendrier
+                  </a>
+                ) : null}
+
+                <Link
+                  href="/"
+                  className="flex min-h-11 w-full items-center justify-center gap-2 rounded-full px-5 py-3 text-sm font-black text-[#816D75] transition hover:bg-white/70 hover:text-[#2F2027]"
+                >
+                  <Home className="size-4" />
+                  Retour à l’accueil
+                </Link>
+              </div>
+
+              <div className="mt-6 rounded-[1.25rem] border border-[#E8D6AA] bg-gradient-to-br from-[#FFF9E8] to-white p-4 text-xs leading-5 text-[#715C2E] shadow-[0_10px_26px_rgba(113,92,46,0.06)]">
+                <p className="font-black">
+                  Politique d&apos;annulation
+                </p>
+
+                <p className="mt-2">
+                  Toute annulation effectuée moins
+                  de 48 heures avant le rendez-vous
+                  entraîne la perte de la somme
+                  versée.
+                </p>
+              </div>
+
+              <div className="mt-6 flex gap-3 border-t border-[#E8D4DB] pt-6 text-xs font-medium leading-5 text-[#816D75]">
+                <MapPin className="mt-0.5 size-4 shrink-0" />
+
+                <p>
+                  Pensez à vous présenter quelques
+                  minutes avant l’heure du
+                  rendez-vous.
+                </p>
+              </div>
+            </aside>
+          </div>
+        </section>
+      </div>
+    </main>
+  );
+}

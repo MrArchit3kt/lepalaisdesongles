@@ -1,0 +1,828 @@
+import Link from "next/link";
+import {
+  CalendarCheck2,
+  CalendarDays,
+  Camera,
+  ChevronRight,
+  Clock3,
+  CreditCard,
+  Crown,
+  Gift,
+  Heart,
+  History,
+  MessageCircle,
+  ReceiptText,
+  Sparkles,
+  Star,
+  UserRound,
+} from "lucide-react";
+
+import { LogoutButton } from "@/features/auth/components/logout-button";
+import {
+  getClientVipAccessState,
+} from "@/features/vip/services/client-vip-access.service";
+
+import {
+  getClientVipDashboardData,
+} from "@/features/vip/services/client-vip-dashboard.service";
+import { prisma } from "@/lib/prisma";
+import { requireClientUser } from "@/lib/session";
+
+export const dynamic = "force-dynamic";
+
+function formatCurrency(cents: number): string {
+  return new Intl.NumberFormat("fr-FR", {
+    style: "currency",
+    currency: "EUR",
+  }).format(cents / 100);
+}
+
+function formatDate(value: Date): string {
+  return new Intl.DateTimeFormat("fr-FR", {
+    timeZone: "Europe/Paris",
+    weekday: "long",
+    day: "numeric",
+    month: "long",
+    year: "numeric",
+  }).format(value);
+}
+
+function formatTime(value: Date): string {
+  return new Intl.DateTimeFormat("fr-FR", {
+    timeZone: "Europe/Paris",
+    hour: "2-digit",
+    minute: "2-digit",
+  }).format(value);
+}
+
+export default async function ClientSpacePage() {
+  const user = await requireClientUser();
+  const now = new Date();
+
+  const [
+    nextAppointment,
+    totalAppointments,
+    completedAppointments,
+    paidAppointments,
+    reviewCount,
+    photoCount,
+  ] = await Promise.all([
+    prisma.appointment.findFirst({
+      where: {
+        clientId: user.id,
+        startsAt: {
+          gte: now,
+        },
+        status: {
+          in: ["PENDING", "CONFIRMED"],
+        },
+      },
+
+      orderBy: {
+        startsAt: "asc",
+      },
+
+      select: {
+        reference: true,
+        status: true,
+        paymentStatus: true,
+        totalPriceCents: true,
+        depositCents: true,
+        startsAt: true,
+        endsAt: true,
+
+        staff: {
+          select: {
+            displayName: true,
+
+            user: {
+              select: {
+                firstName: true,
+                lastName: true,
+              },
+            },
+          },
+        },
+
+        services: {
+          orderBy: {
+            sortOrder: "asc",
+          },
+
+          select: {
+            id: true,
+            serviceName: true,
+            quantity: true,
+          },
+        },
+      },
+    }),
+
+    prisma.appointment.count({
+      where: {
+        clientId: user.id,
+      },
+    }),
+
+    prisma.appointment.count({
+      where: {
+        clientId: user.id,
+        status: "COMPLETED",
+      },
+    }),
+
+    prisma.appointment.aggregate({
+      where: {
+        clientId: user.id,
+        paymentStatus: "PAID",
+      },
+
+      _sum: {
+        depositCents: true,
+      },
+    }),
+
+    prisma.review.count({
+      where: {
+        authorId: user.id,
+      },
+    }),
+
+    prisma.appointmentImage.count({
+      where: {
+        appointment: {
+          clientId: user.id,
+        },
+      },
+    }),
+  ]);
+
+  const vipAccess =
+    await getClientVipAccessState(
+      user.id,
+    );
+
+  const vipDashboard =
+    vipAccess.hasAccount &&
+    vipAccess.canViewDashboard
+      ? await getClientVipDashboardData(
+          user.id,
+        )
+      : null;
+
+  const paidTotalCents =
+    paidAppointments._sum.depositCents ?? 0;
+
+  const nextAppointmentPaidCents =
+    nextAppointment?.paymentStatus === "PAID"
+      ? nextAppointment.depositCents
+      : 0;
+
+  const nextAppointmentRemainingCents =
+    nextAppointment
+      ? Math.max(
+          nextAppointment.totalPriceCents -
+            nextAppointmentPaidCents,
+          0,
+        )
+      : 0;
+
+  const staffName =
+    nextAppointment?.staff?.displayName?.trim() ||
+    [
+      nextAppointment?.staff?.user.firstName,
+      nextAppointment?.staff?.user.lastName,
+    ]
+      .filter(Boolean)
+      .join(" ") ||
+    "Le Palais des Ongles";
+
+  const appointmentServices =
+    nextAppointment?.services
+      .map((service) =>
+        service.quantity > 1
+          ? `${service.serviceName} × ${service.quantity}`
+          : service.serviceName,
+      )
+      .join(", ") ?? "";
+
+  const stats = [
+    {
+      label: "Rendez-vous",
+      value: totalAppointments.toString(),
+      description: "au total",
+      icon: CalendarDays,
+    },
+    {
+      label: "Terminés",
+      value: completedAppointments.toString(),
+      description: "prestations réalisées",
+      icon: CalendarCheck2,
+    },
+    {
+      label: "Montant versé",
+      value: formatCurrency(paidTotalCents),
+      description: "paiements enregistrés",
+      icon: CreditCard,
+    },
+    {
+      label: "Avis",
+      value: reviewCount.toString(),
+      description: "avis déposés",
+      icon: Star,
+    },
+    {
+      label: "Photos",
+      value: photoCount.toString(),
+      description: "souvenirs enregistrés",
+      icon: Camera,
+    },
+  ];
+
+  const shortcuts = [
+    {
+      title: "Mes rendez-vous",
+      description:
+        "Consultez vos rendez-vous à venir et passés.",
+      href: "/espace-client/rendez-vous",
+      icon: CalendarDays,
+    },
+    {
+      title: "Mon historique",
+      description:
+        "Retrouvez toutes vos anciennes prestations.",
+      href: "/espace-client/historique",
+      icon: History,
+    },
+    {
+      title: "Mes poses",
+      description:
+        "Découvrez les photos de vos réalisations.",
+      href: "/espace-client/photos",
+      icon: Sparkles,
+    },
+    {
+      title: "Mes avis",
+      description:
+        "Consultez et gérez vos avis publiés.",
+      href: "/espace-client/avis",
+      icon: Star,
+    },
+    {
+      title: "Mes favoris",
+      description:
+        "Retrouvez vos prestations préférées.",
+      href: "/espace-client/favoris",
+      icon: Heart,
+    },
+    {
+      title: "Mes messages",
+      description:
+        "Échangez directement avec le salon.",
+      href: "/espace-client/messages",
+      icon: MessageCircle,
+    },
+    {
+      title: "Mon profil",
+      description:
+        "Modifiez vos coordonnées et préférences.",
+      href: "/espace-client/profil",
+      icon: UserRound,
+    },
+  ];
+
+  return (
+    <main className="min-h-screen bg-[#FFF9F8] px-4 py-8 sm:px-6 lg:py-12">
+      <div className="mx-auto max-w-7xl">
+        <header className="relative overflow-hidden rounded-[32px] bg-[#241A1D] p-7 text-white shadow-xl sm:p-10">
+          <div className="absolute -right-16 -top-20 size-72 rounded-full bg-[#E8B4B8]/10 blur-3xl" />
+          <div className="absolute -bottom-24 left-20 size-64 rounded-full bg-[#9D6F80]/10 blur-3xl" />
+
+          <div className="relative flex flex-col gap-7 sm:flex-row sm:items-center sm:justify-between">
+            <div>
+              <p className="text-sm font-medium uppercase tracking-[0.2em] text-[#E8B4B8]">
+                Espace cliente
+              </p>
+
+              <h1 className="mt-3 font-serif text-4xl sm:text-5xl">
+                Bonjour {user.firstName}
+              </h1>
+
+              <p className="mt-4 max-w-xl leading-7 text-white/65">
+                Retrouvez vos rendez-vous, vos
+                prestations et toutes les informations
+                de votre compte.
+              </p>
+            </div>
+
+            <LogoutButton />
+          </div>
+        </header>
+
+        <section className="mt-8">
+          <div className="mb-5 flex items-center justify-between gap-4">
+            <div>
+              <p className="text-sm font-semibold uppercase tracking-[0.16em] text-[#9D6F80]">
+                À venir
+              </p>
+
+              <h2 className="mt-1 font-serif text-3xl text-[#241A1D]">
+                Prochain rendez-vous
+              </h2>
+            </div>
+
+            <Link
+              href="/espace-client/rendez-vous"
+              className="hidden items-center gap-1 text-sm font-semibold text-[#9D6F80] transition hover:text-[#241A1D] sm:flex"
+            >
+              Voir tous
+              <ChevronRight className="size-4" />
+            </Link>
+          </div>
+
+          {nextAppointment ? (
+            <article className="overflow-hidden rounded-[30px] border border-[#241A1D]/8 bg-white shadow-sm">
+              <div className="grid lg:grid-cols-[1fr_320px]">
+                <div className="p-6 sm:p-8">
+                  <div className="flex flex-wrap items-center justify-between gap-4">
+                    <span
+                      className={
+                        nextAppointment.status ===
+                        "CONFIRMED"
+                          ? "rounded-full bg-emerald-50 px-3 py-1.5 text-xs font-semibold text-emerald-700"
+                          : "rounded-full bg-amber-50 px-3 py-1.5 text-xs font-semibold text-amber-700"
+                      }
+                    >
+                      {nextAppointment.status ===
+                      "CONFIRMED"
+                        ? "Rendez-vous confirmé"
+                        : "Paiement en attente"}
+                    </span>
+
+                    <span className="text-xs font-medium text-[#75636A]">
+                      Référence{" "}
+                      {nextAppointment.reference}
+                    </span>
+                  </div>
+
+                  <h3 className="mt-6 font-serif text-3xl text-[#241A1D]">
+                    {appointmentServices ||
+                      "Rendez-vous au salon"}
+                  </h3>
+
+                  <div className="mt-6 grid gap-4 sm:grid-cols-3">
+                    <div className="flex gap-3 rounded-2xl bg-[#FFF9F8] p-4">
+                      <CalendarDays className="mt-0.5 size-5 shrink-0 text-[#9D6F80]" />
+
+                      <div>
+                        <p className="text-xs uppercase tracking-wide text-[#927E85]">
+                          Date
+                        </p>
+
+                        <p className="mt-1 text-sm font-semibold capitalize text-[#241A1D]">
+                          {formatDate(
+                            nextAppointment.startsAt,
+                          )}
+                        </p>
+                      </div>
+                    </div>
+
+                    <div className="flex gap-3 rounded-2xl bg-[#FFF9F8] p-4">
+                      <Clock3 className="mt-0.5 size-5 shrink-0 text-[#9D6F80]" />
+
+                      <div>
+                        <p className="text-xs uppercase tracking-wide text-[#927E85]">
+                          Horaire
+                        </p>
+
+                        <p className="mt-1 text-sm font-semibold text-[#241A1D]">
+                          {formatTime(
+                            nextAppointment.startsAt,
+                          )}
+                          {" – "}
+                          {formatTime(
+                            nextAppointment.endsAt,
+                          )}
+                        </p>
+                      </div>
+                    </div>
+
+                    <div className="flex gap-3 rounded-2xl bg-[#FFF9F8] p-4">
+                      <UserRound className="mt-0.5 size-5 shrink-0 text-[#9D6F80]" />
+
+                      <div>
+                        <p className="text-xs uppercase tracking-wide text-[#927E85]">
+                          Professionnelle
+                        </p>
+
+                        <p className="mt-1 text-sm font-semibold text-[#241A1D]">
+                          {staffName}
+                        </p>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+
+                <div className="border-t border-[#241A1D]/8 bg-[#FFF5F3] p-6 sm:p-8 lg:border-l lg:border-t-0">
+                  <div className="flex items-center gap-3">
+                    <ReceiptText className="size-5 text-[#9D6F80]" />
+
+                    <h3 className="font-serif text-xl text-[#241A1D]">
+                      Paiement
+                    </h3>
+                  </div>
+
+                  <div className="mt-5 space-y-3 text-sm">
+                    <div className="flex justify-between gap-4 text-[#75636A]">
+                      <span>Total</span>
+
+                      <strong className="text-[#241A1D]">
+                        {formatCurrency(
+                          nextAppointment.totalPriceCents,
+                        )}
+                      </strong>
+                    </div>
+
+                    <div className="flex justify-between gap-4 text-[#75636A]">
+                      <span>Montant versé</span>
+
+                      <strong className="text-[#241A1D]">
+                        {formatCurrency(
+                          nextAppointmentPaidCents,
+                        )}
+                      </strong>
+                    </div>
+
+                    <div className="flex justify-between gap-4 border-t border-[#241A1D]/10 pt-3">
+                      <span className="font-semibold text-[#241A1D]">
+                        Solde restant
+                      </span>
+
+                      <strong className="text-lg text-[#9D6F80]">
+                        {formatCurrency(
+                          nextAppointmentRemainingCents,
+                        )}
+                      </strong>
+                    </div>
+                  </div>
+
+                  <Link
+                    href={`/espace-client/rendez-vous/${nextAppointment.reference}`}
+                    className="mt-6 flex w-full items-center justify-center gap-2 rounded-xl bg-[#241A1D] px-5 py-3 text-sm font-semibold text-white transition hover:bg-[#3A2A2F]"
+                  >
+                    Voir le rendez-vous
+                    <ChevronRight className="size-4" />
+                  </Link>
+                </div>
+              </div>
+            </article>
+          ) : (
+            <article className="rounded-[30px] border border-dashed border-[#9D6F80]/30 bg-white p-8 text-center sm:p-12">
+              <span className="mx-auto flex size-14 items-center justify-center rounded-full bg-[#FFF0F0] text-[#9D6F80]">
+                <CalendarDays className="size-6" />
+              </span>
+
+              <h3 className="mt-5 font-serif text-2xl text-[#241A1D]">
+                Aucun rendez-vous à venir
+              </h3>
+
+              <p className="mx-auto mt-2 max-w-md text-sm leading-6 text-[#75636A]">
+                Réservez votre prochaine prestation
+                auprès du Palais des Ongles.
+              </p>
+
+              <Link
+                href="/reservation"
+                className="mt-6 inline-flex items-center justify-center gap-2 rounded-xl bg-[#241A1D] px-6 py-3 text-sm font-semibold text-white transition hover:bg-[#3A2A2F]"
+              >
+                Réserver maintenant
+                <ChevronRight className="size-4" />
+              </Link>
+            </article>
+          )}
+        </section>
+
+        {vipAccess.shouldShowNavigation ? (
+          <section className="mt-10">
+            <div className="mb-5 flex items-end justify-between gap-4">
+              <div>
+                <p className="text-sm font-semibold uppercase tracking-[0.16em] text-[#9D6F80]">
+                  Fidélité
+                </p>
+
+                <h2 className="mt-1 font-serif text-3xl text-[#241A1D]">
+                  Résumé de mon Club VIP
+                </h2>
+              </div>
+
+              <Link
+                href="/espace-client/fidelite"
+                className="hidden items-center gap-1 text-sm font-semibold text-[#9D6F80] transition hover:text-[#241A1D] sm:flex"
+              >
+                Ouvrir le Club VIP
+
+                <ChevronRight className="size-4" />
+              </Link>
+            </div>
+
+            {vipDashboard ? (
+              <article className="relative overflow-hidden rounded-[30px] bg-[#241A1D] p-6 text-white shadow-xl sm:p-8">
+                <div className="absolute -right-20 -top-20 size-72 rounded-full bg-[#E8B4B8]/15 blur-3xl" />
+
+                <div className="absolute -bottom-28 left-1/3 size-64 rounded-full bg-violet-600/20 blur-3xl" />
+
+                <div className="relative grid gap-8 lg:grid-cols-[1fr_420px] lg:items-center">
+                  <div>
+                    <span className="inline-flex items-center gap-2 rounded-full border border-white/10 bg-white/10 px-3 py-1.5 text-xs font-semibold uppercase tracking-[0.16em] text-[#E8B4B8]">
+                      <Crown className="size-4" />
+
+                      {vipAccess.branding.clubName}
+                    </span>
+
+                    <p className="mt-6 text-sm font-medium text-white/60">
+                      Niveau actuel
+                    </p>
+
+                    <h3 className="mt-1 font-serif text-4xl">
+                      {vipDashboard.account.currentLevel
+                        ?.name ?? "Membre VIP"}
+                    </h3>
+
+                    {vipAccess.mode === "PAUSED" ? (
+                      <p className="mt-3 inline-flex rounded-full bg-amber-400/15 px-3 py-1.5 text-xs font-semibold text-amber-200">
+                        Programme temporairement en pause
+                      </p>
+                    ) : null}
+
+                    <div className="mt-7 grid gap-3 sm:grid-cols-3">
+                      <div className="rounded-2xl border border-white/10 bg-white/10 p-4">
+                        <p className="text-xs uppercase tracking-wide text-white/50">
+                          Points
+                        </p>
+
+                        <p className="mt-2 text-2xl font-bold">
+                          {vipDashboard.account.points.toLocaleString(
+                            "fr-FR",
+                          )}
+                        </p>
+                      </div>
+
+                      <div className="rounded-2xl border border-white/10 bg-white/10 p-4">
+                        <p className="text-xs uppercase tracking-wide text-white/50">
+                          Expérience
+                        </p>
+
+                        <p className="mt-2 text-2xl font-bold">
+                          {vipDashboard.account.experience.toLocaleString(
+                            "fr-FR",
+                          )}{" "}
+                          XP
+                        </p>
+                      </div>
+
+                      <div className="rounded-2xl border border-white/10 bg-white/10 p-4">
+                        <p className="text-xs uppercase tracking-wide text-white/50">
+                          Récompenses
+                        </p>
+
+                        <p className="mt-2 flex items-center gap-2 text-2xl font-bold">
+                          <Gift className="size-5 text-[#E8B4B8]" />
+
+                          {vipDashboard.metrics.availableRewards.toLocaleString(
+                            "fr-FR",
+                          )}
+                        </p>
+                      </div>
+                    </div>
+                  </div>
+
+                  <div className="rounded-[24px] border border-white/10 bg-white/10 p-5 backdrop-blur sm:p-6">
+                    {vipDashboard.nextLevel ? (
+                      <>
+                        <div className="flex items-start justify-between gap-4">
+                          <div>
+                            <p className="text-xs font-semibold uppercase tracking-[0.16em] text-[#E8B4B8]">
+                              Prochain niveau
+                            </p>
+
+                            <p className="mt-2 font-serif text-2xl">
+                              {vipDashboard.nextLevel.name}
+                            </p>
+                          </div>
+
+                          <span className="rounded-full bg-white/10 px-3 py-1.5 text-xs font-bold">
+                            {vipDashboard.progress.xpPercent} %
+                          </span>
+                        </div>
+
+                        <div className="mt-6">
+                          <div className="flex items-center justify-between gap-4 text-xs text-white/60">
+                            <span>Progression XP</span>
+
+                            <span>
+                              {vipDashboard.progress.remainingXp.toLocaleString(
+                                "fr-FR",
+                              )}{" "}
+                              XP restants
+                            </span>
+                          </div>
+
+                          <div className="mt-2 h-3 overflow-hidden rounded-full bg-white/10">
+                            <div
+                              className="h-full rounded-full bg-gradient-to-r from-[#E8B4B8] to-violet-400 transition-all"
+                              style={{
+                                width:
+                                  `${vipDashboard.progress.xpPercent}%`,
+                              }}
+                            />
+                          </div>
+                        </div>
+
+                        <div className="mt-5">
+                          <div className="flex items-center justify-between gap-4 text-xs text-white/60">
+                            <span>Progression points</span>
+
+                            <span>
+                              {vipDashboard.progress.remainingPoints.toLocaleString(
+                                "fr-FR",
+                              )}{" "}
+                              points restants
+                            </span>
+                          </div>
+
+                          <div className="mt-2 h-3 overflow-hidden rounded-full bg-white/10">
+                            <div
+                              className="h-full rounded-full bg-gradient-to-r from-violet-400 to-fuchsia-400 transition-all"
+                              style={{
+                                width:
+                                  `${vipDashboard.progress.pointsPercent}%`,
+                              }}
+                            />
+                          </div>
+                        </div>
+                      </>
+                    ) : (
+                      <div className="text-center">
+                        <span className="mx-auto flex size-14 items-center justify-center rounded-2xl bg-white/10">
+                          <Crown className="size-7 text-[#E8B4B8]" />
+                        </span>
+
+                        <p className="mt-4 font-serif text-2xl">
+                          Niveau maximum atteint
+                        </p>
+
+                        <p className="mt-2 text-sm leading-6 text-white/60">
+                          Continuez à cumuler des points pour débloquer vos
+                          prochaines récompenses.
+                        </p>
+                      </div>
+                    )}
+
+                    <Link
+                      href="/espace-client/fidelite"
+                      className="mt-6 flex h-12 w-full items-center justify-center gap-2 rounded-xl bg-white px-5 text-sm font-semibold text-[#241A1D] transition hover:bg-[#FFF0F0]"
+                    >
+                      Voir mes avantages
+
+                      <ChevronRight className="size-4" />
+                    </Link>
+                  </div>
+                </div>
+              </article>
+            ) : (
+              <article className="relative overflow-hidden rounded-[30px] border border-[#241A1D]/8 bg-white p-6 shadow-sm sm:p-8">
+                <div className="absolute -right-16 -top-16 size-56 rounded-full bg-[#E8B4B8]/20 blur-3xl" />
+
+                <div className="relative flex flex-col gap-6 sm:flex-row sm:items-center sm:justify-between">
+                  <div className="flex items-start gap-4">
+                    <span className="flex size-14 shrink-0 items-center justify-center rounded-2xl bg-[#241A1D] text-white">
+                      {vipAccess.mode === "PRE_LAUNCH" ? (
+                        <Sparkles className="size-6" />
+                      ) : (
+                        <Crown className="size-6" />
+                      )}
+                    </span>
+
+                    <div>
+                      <p className="text-sm font-semibold uppercase tracking-[0.16em] text-[#9D6F80]">
+                        {vipAccess.branding.clubName}
+                      </p>
+
+                      <h3 className="mt-2 font-serif text-2xl text-[#241A1D]">
+                        {vipAccess.mode === "PRE_LAUNCH"
+                          ? vipAccess.branding.preLaunchTitle ??
+                            "Le Club VIP arrive bientôt"
+                          : "Activez votre compte fidélité"}
+                      </h3>
+
+                      <p className="mt-2 max-w-2xl text-sm leading-6 text-[#75636A]">
+                        {vipAccess.mode === "PRE_LAUNCH"
+                          ? vipAccess.branding.preLaunchDescription ??
+                            "Des niveaux, des points et des récompenses exclusives sont en préparation."
+                          : "Rejoignez le Club VIP pour cumuler des points, progresser dans les niveaux et recevoir des récompenses."}
+                      </p>
+                    </div>
+                  </div>
+
+                  <Link
+                    href="/espace-client/fidelite"
+                    className="inline-flex h-12 shrink-0 items-center justify-center gap-2 rounded-xl bg-[#241A1D] px-6 text-sm font-semibold text-white transition hover:bg-[#3A2A2F]"
+                  >
+                    {vipAccess.mode === "PRE_LAUNCH"
+                      ? "Découvrir"
+                      : "Activer mon Club VIP"}
+
+                    <ChevronRight className="size-4" />
+                  </Link>
+                </div>
+              </article>
+            )}
+          </section>
+        ) : null}
+
+        <section className="mt-10">
+          <div>
+            <p className="text-sm font-semibold uppercase tracking-[0.16em] text-[#9D6F80]">
+              Mon activité
+            </p>
+
+            <h2 className="mt-1 font-serif text-3xl text-[#241A1D]">
+              Mes statistiques
+            </h2>
+          </div>
+
+          <div className="mt-5 grid gap-4 sm:grid-cols-2 lg:grid-cols-5">
+            {stats.map((stat) => {
+              const Icon = stat.icon;
+
+              return (
+                <article
+                  key={stat.label}
+                  className="rounded-[24px] border border-[#241A1D]/8 bg-white p-5 shadow-sm"
+                >
+                  <span className="flex size-10 items-center justify-center rounded-xl bg-[#FFF0F0] text-[#9D6F80]">
+                    <Icon className="size-5" />
+                  </span>
+
+                  <p className="mt-5 text-2xl font-bold text-[#241A1D]">
+                    {stat.value}
+                  </p>
+
+                  <p className="mt-1 text-sm font-semibold text-[#241A1D]">
+                    {stat.label}
+                  </p>
+
+                  <p className="mt-1 text-xs text-[#927E85]">
+                    {stat.description}
+                  </p>
+                </article>
+              );
+            })}
+          </div>
+        </section>
+
+        <section className="mt-10">
+          <div>
+            <p className="text-sm font-semibold uppercase tracking-[0.16em] text-[#9D6F80]">
+              Navigation
+            </p>
+
+            <h2 className="mt-1 font-serif text-3xl text-[#241A1D]">
+              Accès rapides
+            </h2>
+          </div>
+
+          <div className="mt-5 grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
+            {shortcuts.map((shortcut) => {
+              const Icon = shortcut.icon;
+
+              return (
+                <Link
+                  key={shortcut.title}
+                  href={shortcut.href}
+                  className="group flex items-start gap-4 rounded-[24px] border border-[#241A1D]/8 bg-white p-5 shadow-sm transition hover:-translate-y-0.5 hover:border-[#9D6F80]/30 hover:shadow-md"
+                >
+                  <span className="flex size-11 shrink-0 items-center justify-center rounded-2xl bg-[#FFF0F0] text-[#9D6F80] transition group-hover:bg-[#9D6F80] group-hover:text-white">
+                    <Icon className="size-5" />
+                  </span>
+
+                  <div className="min-w-0 flex-1">
+                    <h3 className="font-serif text-xl text-[#241A1D]">
+                      {shortcut.title}
+                    </h3>
+
+                    <p className="mt-1 text-sm leading-6 text-[#75636A]">
+                      {shortcut.description}
+                    </p>
+                  </div>
+
+                  <ChevronRight className="mt-2 size-5 shrink-0 text-[#B5A4AA] transition group-hover:translate-x-1 group-hover:text-[#9D6F80]" />
+                </Link>
+              );
+            })}
+          </div>
+        </section>
+      </div>
+    </main>
+  );
+}

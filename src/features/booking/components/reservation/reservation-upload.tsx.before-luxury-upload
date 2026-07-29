@@ -1,0 +1,456 @@
+"use client";
+
+import Image from "next/image";
+import {
+  AlertCircle,
+  CheckCircle2,
+  ImagePlus,
+  LoaderCircle,
+  Trash2,
+  UploadCloud,
+} from "lucide-react";
+import {
+  useEffect,
+  useMemo,
+  useRef,
+  useState,
+} from "react";
+import { toast } from "sonner";
+
+import { cn } from "@/lib/utils";
+import { useUploadThing } from "@/lib/uploadthing";
+
+export type UploadedAppointmentImage = {
+  url: string;
+  fileName: string | null;
+  mimeType: string | null;
+  sizeBytes: number | null;
+  key: string | null;
+};
+
+type ReservationUploadProps = {
+  files: File[];
+  uploadedImages: UploadedAppointmentImage[];
+  disabled?: boolean;
+  maxFiles?: number;
+  onFilesChange: (files: File[]) => void;
+  onUploadedImagesChange: (
+    images: UploadedAppointmentImage[],
+  ) => void;
+};
+
+type LocalPreview = {
+  file: File;
+  url: string;
+};
+
+function formatFileSize(sizeBytes: number): string {
+  return `${(sizeBytes / 1024 / 1024).toFixed(2)} Mo`;
+}
+
+export function ReservationUpload({
+  files,
+  uploadedImages,
+  disabled = false,
+  maxFiles = 5,
+  onFilesChange,
+  onUploadedImagesChange,
+}: ReservationUploadProps) {
+  const inputRef = useRef<HTMLInputElement>(null);
+
+  const [uploadError, setUploadError] =
+    useState<string | null>(null);
+
+  const previews = useMemo<LocalPreview[]>(
+    () =>
+      files.map((file) => ({
+        file,
+        url: URL.createObjectURL(file),
+      })),
+    [files],
+  );
+
+  useEffect(() => {
+    return () => {
+      previews.forEach((preview) => {
+        URL.revokeObjectURL(preview.url);
+      });
+    };
+  }, [previews]);
+
+  const { startUpload, isUploading } = useUploadThing(
+    "appointmentInspirations",
+    {
+      onClientUploadComplete: (results) => {
+        const images: UploadedAppointmentImage[] =
+          results
+            .map((result) => result.serverData)
+            .filter((image) => Boolean(image?.url))
+            .map((image) => ({
+              url: image!.url,
+              fileName: image!.fileName ?? null,
+              mimeType: image!.mimeType ?? null,
+              sizeBytes: image!.sizeBytes ?? null,
+              key: image!.key ?? null,
+            }));
+
+        onUploadedImagesChange(images);
+        onFilesChange([]);
+        setUploadError(null);
+
+        toast.success(
+          images.length > 1
+            ? "Les photos ont bien été envoyées."
+            : "La photo a bien été envoyée.",
+        );
+      },
+
+      onUploadError: (error) => {
+        const message =
+          error.message ||
+          "Impossible d’envoyer les photos.";
+
+        setUploadError(message);
+        toast.error(message);
+      },
+
+      onUploadBegin: () => {
+        setUploadError(null);
+      },
+    },
+  );
+
+  const totalSelected =
+    files.length + uploadedImages.length;
+
+  function addFiles(fileList: FileList | null) {
+    if (!fileList || disabled || isUploading) {
+      return;
+    }
+
+    const availableCount = Math.max(
+      0,
+      maxFiles - uploadedImages.length,
+    );
+
+    const selectedFiles = Array.from(fileList);
+    const validFiles: File[] = [];
+
+    let invalidTypeFound = false;
+    let oversizedFileFound = false;
+
+    for (const file of selectedFiles) {
+      if (!file.type.startsWith("image/")) {
+        invalidTypeFound = true;
+        continue;
+      }
+
+      if (file.size > 8 * 1024 * 1024) {
+        oversizedFileFound = true;
+        continue;
+      }
+
+      if (validFiles.length >= availableCount) {
+        break;
+      }
+
+      validFiles.push(file);
+    }
+
+    if (invalidTypeFound) {
+      toast.error(
+        "Seuls les fichiers image sont autorisés.",
+      );
+    }
+
+    if (oversizedFileFound) {
+      toast.error(
+        "Chaque image doit peser au maximum 8 Mo.",
+      );
+    }
+
+    if (selectedFiles.length > availableCount) {
+      toast.error(
+        `Vous pouvez ajouter jusqu’à ${maxFiles} photos.`,
+      );
+    }
+
+    onFilesChange(validFiles);
+    onUploadedImagesChange([]);
+    setUploadError(null);
+
+    if (inputRef.current) {
+      inputRef.current.value = "";
+    }
+  }
+
+  function removeLocalFile(index: number) {
+    onFilesChange(
+      files.filter(
+        (_, fileIndex) => fileIndex !== index,
+      ),
+    );
+
+    onUploadedImagesChange([]);
+    setUploadError(null);
+  }
+
+  function clearUploadedImages() {
+    onUploadedImagesChange([]);
+    onFilesChange([]);
+    setUploadError(null);
+  }
+
+  async function handleUpload() {
+    if (
+      files.length === 0 ||
+      disabled ||
+      isUploading
+    ) {
+      return;
+    }
+
+    const result = await startUpload(files);
+
+    if (!result) {
+      setUploadError(
+        "L’envoi des photos n’a pas pu être terminé.",
+      );
+    }
+  }
+
+  return (
+    <section className="rounded-[2rem] border border-[#241A1D]/8 bg-white p-6 shadow-[0_25px_70px_-40px_rgba(70,40,50,0.45)]">
+      <header className="mb-6 flex items-start justify-between gap-4">
+        <div className="flex gap-4">
+          <span className="grid size-12 shrink-0 place-items-center rounded-2xl bg-gradient-to-br from-[#D89CAF] via-[#B87890] to-[#7B4A5C] text-white">
+            <ImagePlus className="size-5" />
+          </span>
+
+          <div>
+            <p className="text-xs font-semibold uppercase tracking-[0.2em] text-[#A36D81]">
+              Inspirations
+            </p>
+
+            <h2 className="mt-1 font-serif text-3xl text-[#241A1D]">
+              Ajoutez vos photos
+            </h2>
+
+            <p className="mt-2 max-w-xl text-sm leading-7 text-[#79676E]">
+              Envoyez quelques photos de modèles,
+              d&apos;inspirations ou de vos ongles
+              actuels afin que nous préparions au mieux
+              votre rendez-vous.
+            </p>
+          </div>
+        </div>
+
+        <span className="shrink-0 rounded-full bg-[#241A1D] px-4 py-2 text-xs font-semibold text-white">
+          {totalSelected} / {maxFiles}
+        </span>
+      </header>
+
+      {uploadedImages.length === 0 && (
+        <label
+          className={cn(
+            "group flex flex-col items-center justify-center rounded-[1.75rem] border-2 border-dashed border-[#D5B7C2] bg-[#FFF9F8] px-8 py-12 transition",
+            !disabled &&
+              !isUploading &&
+              totalSelected < maxFiles &&
+              "cursor-pointer hover:border-[#B87890] hover:bg-[#FFF4F6]",
+            (disabled ||
+              isUploading ||
+              totalSelected >= maxFiles) &&
+              "cursor-not-allowed opacity-60",
+          )}
+        >
+          <UploadCloud className="size-10 text-[#B77C91] transition group-hover:scale-110" />
+
+          <p className="mt-5 font-semibold text-[#241A1D]">
+            Glissez vos images ici
+          </p>
+
+          <p className="mt-2 text-center text-sm text-[#86727A]">
+            ou cliquez pour sélectionner vos photos
+          </p>
+
+          <p className="mt-3 text-xs text-[#A38E95]">
+            PNG • JPG • WEBP • 8 Mo maximum
+          </p>
+
+          <input
+            ref={inputRef}
+            type="file"
+            hidden
+            multiple
+            accept="image/png,image/jpeg,image/webp"
+            disabled={
+              disabled ||
+              isUploading ||
+              totalSelected >= maxFiles
+            }
+            onChange={(event) => {
+              addFiles(event.target.files);
+            }}
+          />
+        </label>
+      )}
+
+      {files.length > 0 && (
+        <>
+          <div className="mt-8 flex items-center justify-between gap-4">
+            <div className="flex items-center gap-2 text-sm font-semibold text-[#8C566A]">
+              <CheckCircle2 className="size-4" />
+              Photos sélectionnées
+            </div>
+
+            <button
+              type="button"
+              disabled={disabled || isUploading}
+              onClick={() => {
+                void handleUpload();
+              }}
+              className="inline-flex min-h-11 items-center justify-center gap-2 rounded-full bg-[#241A1D] px-5 text-sm font-semibold text-white transition hover:bg-[#412F35] disabled:cursor-not-allowed disabled:opacity-60"
+            >
+              {isUploading ? (
+                <>
+                  <LoaderCircle className="size-4 animate-spin" />
+                  Envoi en cours...
+                </>
+              ) : (
+                <>
+                  <UploadCloud className="size-4" />
+                  Envoyer les photos
+                </>
+              )}
+            </button>
+          </div>
+
+          <div className="mt-4 grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
+            {previews.map((preview, index) => (
+              <div
+                key={`${preview.file.name}-${preview.file.lastModified}-${index}`}
+                className="overflow-hidden rounded-[1.5rem] border border-[#241A1D]/8 bg-white shadow-sm"
+              >
+                <div className="relative aspect-square">
+                  <Image
+                    src={preview.url}
+                    alt={preview.file.name}
+                    fill
+                    unoptimized
+                    className="object-cover"
+                  />
+                </div>
+
+                <div className="flex items-center justify-between gap-3 p-4">
+                  <div className="min-w-0">
+                    <p className="truncate text-sm font-semibold text-[#241A1D]">
+                      {preview.file.name}
+                    </p>
+
+                    <p className="text-xs text-[#8E7A81]">
+                      {formatFileSize(
+                        preview.file.size,
+                      )}
+                    </p>
+                  </div>
+
+                  <button
+                    type="button"
+                    disabled={disabled || isUploading}
+                    onClick={() =>
+                      removeLocalFile(index)
+                    }
+                    aria-label={`Supprimer ${preview.file.name}`}
+                    className="grid size-10 shrink-0 place-items-center rounded-full bg-[#FFF2F2] text-[#C05B5B] transition hover:bg-[#FFE5E5] disabled:cursor-not-allowed disabled:opacity-60"
+                  >
+                    <Trash2 className="size-4" />
+                  </button>
+                </div>
+              </div>
+            ))}
+          </div>
+        </>
+      )}
+
+      {uploadedImages.length > 0 && (
+        <>
+          <div className="mt-8 flex items-center justify-between gap-4">
+            <div className="flex items-center gap-2 text-sm font-semibold text-emerald-700">
+              <CheckCircle2 className="size-4" />
+              Photos envoyées
+            </div>
+
+            <button
+              type="button"
+              disabled={disabled}
+              onClick={clearUploadedImages}
+              className="inline-flex min-h-10 items-center justify-center gap-2 rounded-full bg-[#FFF2F2] px-4 text-sm font-semibold text-[#C05B5B] transition hover:bg-[#FFE5E5] disabled:cursor-not-allowed disabled:opacity-60"
+            >
+              <Trash2 className="size-4" />
+              Tout supprimer
+            </button>
+          </div>
+
+          <div className="mt-4 grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
+            {uploadedImages.map((image, index) => (
+              <div
+                key={`${image.url}-${index}`}
+                className="overflow-hidden rounded-[1.5rem] border border-emerald-200 bg-white shadow-sm"
+              >
+                <div className="relative aspect-square">
+                  <Image
+                    src={image.url}
+                    alt={
+                      image.fileName ??
+                      `Photo d’inspiration ${index + 1}`
+                    }
+                    fill
+                    unoptimized
+                    className="object-cover"
+                  />
+
+                  <span className="absolute right-3 top-3 grid size-9 place-items-center rounded-full bg-emerald-600 text-white shadow-lg">
+                    <CheckCircle2 className="size-5" />
+                  </span>
+                </div>
+
+                <div className="p-4">
+                  <p className="truncate text-sm font-semibold text-[#241A1D]">
+                    {image.fileName ??
+                      `Photo ${index + 1}`}
+                  </p>
+
+                  {typeof image.sizeBytes ===
+                    "number" && (
+                    <p className="mt-1 text-xs text-[#8E7A81]">
+                      {formatFileSize(
+                        image.sizeBytes,
+                      )}
+                    </p>
+                  )}
+                </div>
+              </div>
+            ))}
+          </div>
+        </>
+      )}
+
+      {uploadError && (
+        <div
+          role="alert"
+          className="mt-5 flex items-start gap-3 rounded-2xl border border-red-200 bg-red-50 p-4 text-sm text-red-700"
+        >
+          <AlertCircle className="mt-0.5 size-5 shrink-0" />
+          <p>{uploadError}</p>
+        </div>
+      )}
+
+      <p className="mt-5 text-xs leading-6 text-[#917E85]">
+        Les photos sont facultatives. Une fois
+        sélectionnées, cliquez sur « Envoyer les photos »
+        avant de confirmer votre réservation.
+      </p>
+    </section>
+  );
+}

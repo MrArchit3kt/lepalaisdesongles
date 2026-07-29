@@ -1,0 +1,563 @@
+import Link from "next/link";
+import {
+  CalendarCheck2,
+  CalendarDays,
+  ChevronRight,
+  Clock3,
+  CreditCard,
+  History,
+  XCircle,
+} from "lucide-react";
+
+import { prisma } from "@/lib/prisma";
+import { requireClientUser } from "@/lib/session";
+
+export const dynamic = "force-dynamic";
+
+type SearchParams = Promise<{
+  filtre?: string;
+}>;
+
+type AppointmentStatusFilter =
+  | "a-venir"
+  | "termines"
+  | "annules"
+  | "expires";
+
+type AppointmentsPageProps = {
+  searchParams: SearchParams;
+};
+
+function formatCurrency(cents: number): string {
+  return new Intl.NumberFormat("fr-FR", {
+    style: "currency",
+    currency: "EUR",
+  }).format(cents / 100);
+}
+
+function formatDate(value: Date): string {
+  return new Intl.DateTimeFormat("fr-FR", {
+    timeZone: "Europe/Paris",
+    weekday: "long",
+    day: "numeric",
+    month: "long",
+    year: "numeric",
+  }).format(value);
+}
+
+function formatTime(value: Date): string {
+  return new Intl.DateTimeFormat("fr-FR", {
+    timeZone: "Europe/Paris",
+    hour: "2-digit",
+    minute: "2-digit",
+  }).format(value);
+}
+
+function normalizeFilter(
+  value: string | undefined,
+): AppointmentStatusFilter {
+  if (
+    value === "termines" ||
+    value === "annules" ||
+    value === "expires"
+  ) {
+    return value;
+  }
+
+  return "a-venir";
+}
+
+function getStatusLabel(
+  status: string,
+  paymentStatus: string,
+): {
+  label: string;
+  className: string;
+} {
+  if (status === "CONFIRMED") {
+    return {
+      label: "Confirmé",
+      className:
+        "bg-emerald-50 text-emerald-700",
+    };
+  }
+
+  if (status === "PENDING") {
+    return {
+      label:
+        paymentStatus === "PAID"
+          ? "Paiement reçu"
+          : "Paiement en attente",
+      className:
+        "bg-amber-50 text-amber-700",
+    };
+  }
+
+  if (status === "COMPLETED") {
+    return {
+      label: "Terminé",
+      className:
+        "bg-sky-50 text-sky-700",
+    };
+  }
+
+  if (
+    status === "CANCELLED_BY_CLIENT" ||
+    status === "CANCELLED_BY_ADMIN"
+  ) {
+    return {
+      label: "Annulé",
+      className:
+        "bg-red-50 text-red-700",
+    };
+  }
+
+  if (status === "EXPIRED") {
+    return {
+      label: "Expiré",
+      className:
+        "bg-neutral-100 text-neutral-700",
+    };
+  }
+
+  if (status === "REFUSED") {
+    return {
+      label: "Refusé",
+      className:
+        "bg-red-50 text-red-700",
+    };
+  }
+
+  return {
+    label: status,
+    className:
+      "bg-neutral-100 text-neutral-700",
+  };
+}
+
+export default async function AppointmentsPage({
+  searchParams,
+}: AppointmentsPageProps) {
+  const user = await requireClientUser();
+  const { filtre } = await searchParams;
+  const activeFilter = normalizeFilter(filtre);
+  const now = new Date();
+
+  const appointments =
+    await prisma.appointment.findMany({
+      where:
+        activeFilter === "a-venir"
+          ? {
+              clientId: user.id,
+              startsAt: {
+                gte: now,
+              },
+              status: {
+                in: ["PENDING", "CONFIRMED"],
+              },
+            }
+          : activeFilter === "termines"
+            ? {
+                clientId: user.id,
+                status: "COMPLETED",
+              }
+            : activeFilter === "annules"
+              ? {
+                  clientId: user.id,
+                  status: {
+                    in: [
+                      "CANCELLED_BY_CLIENT",
+                      "CANCELLED_BY_ADMIN",
+                      "REFUSED",
+                    ],
+                  },
+                }
+              : {
+                  clientId: user.id,
+                  status: "EXPIRED",
+                },
+
+      orderBy:
+        activeFilter === "a-venir"
+          ? {
+              startsAt: "asc",
+            }
+          : {
+              startsAt: "desc",
+            },
+
+      select: {
+        id: true,
+        reference: true,
+        status: true,
+        paymentStatus: true,
+        startsAt: true,
+        endsAt: true,
+        totalPriceCents: true,
+        depositCents: true,
+        cancellationReason: true,
+
+        staff: {
+          select: {
+            displayName: true,
+
+            user: {
+              select: {
+                firstName: true,
+                lastName: true,
+              },
+            },
+          },
+        },
+
+        services: {
+          orderBy: {
+            sortOrder: "asc",
+          },
+
+          select: {
+            id: true,
+            serviceName: true,
+            quantity: true,
+          },
+        },
+
+        _count: {
+          select: {
+            images: true,
+          },
+        },
+
+        review: {
+          select: {
+            id: true,
+            rating: true,
+            status: true,
+          },
+        },
+      },
+    });
+
+  const tabs = [
+    {
+      key: "a-venir",
+      label: "À venir",
+      icon: CalendarDays,
+    },
+    {
+      key: "termines",
+      label: "Terminés",
+      icon: CalendarCheck2,
+    },
+    {
+      key: "annules",
+      label: "Annulés",
+      icon: XCircle,
+    },
+    {
+      key: "expires",
+      label: "Expirés",
+      icon: History,
+    },
+  ] satisfies Array<{
+    key: AppointmentStatusFilter;
+    label: string;
+    icon: typeof CalendarDays;
+  }>;
+
+  return (
+    <main className="min-h-screen bg-[#FFF9F8] px-4 py-8 sm:px-6 lg:py-12">
+      <div className="mx-auto max-w-6xl">
+        <div className="flex flex-col gap-5 sm:flex-row sm:items-end sm:justify-between">
+          <div>
+            <Link
+              href="/espace-client"
+              className="text-sm font-semibold text-[#9D6F80] transition hover:text-[#241A1D]"
+            >
+              ← Retour à mon espace
+            </Link>
+
+            <p className="mt-5 text-sm font-semibold uppercase tracking-[0.18em] text-[#9D6F80]">
+              Mon espace
+            </p>
+
+            <h1 className="mt-2 font-serif text-4xl text-[#241A1D] sm:text-5xl">
+              Mes rendez-vous
+            </h1>
+
+            <p className="mt-3 max-w-2xl leading-7 text-[#75636A]">
+              Consultez vos rendez-vous à venir,
+              terminés, annulés ou expirés.
+            </p>
+          </div>
+
+          <Link
+            href="/reservation"
+            className="inline-flex items-center justify-center rounded-xl bg-[#241A1D] px-5 py-3 text-sm font-semibold text-white transition hover:bg-[#3A2A2F]"
+          >
+            Réserver un rendez-vous
+          </Link>
+        </div>
+
+        <nav className="mt-8 grid gap-3 rounded-[24px] border border-[#241A1D]/8 bg-white p-3 shadow-sm sm:grid-cols-4">
+          {tabs.map((tab) => {
+            const Icon = tab.icon;
+            const isActive =
+              activeFilter === tab.key;
+
+            return (
+              <Link
+                key={tab.key}
+                href={`/espace-client/rendez-vous?filtre=${tab.key}`}
+                className={
+                  isActive
+                    ? "flex items-center justify-center gap-2 rounded-2xl bg-[#241A1D] px-4 py-3 text-sm font-semibold text-white"
+                    : "flex items-center justify-center gap-2 rounded-2xl px-4 py-3 text-sm font-semibold text-[#75636A] transition hover:bg-[#FFF5F3] hover:text-[#241A1D]"
+                }
+              >
+                <Icon className="size-4" />
+                {tab.label}
+              </Link>
+            );
+          })}
+        </nav>
+
+        <section className="mt-8 space-y-5">
+          {appointments.length === 0 ? (
+            <div className="rounded-[30px] border border-dashed border-[#9D6F80]/30 bg-white p-10 text-center">
+              <span className="mx-auto flex size-14 items-center justify-center rounded-full bg-[#FFF0F0] text-[#9D6F80]">
+                <CalendarDays className="size-6" />
+              </span>
+
+              <h2 className="mt-5 font-serif text-2xl text-[#241A1D]">
+                Aucun rendez-vous
+              </h2>
+
+              <p className="mx-auto mt-2 max-w-md text-sm leading-6 text-[#75636A]">
+                Aucun rendez-vous ne correspond à
+                cette catégorie.
+              </p>
+
+              {activeFilter === "a-venir" ? (
+                <Link
+                  href="/reservation"
+                  className="mt-6 inline-flex rounded-xl bg-[#241A1D] px-6 py-3 text-sm font-semibold text-white transition hover:bg-[#3A2A2F]"
+                >
+                  Réserver maintenant
+                </Link>
+              ) : null}
+            </div>
+          ) : (
+            appointments.map((appointment) => {
+              const status = getStatusLabel(
+                appointment.status,
+                appointment.paymentStatus,
+              );
+
+              const staffName =
+                appointment.staff?.displayName?.trim() ||
+                [
+                  appointment.staff?.user.firstName,
+                  appointment.staff?.user.lastName,
+                ]
+                  .filter(Boolean)
+                  .join(" ") ||
+                "Le Palais des Ongles";
+
+              const serviceNames =
+                appointment.services
+                  .map((service) =>
+                    service.quantity > 1
+                      ? `${service.serviceName} × ${service.quantity}`
+                      : service.serviceName,
+                  )
+                  .join(", ");
+
+              const paidCents =
+                appointment.paymentStatus ===
+                "PAID"
+                  ? appointment.depositCents
+                  : 0;
+
+              const remainingCents = Math.max(
+                appointment.totalPriceCents -
+                  paidCents,
+                0,
+              );
+
+              return (
+                <article
+                  key={appointment.id}
+                  className="overflow-hidden rounded-[28px] border border-[#241A1D]/8 bg-white shadow-sm"
+                >
+                  <div className="grid gap-0 lg:grid-cols-[1fr_280px]">
+                    <div className="p-6 sm:p-8">
+                      <div className="flex flex-wrap items-center justify-between gap-3">
+                        <span
+                          className={`rounded-full px-3 py-1.5 text-xs font-semibold ${status.className}`}
+                        >
+                          {status.label}
+                        </span>
+
+                        <span className="text-xs font-medium text-[#927E85]">
+                          Référence{" "}
+                          {appointment.reference}
+                        </span>
+                      </div>
+
+                      <h2 className="mt-5 font-serif text-2xl text-[#241A1D] sm:text-3xl">
+                        {serviceNames ||
+                          "Rendez-vous au salon"}
+                      </h2>
+
+                      <div className="mt-5 grid gap-4 sm:grid-cols-3">
+                        <div className="flex gap-3 rounded-2xl bg-[#FFF9F8] p-4">
+                          <CalendarDays className="mt-0.5 size-5 shrink-0 text-[#9D6F80]" />
+
+                          <div>
+                            <p className="text-xs uppercase tracking-wide text-[#927E85]">
+                              Date
+                            </p>
+
+                            <p className="mt-1 text-sm font-semibold capitalize text-[#241A1D]">
+                              {formatDate(
+                                appointment.startsAt,
+                              )}
+                            </p>
+                          </div>
+                        </div>
+
+                        <div className="flex gap-3 rounded-2xl bg-[#FFF9F8] p-4">
+                          <Clock3 className="mt-0.5 size-5 shrink-0 text-[#9D6F80]" />
+
+                          <div>
+                            <p className="text-xs uppercase tracking-wide text-[#927E85]">
+                              Horaire
+                            </p>
+
+                            <p className="mt-1 text-sm font-semibold text-[#241A1D]">
+                              {formatTime(
+                                appointment.startsAt,
+                              )}
+                              {" – "}
+                              {formatTime(
+                                appointment.endsAt,
+                              )}
+                            </p>
+                          </div>
+                        </div>
+
+                        <div className="flex gap-3 rounded-2xl bg-[#FFF9F8] p-4">
+                          <CreditCard className="mt-0.5 size-5 shrink-0 text-[#9D6F80]" />
+
+                          <div>
+                            <p className="text-xs uppercase tracking-wide text-[#927E85]">
+                              Paiement
+                            </p>
+
+                            <p className="mt-1 text-sm font-semibold text-[#241A1D]">
+                              {appointment.paymentStatus ===
+                              "PAID"
+                                ? `${formatCurrency(
+                                    paidCents,
+                                  )} versés`
+                                : "En attente"}
+                            </p>
+                          </div>
+                        </div>
+                      </div>
+
+                      <div className="mt-5 flex flex-wrap gap-x-6 gap-y-2 text-sm text-[#75636A]">
+                        <span>
+                          Avec{" "}
+                          <strong className="text-[#241A1D]">
+                            {staffName}
+                          </strong>
+                        </span>
+
+                        {appointment._count.images >
+                        0 ? (
+                          <span>
+                            {
+                              appointment._count
+                                .images
+                            }{" "}
+                            photo
+                            {appointment._count
+                              .images > 1
+                              ? "s"
+                              : ""}
+                          </span>
+                        ) : null}
+
+                        {appointment.review ? (
+                          <span>
+                            Avis :{" "}
+                            {appointment.review.rating}
+                            /5
+                          </span>
+                        ) : null}
+                      </div>
+
+                      {appointment.cancellationReason ? (
+                        <p className="mt-5 rounded-2xl bg-red-50 p-4 text-sm leading-6 text-red-700">
+                          {
+                            appointment.cancellationReason
+                          }
+                        </p>
+                      ) : null}
+                    </div>
+
+                    <div className="border-t border-[#241A1D]/8 bg-[#FFF5F3] p-6 lg:border-l lg:border-t-0">
+                      <div className="space-y-3 text-sm">
+                        <div className="flex justify-between gap-4 text-[#75636A]">
+                          <span>Total</span>
+
+                          <strong className="text-[#241A1D]">
+                            {formatCurrency(
+                              appointment.totalPriceCents,
+                            )}
+                          </strong>
+                        </div>
+
+                        <div className="flex justify-between gap-4 text-[#75636A]">
+                          <span>Versé</span>
+
+                          <strong className="text-[#241A1D]">
+                            {formatCurrency(
+                              paidCents,
+                            )}
+                          </strong>
+                        </div>
+
+                        <div className="flex justify-between gap-4 border-t border-[#241A1D]/10 pt-3">
+                          <span className="font-semibold text-[#241A1D]">
+                            Solde
+                          </span>
+
+                          <strong className="text-lg text-[#9D6F80]">
+                            {formatCurrency(
+                              remainingCents,
+                            )}
+                          </strong>
+                        </div>
+                      </div>
+
+                      <Link
+                        href={`/espace-client/rendez-vous/${appointment.reference}`}
+                        className="mt-6 flex w-full items-center justify-center gap-2 rounded-xl bg-[#241A1D] px-5 py-3 text-sm font-semibold text-white transition hover:bg-[#3A2A2F]"
+                      >
+                        Voir le détail
+                        <ChevronRight className="size-4" />
+                      </Link>
+                    </div>
+                  </div>
+                </article>
+              );
+            })
+          )}
+        </section>
+      </div>
+    </main>
+  );
+}

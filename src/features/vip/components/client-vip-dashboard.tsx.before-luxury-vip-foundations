@@ -1,0 +1,1279 @@
+"use client";
+
+import type {
+  ReactNode,
+} from "react";
+
+import {
+  useState,
+} from "react";
+
+import {
+  BadgeCheck,
+  CalendarDays,
+  Check,
+  CircleOff,
+  Clock3,
+  Copy,
+  Crown,
+  Gift,
+  History,
+  Link2,
+  Share2,
+  Sparkles,
+  Star,
+  Trophy,
+  WalletCards,
+} from "lucide-react";
+
+import {
+  toast,
+} from "sonner";
+
+import type {
+  ClientVipDashboardData,
+  ClientVipReward,
+  ClientVipRewardStatus,
+  ClientVipTransaction,
+} from "@/features/vip/types/client-vip.types";
+
+/* -------------------------------------------------------------------------- */
+/*                                   TYPES                                    */
+/* -------------------------------------------------------------------------- */
+
+type ClientVipDashboardProps = {
+  data: ClientVipDashboardData;
+};
+
+type DashboardTab =
+  | "REWARDS"
+  | "HISTORY";
+
+/* -------------------------------------------------------------------------- */
+/*                                CONSTANTES                                  */
+/* -------------------------------------------------------------------------- */
+
+const REWARD_STATUS_LABELS: Record<
+  ClientVipRewardStatus,
+  string
+> = {
+  AVAILABLE:
+    "Disponible",
+
+  RESERVED:
+    "Réservée",
+
+  USED:
+    "Utilisée",
+
+  EXPIRED:
+    "Expirée",
+
+  CANCELLED:
+    "Annulée",
+
+  GIFTED:
+    "Offerte",
+};
+
+const REWARD_STATUS_CLASSES: Record<
+  ClientVipRewardStatus,
+  string
+> = {
+  AVAILABLE:
+    "bg-emerald-50 text-emerald-700",
+
+  RESERVED:
+    "bg-blue-50 text-blue-700",
+
+  USED:
+    "bg-violet-50 text-violet-700",
+
+  EXPIRED:
+    "bg-zinc-100 text-zinc-600",
+
+  CANCELLED:
+    "bg-red-50 text-red-700",
+
+  GIFTED:
+    "bg-amber-50 text-amber-700",
+};
+
+/* -------------------------------------------------------------------------- */
+/*                                  OUTILS                                    */
+/* -------------------------------------------------------------------------- */
+
+function formatCurrency(
+  cents: number,
+): string {
+  return new Intl.NumberFormat(
+    "fr-FR",
+    {
+      style:
+        "currency",
+
+      currency:
+        "EUR",
+    },
+  ).format(
+    cents /
+      100,
+  );
+}
+
+function formatDate(
+  value: string | null,
+): string {
+  if (!value) {
+    return "Sans limite";
+  }
+
+  return new Intl.DateTimeFormat(
+    "fr-FR",
+    {
+      dateStyle:
+        "medium",
+
+      timeStyle:
+        "short",
+    },
+  ).format(
+    new Date(
+      value,
+    ),
+  );
+}
+
+function formatShortDate(
+  value: string,
+): string {
+  return new Intl.DateTimeFormat(
+    "fr-FR",
+    {
+      dateStyle:
+        "medium",
+    },
+  ).format(
+    new Date(
+      value,
+    ),
+  );
+}
+
+function formatEnum(
+  value: string,
+): string {
+  return value
+    .toLowerCase()
+    .split(
+      "_",
+    )
+    .map(
+      (
+        word,
+      ) =>
+        word.charAt(
+          0,
+        ).toUpperCase() +
+        word.slice(
+          1,
+        ),
+    )
+    .join(
+      " ",
+    );
+}
+
+function getRewardValue(
+  clientReward: ClientVipReward,
+): string {
+  const reward =
+    clientReward.reward;
+
+  switch (
+    reward.type
+  ) {
+    case "FIXED_DISCOUNT":
+    case "GIFT_CARD":
+      return reward.fixedAmountCents
+        ? formatCurrency(
+            reward.fixedAmountCents,
+          )
+        : "Avantage VIP";
+
+    case "PERCENTAGE_DISCOUNT":
+      return reward.percentage
+        ? `${reward.percentage} % de réduction`
+        : "Réduction VIP";
+
+    case "LOYALTY_POINTS":
+      return `${reward.loyaltyPoints ?? 0} points`;
+
+    case "EXPERIENCE_POINTS":
+    case "SEASON_PASS_XP":
+      return `${reward.experiencePoints ?? 0} XP`;
+
+    case "FREE_SERVICE":
+      return "Prestation offerte";
+
+    case "FREE_NAIL_ART":
+      return "Nail art offert";
+
+    case "FREE_PRODUCT":
+      return "Produit offert";
+
+    case "CONTEST_ENTRY":
+      return "Participation concours";
+
+    case "VIP_ACCESS":
+      return "Accès VIP";
+
+    default:
+      return formatEnum(
+        reward.type,
+      );
+  }
+}
+
+function getTransactionAmountClass(
+  value: number,
+): string {
+  if (
+    value >
+    0
+  ) {
+    return "text-emerald-600";
+  }
+
+  if (
+    value <
+    0
+  ) {
+    return "text-red-600";
+  }
+
+  return "text-zinc-500";
+}
+
+function getTransactionPrefix(
+  value: number,
+): string {
+  return value >
+    0
+    ? "+"
+    : "";
+}
+
+/* -------------------------------------------------------------------------- */
+/*                             SOUS-COMPOSANTS                                */
+/* -------------------------------------------------------------------------- */
+
+function MetricCard({
+  label,
+  value,
+  description,
+  icon,
+  iconClassName,
+}: {
+  label: string;
+  value: string;
+  description?: string;
+  icon: ReactNode;
+  iconClassName: string;
+}) {
+  return (
+    <article className="rounded-[1.5rem] border border-zinc-200 bg-white p-5 shadow-sm">
+      <span
+        className={`flex size-11 items-center justify-center rounded-2xl ${iconClassName}`}
+      >
+        {icon}
+      </span>
+
+      <p className="mt-4 text-sm font-bold text-zinc-500">
+        {label}
+      </p>
+
+      <p className="mt-1 text-2xl font-black text-zinc-950">
+        {value}
+      </p>
+
+      {description ? (
+        <p className="mt-2 text-xs leading-5 text-zinc-500">
+          {description}
+        </p>
+      ) : null}
+    </article>
+  );
+}
+
+function ProgressBar({
+  label,
+  currentValue,
+  targetValue,
+  percent,
+  suffix,
+}: {
+  label: string;
+  currentValue: number;
+  targetValue: number;
+  percent: number;
+  suffix: string;
+}) {
+  return (
+    <div>
+      <div className="flex items-center justify-between gap-4 text-sm">
+        <span className="font-black text-zinc-800">
+          {label}
+        </span>
+
+        <span className="font-bold text-zinc-500">
+          {currentValue.toLocaleString(
+            "fr-FR",
+          )}
+          {" / "}
+          {targetValue.toLocaleString(
+            "fr-FR",
+          )}{" "}
+          {suffix}
+        </span>
+      </div>
+
+      <div className="mt-2 h-3 overflow-hidden rounded-full bg-zinc-100">
+        <div
+          className="h-full rounded-full bg-gradient-to-r from-violet-600 to-fuchsia-500 transition-all duration-500"
+          style={{
+            width:
+              `${percent}%`,
+          }}
+        />
+      </div>
+
+      <p className="mt-2 text-right text-xs font-black text-violet-600">
+        {percent} %
+      </p>
+    </div>
+  );
+}
+
+function EmptyState({
+  icon,
+  title,
+  description,
+}: {
+  icon: ReactNode;
+  title: string;
+  description: string;
+}) {
+  return (
+    <div className="flex min-h-56 flex-col items-center justify-center rounded-[1.5rem] border border-dashed border-zinc-300 bg-zinc-50 p-8 text-center">
+      <span className="flex size-14 items-center justify-center rounded-2xl bg-white text-zinc-300 shadow-sm">
+        {icon}
+      </span>
+
+      <h3 className="mt-4 text-lg font-black text-zinc-800">
+        {title}
+      </h3>
+
+      <p className="mt-2 max-w-md text-sm leading-6 text-zinc-500">
+        {description}
+      </p>
+    </div>
+  );
+}
+
+/* -------------------------------------------------------------------------- */
+/*                                COMPOSANT                                   */
+/* -------------------------------------------------------------------------- */
+
+export function ClientVipDashboard({
+  data,
+}: ClientVipDashboardProps) {
+  const [
+    activeTab,
+    setActiveTab,
+  ] =
+    useState<DashboardTab>(
+      "REWARDS",
+    );
+
+  const [
+    copiedValue,
+    setCopiedValue,
+  ] =
+    useState<string | null>(
+      null,
+    );
+
+  const currentLevelColor =
+    data.account.currentLevel
+      ?.color ??
+    "#7c3aed";
+
+  function getReferralLink():
+    string {
+    const path =
+      `/inscription?ref=${encodeURIComponent(
+        data.account.referralCode,
+      )}`;
+
+    if (
+      typeof window ===
+      "undefined"
+    ) {
+      return path;
+    }
+
+    return new URL(
+      path,
+      window.location.origin,
+    ).toString();
+  }
+
+  async function shareReferralLink():
+    Promise<void> {
+    const referralLink =
+      getReferralLink();
+
+    try {
+      if (
+        typeof navigator.share ===
+        "function"
+      ) {
+        await navigator.share({
+          title:
+            "Invitation Le Palais des Ongles",
+
+          text:
+            "Créez votre compte grâce à mon lien de parrainage Le Palais des Ongles.",
+
+          url:
+            referralLink,
+        });
+
+        return;
+      }
+
+      await copyValue(
+        referralLink,
+        "Lien de parrainage",
+      );
+
+      toast.info(
+        "Le partage direct n’est pas disponible sur cet appareil. Le lien a été copié.",
+      );
+    } catch (
+      error: unknown
+    ) {
+      if (
+        error instanceof
+          DOMException &&
+        error.name ===
+          "AbortError"
+      ) {
+        return;
+      }
+
+      toast.error(
+        "Impossible de partager le lien de parrainage.",
+      );
+    }
+  }
+
+  async function copyValue(
+    value: string,
+    label: string,
+  ): Promise<void> {
+    try {
+      await navigator.clipboard.writeText(
+        value,
+      );
+
+      setCopiedValue(
+        value,
+      );
+
+      toast.success(
+        `${label} copié.`,
+      );
+
+      window.setTimeout(
+        () => {
+          setCopiedValue(
+            (
+              current,
+            ) =>
+              current ===
+              value
+                ? null
+                : current,
+          );
+        },
+        2000,
+      );
+    } catch {
+      toast.error(
+        "La copie automatique a échoué.",
+      );
+    }
+  }
+
+  return (
+    <div className="space-y-6">
+      {!data.account.isActive ||
+      data.account.isSuspended ? (
+        <section className="rounded-[1.5rem] border border-amber-200 bg-amber-50 p-5">
+          <div className="flex items-start gap-3">
+            <CircleOff className="mt-0.5 size-5 shrink-0 text-amber-700" />
+
+            <div>
+              <h2 className="font-black text-amber-950">
+                Accès fidélité limité
+              </h2>
+
+              <p className="mt-1 text-sm leading-6 text-amber-800">
+                {data.account.isSuspended
+                  ? "Votre compte fidélité est actuellement suspendu. Vos avantages restent visibles, mais certaines actions sont temporairement indisponibles."
+                  : "Votre compte fidélité est actuellement inactif."}
+              </p>
+            </div>
+          </div>
+        </section>
+      ) : null}
+
+      <section
+        className="relative overflow-hidden rounded-[2rem] p-6 text-white shadow-xl sm:p-8 lg:p-10"
+        style={{
+          background:
+            `linear-gradient(135deg, ${currentLevelColor}, #18181b 72%)`,
+        }}
+      >
+        <div className="absolute -right-24 -top-24 size-80 rounded-full bg-white/15 blur-3xl" />
+
+        <div className="absolute -bottom-32 left-1/3 size-72 rounded-full bg-fuchsia-400/20 blur-3xl" />
+
+        <div className="relative grid gap-8 lg:grid-cols-[1fr_auto] lg:items-center">
+          <div>
+            <span className="inline-flex items-center gap-2 rounded-full border border-white/15 bg-white/10 px-3 py-1.5 text-xs font-black uppercase tracking-[0.18em] text-white">
+              <Sparkles className="size-4" />
+
+              Club VIP
+            </span>
+
+            <div className="mt-5 flex items-center gap-4">
+              <span className="flex size-16 shrink-0 items-center justify-center rounded-[1.4rem] border border-white/15 bg-white/10">
+                <Crown className="size-8" />
+              </span>
+
+              <div>
+                <p className="text-sm font-bold text-white/70">
+                  Votre niveau actuel
+                </p>
+
+                <h1 className="mt-1 text-3xl font-black sm:text-4xl">
+                  {data.account.currentLevel
+                    ?.name ??
+                    "Membre VIP"}
+                </h1>
+              </div>
+            </div>
+
+            <p className="mt-5 max-w-2xl text-sm leading-6 text-white/75">
+              Cumulez des points et de l’expérience grâce à vos rendez-vous,
+              avis, parrainages et participations aux concours.
+            </p>
+          </div>
+
+          <div className="grid min-w-[260px] gap-3 sm:grid-cols-2 lg:grid-cols-1">
+            <div className="rounded-2xl border border-white/15 bg-white/10 p-4 backdrop-blur">
+              <p className="text-xs font-bold uppercase tracking-wide text-white/60">
+                Points disponibles
+              </p>
+
+              <p className="mt-2 text-3xl font-black">
+                {data.account.points.toLocaleString(
+                  "fr-FR",
+                )}
+              </p>
+            </div>
+
+            <div className="rounded-2xl border border-white/15 bg-white/10 p-4 backdrop-blur">
+              <p className="text-xs font-bold uppercase tracking-wide text-white/60">
+                Expérience
+              </p>
+
+              <p className="mt-2 text-3xl font-black">
+                {data.account.experience.toLocaleString(
+                  "fr-FR",
+                )}{" "}
+                XP
+              </p>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <section className="grid gap-4 lg:grid-cols-2">
+        <article className="rounded-[1.75rem] border border-zinc-200 bg-white p-5 shadow-sm sm:p-6">
+          <header className="flex items-center gap-3">
+            <span className="flex size-11 items-center justify-center rounded-2xl bg-violet-50 text-violet-600">
+              <Crown className="size-5" />
+            </span>
+
+            <div>
+              <h2 className="font-black text-zinc-950">
+                Progression VIP
+              </h2>
+
+              <p className="mt-1 text-sm text-zinc-500">
+                {data.nextLevel
+                  ? `Prochain niveau : ${data.nextLevel.name}`
+                  : "Vous avez atteint le niveau VIP maximum."}
+              </p>
+            </div>
+          </header>
+
+          {data.nextLevel ? (
+            <div className="mt-6 space-y-6">
+              <ProgressBar
+                label="Expérience"
+                currentValue={
+                  data.account.experience
+                }
+                targetValue={
+                  data.nextLevel.requiredXp
+                }
+                percent={
+                  data.progress.xpPercent
+                }
+                suffix="XP"
+              />
+
+              <ProgressBar
+                label="Points"
+                currentValue={
+                  data.account.points
+                }
+                targetValue={
+                  data.nextLevel.requiredPoints
+                }
+                percent={
+                  data.progress.pointsPercent
+                }
+                suffix="points"
+              />
+
+              <div className="grid gap-3 sm:grid-cols-2">
+                <div className="rounded-2xl bg-violet-50 p-4">
+                  <p className="text-xs font-bold uppercase tracking-wide text-violet-600">
+                    XP restants
+                  </p>
+
+                  <p className="mt-2 text-xl font-black text-violet-950">
+                    {data.progress.remainingXp.toLocaleString(
+                      "fr-FR",
+                    )}
+                  </p>
+                </div>
+
+                <div className="rounded-2xl bg-fuchsia-50 p-4">
+                  <p className="text-xs font-bold uppercase tracking-wide text-fuchsia-600">
+                    Points restants
+                  </p>
+
+                  <p className="mt-2 text-xl font-black text-fuchsia-950">
+                    {data.progress.remainingPoints.toLocaleString(
+                      "fr-FR",
+                    )}
+                  </p>
+                </div>
+              </div>
+            </div>
+          ) : (
+            <div className="mt-6 rounded-2xl bg-gradient-to-r from-violet-50 to-fuchsia-50 p-5">
+              <BadgeCheck className="size-8 text-violet-600" />
+
+              <p className="mt-3 text-lg font-black text-zinc-950">
+                Niveau maximum atteint
+              </p>
+
+              <p className="mt-2 text-sm leading-6 text-zinc-600">
+                Continuez à cumuler des points pour profiter des récompenses du
+                Club VIP.
+              </p>
+            </div>
+          )}
+        </article>
+
+        <article className="rounded-[1.75rem] border border-zinc-200 bg-white p-5 shadow-sm sm:p-6">
+          <header className="flex items-center gap-3">
+            <span className="flex size-11 items-center justify-center rounded-2xl bg-rose-50 text-rose-600">
+              <Star className="size-5" />
+            </span>
+
+            <div>
+              <h2 className="font-black text-zinc-950">
+                Votre carte membre
+              </h2>
+
+              <p className="mt-1 text-sm text-zinc-500">
+                Conservez vos identifiants fidélité.
+              </p>
+            </div>
+          </header>
+
+          <div className="mt-6 space-y-4">
+            <div className="rounded-2xl bg-zinc-950 p-5 text-white">
+              <p className="text-xs font-bold uppercase tracking-[0.16em] text-zinc-400">
+                Numéro de membre
+              </p>
+
+              <div className="mt-3 flex items-center justify-between gap-3">
+                <p className="break-all font-mono text-lg font-black">
+                  {data.account.memberNumber}
+                </p>
+
+                <button
+                  type="button"
+                  onClick={() =>
+                    void copyValue(
+                      data.account.memberNumber,
+                      "Numéro de membre",
+                    )
+                  }
+                  className="flex size-10 shrink-0 items-center justify-center rounded-xl bg-white/10 text-white transition hover:bg-white/20"
+                  title="Copier le numéro de membre"
+                >
+                  {copiedValue ===
+                  data.account.memberNumber ? (
+                    <Check className="size-4" />
+                  ) : (
+                    <Copy className="size-4" />
+                  )}
+                </button>
+              </div>
+            </div>
+
+            <div className="rounded-2xl border border-violet-200 bg-violet-50 p-5">
+              <div className="flex items-start gap-3">
+                <span className="flex size-10 shrink-0 items-center justify-center rounded-xl bg-violet-600 text-white">
+                  <Link2 className="size-5" />
+                </span>
+
+                <div>
+                  <p className="text-xs font-bold uppercase tracking-[0.16em] text-violet-600">
+                    Mon lien de parrainage
+                  </p>
+
+                  <p className="mt-2 font-black text-violet-950">
+                    Invitez facilement une proche
+                  </p>
+
+                  <p className="mt-1 text-xs leading-5 text-violet-700">
+                    La personne ouvrira directement la page d’inscription et
+                    votre parrainage sera enregistré automatiquement.
+                  </p>
+                </div>
+              </div>
+
+              <div className="mt-4 grid gap-3 sm:grid-cols-2">
+                <button
+                  type="button"
+                  onClick={() => {
+                    const referralLink =
+                      getReferralLink();
+
+                    void copyValue(
+                      referralLink,
+                      "Lien de parrainage",
+                    );
+                  }}
+                  className="inline-flex h-11 items-center justify-center gap-2 rounded-xl bg-violet-600 px-4 text-sm font-black text-white transition hover:bg-violet-700"
+                >
+                  {copiedValue ===
+                  getReferralLink() ? (
+                    <>
+                      <Check className="size-4" />
+
+                      Lien copié
+                    </>
+                  ) : (
+                    <>
+                      <Copy className="size-4" />
+
+                      Copier mon lien
+                    </>
+                  )}
+                </button>
+
+                <button
+                  type="button"
+                  onClick={() =>
+                    void shareReferralLink()
+                  }
+                  className="inline-flex h-11 items-center justify-center gap-2 rounded-xl border border-violet-200 bg-white px-4 text-sm font-black text-violet-700 transition hover:border-violet-300 hover:bg-violet-100"
+                >
+                  <Share2 className="size-4" />
+
+                  Partager mon lien
+                </button>
+              </div>
+
+              <p className="mt-3 text-center text-[11px] leading-5 text-violet-600">
+                Aucun code ne devra être saisi pendant l’inscription.
+              </p>
+            </div>
+
+            <p className="text-xs text-zinc-500">
+              Membre depuis le{" "}
+              <strong className="text-zinc-800">
+                {formatShortDate(
+                  data.account.joinedAt,
+                )}
+              </strong>
+            </p>
+          </div>
+        </article>
+      </section>
+
+      <section className="grid gap-4 sm:grid-cols-2 xl:grid-cols-4">
+        <MetricCard
+          label="Récompenses disponibles"
+          value={data.metrics.availableRewards.toLocaleString(
+            "fr-FR",
+          )}
+          description={`${data.metrics.usedRewards.toLocaleString(
+            "fr-FR",
+          )} récompense(s) déjà utilisée(s)`}
+          icon={
+            <Gift className="size-5" />
+          }
+          iconClassName="bg-rose-50 text-rose-600"
+        />
+
+        <MetricCard
+          label="Rendez-vous terminés"
+          value={data.metrics.completedAppointments.toLocaleString(
+            "fr-FR",
+          )}
+          icon={
+            <CalendarDays className="size-5" />
+          }
+          iconClassName="bg-emerald-50 text-emerald-600"
+        />
+
+        <MetricCard
+          label="Points gagnés"
+          value={data.metrics.totalPointsEarned.toLocaleString(
+            "fr-FR",
+          )}
+          description={`${data.metrics.totalPointsSpent.toLocaleString(
+            "fr-FR",
+          )} point(s) dépensé(s)`}
+          icon={
+            <Trophy className="size-5" />
+          }
+          iconClassName="bg-violet-50 text-violet-600"
+        />
+
+        <MetricCard
+          label="Total dépensé"
+          value={formatCurrency(
+            data.metrics.totalSpentCents,
+          )}
+          description={`${data.metrics.totalExperienceEarned.toLocaleString(
+            "fr-FR",
+          )} XP gagné(s) au total`}
+          icon={
+            <WalletCards className="size-5" />
+          }
+          iconClassName="bg-blue-50 text-blue-600"
+        />
+      </section>
+
+      <section className="rounded-[1.75rem] border border-zinc-200 bg-white p-5 shadow-sm sm:p-6">
+        <div className="flex flex-col gap-4 border-b border-zinc-100 pb-5 sm:flex-row sm:items-end sm:justify-between">
+          <div>
+            <p className="text-xs font-black uppercase tracking-[0.18em] text-violet-600">
+              Votre activité
+            </p>
+
+            <h2 className="mt-1 text-2xl font-black text-zinc-950">
+              Club VIP
+            </h2>
+
+            <p className="mt-2 text-sm leading-6 text-zinc-500">
+              Retrouvez vos récompenses et vos derniers mouvements fidélité.
+            </p>
+          </div>
+
+          <div className="inline-flex rounded-xl bg-zinc-100 p-1">
+            <button
+              type="button"
+              onClick={() =>
+                setActiveTab(
+                  "REWARDS",
+                )
+              }
+              className={`inline-flex h-10 items-center justify-center gap-2 rounded-lg px-4 text-sm font-black transition ${
+                activeTab ===
+                "REWARDS"
+                  ? "bg-white text-violet-700 shadow-sm"
+                  : "text-zinc-500 hover:text-zinc-900"
+              }`}
+            >
+              <Gift className="size-4" />
+
+              Mes récompenses
+            </button>
+
+            <button
+              type="button"
+              onClick={() =>
+                setActiveTab(
+                  "HISTORY",
+                )
+              }
+              className={`inline-flex h-10 items-center justify-center gap-2 rounded-lg px-4 text-sm font-black transition ${
+                activeTab ===
+                "HISTORY"
+                  ? "bg-white text-violet-700 shadow-sm"
+                  : "text-zinc-500 hover:text-zinc-900"
+              }`}
+            >
+              <History className="size-4" />
+
+              Historique
+            </button>
+          </div>
+        </div>
+
+        {activeTab ===
+        "REWARDS" ? (
+          <div className="mt-6">
+            {data.rewards.length >
+            0 ? (
+              <div className="grid gap-4 lg:grid-cols-2">
+                {data.rewards.map(
+                  (
+                    clientReward,
+                  ) => (
+                    <RewardCard
+                      key={
+                        clientReward.id
+                      }
+                      clientReward={
+                        clientReward
+                      }
+                      onCopy={
+                        copyValue
+                      }
+                      copiedValue={
+                        copiedValue
+                      }
+                    />
+                  ),
+                )}
+              </div>
+            ) : (
+              <EmptyState
+                icon={
+                  <Gift className="size-7" />
+                }
+                title="Aucune récompense pour le moment"
+                description="Vos futures récompenses apparaîtront ici dès qu’elles seront débloquées ou attribuées."
+              />
+            )}
+          </div>
+        ) : (
+          <div className="mt-6">
+            {data.transactions.length >
+            0 ? (
+              <div className="space-y-3">
+                {data.transactions.map(
+                  (
+                    transaction,
+                  ) => (
+                    <TransactionCard
+                      key={
+                        transaction.id
+                      }
+                      transaction={
+                        transaction
+                      }
+                    />
+                  ),
+                )}
+              </div>
+            ) : (
+              <EmptyState
+                icon={
+                  <Clock3 className="size-7" />
+                }
+                title="Aucune activité fidélité"
+                description="Vos gains de points, d’XP et vos utilisations de récompenses apparaîtront ici."
+              />
+            )}
+          </div>
+        )}
+      </section>
+    </div>
+  );
+}
+
+/* -------------------------------------------------------------------------- */
+/*                              CARTE RÉCOMPENSE                              */
+/* -------------------------------------------------------------------------- */
+
+function RewardCard({
+  clientReward,
+  onCopy,
+  copiedValue,
+}: {
+  clientReward: ClientVipReward;
+
+  onCopy: (
+    value: string,
+    label: string,
+  ) => Promise<void>;
+
+  copiedValue: string | null;
+}) {
+  const rewardColor =
+    clientReward.reward
+      .color ??
+    "#7c3aed";
+
+  return (
+    <article className="relative overflow-hidden rounded-[1.5rem] border border-zinc-200 bg-white p-5">
+      <div
+        className="absolute inset-x-0 top-0 h-1.5"
+        style={{
+          backgroundColor:
+            rewardColor,
+        }}
+      />
+
+      <div className="flex items-start justify-between gap-3">
+        <span
+          className="flex size-12 shrink-0 items-center justify-center rounded-2xl text-white shadow-sm"
+          style={{
+            backgroundColor:
+              rewardColor,
+          }}
+        >
+          <Gift className="size-6" />
+        </span>
+
+        <span
+          className={`rounded-full px-3 py-1.5 text-[11px] font-black ${REWARD_STATUS_CLASSES[clientReward.status]}`}
+        >
+          {
+            REWARD_STATUS_LABELS[
+              clientReward.status
+            ]
+          }
+        </span>
+      </div>
+
+      <p className="mt-4 text-xs font-black uppercase tracking-[0.16em] text-violet-600">
+        {formatEnum(
+          clientReward.reward
+            .type,
+        )}
+      </p>
+
+      <h3 className="mt-1 text-xl font-black text-zinc-950">
+        {
+          clientReward.reward
+            .name
+        }
+      </h3>
+
+      <p className="mt-2 min-h-10 text-sm leading-5 text-zinc-500">
+        {clientReward.reward
+          .shortDescription ??
+          "Une récompense exclusive du Club VIP."}
+      </p>
+
+      <div
+        className="mt-4 rounded-2xl p-4"
+        style={{
+          backgroundColor:
+            `${rewardColor}14`,
+        }}
+      >
+        <p
+          className="text-xs font-bold uppercase tracking-wide"
+          style={{
+            color:
+              rewardColor,
+          }}
+        >
+          Votre avantage
+        </p>
+
+        <p className="mt-1 text-lg font-black text-zinc-950">
+          {getRewardValue(
+            clientReward,
+          )}
+        </p>
+      </div>
+
+      <div className="mt-4 rounded-2xl bg-zinc-950 p-4 text-white">
+        <p className="text-[10px] font-bold uppercase tracking-[0.16em] text-zinc-400">
+          Code personnel
+        </p>
+
+        <div className="mt-2 flex items-center justify-between gap-3">
+          <p className="break-all font-mono text-sm font-black">
+            {
+              clientReward.uniqueCode
+            }
+          </p>
+
+          <button
+            type="button"
+            onClick={() =>
+              void onCopy(
+                clientReward.uniqueCode,
+                "Code de récompense",
+              )
+            }
+            className="flex size-9 shrink-0 items-center justify-center rounded-xl bg-white/10 transition hover:bg-white/20"
+          >
+            {copiedValue ===
+            clientReward.uniqueCode ? (
+              <Check className="size-4" />
+            ) : (
+              <Copy className="size-4" />
+            )}
+          </button>
+        </div>
+      </div>
+
+      <div className="mt-4 grid grid-cols-2 gap-2 text-xs">
+        <div className="rounded-xl bg-zinc-50 p-3">
+          <p className="text-zinc-400">
+            Obtenue le
+          </p>
+
+          <p className="mt-1 font-black text-zinc-800">
+            {formatShortDate(
+              clientReward.createdAt,
+            )}
+          </p>
+        </div>
+
+        <div className="rounded-xl bg-zinc-50 p-3">
+          <p className="text-zinc-400">
+            Expiration
+          </p>
+
+          <p className="mt-1 font-black text-zinc-800">
+            {formatDate(
+              clientReward.expiresAt,
+            )}
+          </p>
+        </div>
+      </div>
+    </article>
+  );
+}
+
+/* -------------------------------------------------------------------------- */
+/*                             CARTE TRANSACTION                              */
+/* -------------------------------------------------------------------------- */
+
+function TransactionCard({
+  transaction,
+}: {
+  transaction: ClientVipTransaction;
+}) {
+  return (
+    <article className="rounded-2xl border border-zinc-200 p-4 transition hover:border-violet-200 hover:bg-violet-50/20">
+      <div className="flex flex-col gap-4 sm:flex-row sm:items-start sm:justify-between">
+        <div className="flex min-w-0 items-start gap-3">
+          <span className="flex size-10 shrink-0 items-center justify-center rounded-xl bg-violet-50 text-violet-600">
+            <Sparkles className="size-4" />
+          </span>
+
+          <div className="min-w-0">
+            <div className="flex flex-wrap items-center gap-2">
+              <h3 className="font-black text-zinc-950">
+                {transaction.title}
+              </h3>
+
+              <span className="rounded-full bg-zinc-100 px-2.5 py-1 text-[10px] font-black uppercase text-zinc-600">
+                {formatEnum(
+                  transaction.source,
+                )}
+              </span>
+
+              {transaction.isReversed ? (
+                <span className="rounded-full bg-red-50 px-2.5 py-1 text-[10px] font-black uppercase text-red-600">
+                  Annulée
+                </span>
+              ) : null}
+            </div>
+
+            {transaction.description ? (
+              <p className="mt-2 text-sm leading-5 text-zinc-500">
+                {
+                  transaction.description
+                }
+              </p>
+            ) : null}
+
+            <p className="mt-2 text-xs text-zinc-400">
+              {formatDate(
+                transaction.createdAt,
+              )}
+            </p>
+          </div>
+        </div>
+
+        <div className="shrink-0 rounded-xl bg-zinc-50 px-4 py-3 text-sm sm:text-right">
+          <p
+            className={`font-black ${getTransactionAmountClass(
+              transaction.pointsAmount,
+            )}`}
+          >
+            {getTransactionPrefix(
+              transaction.pointsAmount,
+            )}
+            {
+              transaction.pointsAmount
+            }{" "}
+            point(s)
+          </p>
+
+          <p
+            className={`mt-1 font-black ${getTransactionAmountClass(
+              transaction.xpAmount,
+            )}`}
+          >
+            {getTransactionPrefix(
+              transaction.xpAmount,
+            )}
+            {
+              transaction.xpAmount
+            }{" "}
+            XP
+          </p>
+
+          <p className="mt-2 text-[11px] text-zinc-400">
+            Solde :{" "}
+            {
+              transaction.pointsBalanceAfter
+            }{" "}
+            pts ·{" "}
+            {
+              transaction.xpBalanceAfter
+            }{" "}
+            XP
+          </p>
+        </div>
+      </div>
+    </article>
+  );
+}

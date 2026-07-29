@@ -1,0 +1,63 @@
+import { getServerSession } from "next-auth";
+import { redirect } from "next/navigation";
+
+import { authOptions } from "@/lib/auth";
+import { isAdminRole } from "@/lib/roles";
+
+export async function getCurrentSession() {
+  return getServerSession(authOptions);
+}
+
+export async function getCurrentUser() {
+  const session = await getCurrentSession();
+
+  return session?.user ?? null;
+}
+
+export async function requireAuthenticatedUser() {
+  const user = await getCurrentUser();
+
+  if (!user) {
+    redirect("/connexion");
+  }
+
+  if (user.status !== "ACTIVE") {
+    redirect("/connexion?error=account-disabled");
+  }
+
+  return user;
+}
+
+export async function requireClientUser() {
+  const user = await requireAuthenticatedUser();
+
+  if (isAdminRole(user.role)) {
+    redirect("/admin/dashboard");
+  }
+
+  if (user.role !== "CLIENT") {
+    redirect("/");
+  }
+
+  return user;
+}
+
+export async function requireAdminUser() {
+  const user = await requireAuthenticatedUser();
+
+  if (!isAdminRole(user.role)) {
+    redirect("/espace-client");
+  }
+
+  return user;
+}
+
+export async function requireSuperAdminUser() {
+  const user = await requireAdminUser();
+
+  if (user.role !== "SUPER_ADMIN") {
+    redirect("/admin/dashboard");
+  }
+
+  return user;
+}

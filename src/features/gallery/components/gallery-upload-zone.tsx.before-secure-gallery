@@ -1,0 +1,347 @@
+"use client";
+
+import { useCallback, useMemo, useState } from "react";
+import { useDropzone } from "react-dropzone";
+import {
+  AlertCircle,
+  GripVertical,
+  ImageIcon,
+  LoaderCircle,
+  Trash2,
+  UploadCloud,
+} from "lucide-react";
+
+import { Button } from "@/components/ui/button";
+import { useUploadThing } from "@/lib/uploadthing";
+
+import type {
+  GalleryImage,
+} from "../types/gallery.types";
+
+type GalleryUploadZoneProps = {
+  value: GalleryImage[];
+
+  onChange: (images: GalleryImage[]) => void;
+
+  maxFiles?: number;
+
+  disabled?: boolean;
+};
+
+const ACCEPTED_TYPES = {
+  "image/jpeg": [],
+  "image/png": [],
+  "image/webp": [],
+};
+
+export function GalleryUploadZone({
+  value,
+  onChange,
+  maxFiles = 10,
+  disabled = false,
+}: GalleryUploadZoneProps) {
+  const [uploading, setUploading] = useState(false);
+
+  const {
+    startUpload,
+    isUploading,
+  } = useUploadThing("galleryUploader");
+
+  const remaining =
+    maxFiles - value.length;
+
+  const canUpload =
+    remaining > 0 &&
+    !disabled &&
+    !uploading &&
+    !isUploading;
+
+  const removeImage = useCallback(
+    (id: string) => {
+      onChange(
+        value.filter(
+          (image) => image.id !== id,
+        ),
+      );
+    },
+    [onChange, value],
+  );
+
+  const setCover = useCallback(
+    (id: string) => {
+      onChange(
+        value.map((image) => ({
+          ...image,
+          isCover: image.id === id,
+        })),
+      );
+    },
+    [onChange, value],
+  );
+
+  const onDrop = useCallback(
+    async (acceptedFiles: File[]) => {
+      if (
+        acceptedFiles.length === 0 ||
+        !canUpload
+      ) {
+        return;
+      }
+
+      const files = acceptedFiles.slice(
+        0,
+        remaining,
+      );
+
+      setUploading(true);
+
+      try {
+        const response =
+          await startUpload(files);
+
+        if (!response) {
+          return;
+        }
+
+        const uploaded: GalleryImage[] =
+          response.map(
+            (file, index) => ({
+              id:
+                crypto.randomUUID(),
+
+              url: file.ufsUrl,
+
+              thumbnailUrl:
+                file.ufsUrl,
+
+              alt: "",
+
+              width: null,
+
+              height: null,
+
+              type: "IMAGE",
+
+              sortOrder:
+                value.length + index,
+
+              isCover:
+                value.length === 0 &&
+                index === 0,
+            }),
+          );
+
+        onChange([
+          ...value,
+          ...uploaded,
+        ]);
+      } catch (error) {
+        console.error(
+          error,
+        );
+      } finally {
+        setUploading(false);
+      }
+    },
+    [
+      canUpload,
+      onChange,
+      remaining,
+      startUpload,
+      value,
+    ],
+  );
+
+  const {
+    getRootProps,
+    getInputProps,
+    isDragActive,
+  } = useDropzone({
+    onDrop,
+    accept: ACCEPTED_TYPES,
+    maxFiles: remaining,
+    disabled: !canUpload,
+    multiple: true,
+  });
+
+  const hasImages =
+    value.length > 0;
+
+  const uploadLabel =
+    useMemo(() => {
+      if (
+        uploading ||
+        isUploading
+      ) {
+        return "Téléversement...";
+      }
+
+      if (
+        !hasImages
+      ) {
+        return "Déposez vos photos ici";
+      }
+
+      return "Ajouter des photos";
+    }, [
+      hasImages,
+      isUploading,
+      uploading,
+    ]);
+
+
+  return (
+    <div className="space-y-6">
+      <div
+        {...getRootProps()}
+        className={[
+          "cursor-pointer rounded-2xl border-2 border-dashed p-10 transition-all",
+          isDragActive
+            ? "border-pink-500 bg-pink-50"
+            : "border-zinc-300 hover:border-pink-400 hover:bg-zinc-50",
+          !canUpload && "cursor-not-allowed opacity-60",
+        ]
+          .filter(Boolean)
+          .join(" ")}
+      >
+        <input {...getInputProps()} />
+
+        <div className="flex flex-col items-center gap-4 text-center">
+          {uploading || isUploading ? (
+            <LoaderCircle className="h-12 w-12 animate-spin text-pink-500" />
+          ) : (
+            <UploadCloud className="h-12 w-12 text-pink-500" />
+          )}
+
+          <div className="space-y-2">
+            <h3 className="text-lg font-semibold">
+              {uploadLabel}
+            </h3>
+
+            <p className="text-sm text-zinc-500">
+              JPG • PNG • WEBP
+            </p>
+
+            <p className="text-sm text-zinc-500">
+              Maximum {maxFiles} images
+            </p>
+          </div>
+
+          <Button
+            type="button"
+            variant="secondary"
+            disabled={!canUpload}
+          >
+            Choisir des images
+          </Button>
+        </div>
+      </div>
+
+      {hasImages && (
+        <div className="grid gap-5 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
+          {value.map((image) => (
+            <div
+              key={image.id}
+              className="overflow-hidden rounded-2xl border bg-white shadow-sm"
+            >
+              <div className="relative aspect-square bg-zinc-100">
+                <img
+                  src={image.url}
+                  alt={image.alt ?? ""}
+                  className="h-full w-full object-cover"
+                />
+
+                <button
+                  type="button"
+                  onClick={() => removeImage(image.id)}
+                  className="absolute right-2 top-2 rounded-full bg-white p-2 shadow transition hover:bg-red-50"
+                >
+                  <Trash2 className="h-4 w-4 text-red-500" />
+                </button>
+
+                {image.isCover && (
+                  <div className="absolute left-2 top-2 rounded-full bg-pink-600 px-3 py-1 text-xs font-medium text-white">
+                    Couverture
+                  </div>
+                )}
+              </div>
+
+              <div className="space-y-3 p-4">
+                <div className="flex items-center justify-between">
+                  <div className="flex items-center gap-2 text-sm text-zinc-500">
+                    <GripVertical className="h-4 w-4" />
+                    Image
+                  </div>
+
+                  {!image.isCover && (
+                    <Button
+                      type="button"
+                      variant="outline"
+                      onClick={() => setCover(image.id)}
+                    >
+                      Couverture
+                    </Button>
+                  )}
+                </div>
+              </div>
+            </div>
+          ))}
+        </div>
+      )}
+
+      <div className="rounded-xl border border-zinc-200 bg-zinc-50 p-4">
+        <div className="flex items-start gap-3">
+          <AlertCircle className="mt-0.5 h-5 w-5 shrink-0 text-pink-600" />
+
+          <div className="space-y-1 text-sm text-zinc-600">
+            <p className="font-medium text-zinc-900">
+              Recommandations
+            </p>
+
+            <ul className="list-disc space-y-1 pl-5">
+              <li>
+                Utilisez des photos nettes et bien éclairées.
+              </li>
+
+              <li>
+                La première image servira de couverture si aucune
+                autre n&apos;est sélectionnée.
+              </li>
+
+              <li>
+                Formats acceptés : JPG, PNG et WEBP.
+              </li>
+
+              <li>
+                Taille maximale : 8&nbsp;Mo par image.
+              </li>
+
+              <li>
+                Vous pouvez importer jusqu&apos;à {maxFiles} images.
+              </li>
+            </ul>
+          </div>
+        </div>
+      </div>
+
+      <div className="flex items-center justify-between text-sm text-zinc-500">
+        <div className="flex items-center gap-2">
+          <ImageIcon className="h-4 w-4" />
+
+          <span>
+            {value.length} / {maxFiles} image
+            {value.length > 1 ? "s" : ""}
+          </span>
+        </div>
+
+        {(uploading || isUploading) && (
+          <div className="flex items-center gap-2">
+            <LoaderCircle className="h-4 w-4 animate-spin" />
+
+            <span>Téléversement en cours...</span>
+          </div>
+        )}
+      </div>
+    </div>
+  );
+}

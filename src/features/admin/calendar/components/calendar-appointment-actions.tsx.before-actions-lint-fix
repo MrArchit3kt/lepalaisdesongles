@@ -1,0 +1,737 @@
+"use client";
+
+import {
+  CheckCircle2,
+  CircleStop,
+  LoaderCircle,
+  Play,
+  Save,
+  UserX,
+  XCircle,
+} from "lucide-react";
+import {
+  useEffect,
+  useState,
+  useTransition,
+} from "react";
+import {
+  toast,
+} from "sonner";
+
+import type {
+  AdminAppointmentMutation,
+} from "@/features/admin/appointments/types/admin-appointment.types";
+
+import type {
+  CalendarAppointment,
+} from "../types/admin-calendar.types";
+
+import {
+  CalendarAppointmentConfirmDialog,
+} from "./calendar-appointment-confirm-dialog";
+
+/* -------------------------------------------------------------------------- */
+/*                                   TYPES                                    */
+/* -------------------------------------------------------------------------- */
+
+type CalendarAppointmentActionsProps = {
+  appointment: CalendarAppointment;
+  onUpdated: () => void | Promise<void>;
+};
+
+type ConfirmationAction =
+  | "refuse"
+  | "no_show"
+  | "cancel"
+  | null;
+
+/* -------------------------------------------------------------------------- */
+/*                                 COMPONENT                                  */
+/* -------------------------------------------------------------------------- */
+
+export function CalendarAppointmentActions({
+  appointment,
+  onUpdated,
+}: CalendarAppointmentActionsProps) {
+  const [
+    pending,
+    startTransition,
+  ] =
+    useTransition();
+
+  const [
+    adminComment,
+    setAdminComment,
+  ] =
+    useState(
+      appointment.adminComment ??
+        "",
+    );
+
+  const [
+    reason,
+    setReason,
+  ] =
+    useState(
+      appointment.cancellationReason ??
+        "",
+    );
+
+  const [
+    confirmationAction,
+    setConfirmationAction,
+  ] =
+    useState<ConfirmationAction>(
+      null,
+    );
+
+  const [
+    reasonError,
+    setReasonError,
+  ] =
+    useState<string | null>(
+      null,
+    );
+
+  useEffect(() => {
+    setAdminComment(
+      appointment.adminComment ??
+        "",
+    );
+
+    setReason(
+      appointment.cancellationReason ??
+        "",
+    );
+
+    setReasonError(
+      null,
+    );
+
+    setConfirmationAction(
+      null,
+    );
+  }, [
+    appointment,
+  ]);
+
+  function run(
+    mutation: AdminAppointmentMutation,
+    successMessage: string,
+  ) {
+    startTransition(
+      async () => {
+        try {
+          const response =
+            await fetch(
+              `/api/admin/appointments/${encodeURIComponent(
+                appointment.reference,
+              )}`,
+              {
+                method:
+                  "PATCH",
+
+                headers: {
+                  "Content-Type":
+                    "application/json",
+                },
+
+                body:
+                  JSON.stringify(
+                    mutation,
+                  ),
+              },
+            );
+
+          const payload =
+            (await response.json()) as {
+              success?: boolean;
+              error?: string;
+            };
+
+          if (
+            !response.ok ||
+            !payload.success
+          ) {
+            throw new Error(
+              payload.error ??
+                "Modification impossible.",
+            );
+          }
+
+          toast.success(
+            successMessage,
+          );
+
+          setConfirmationAction(
+            null,
+          );
+
+          await onUpdated();
+        } catch (
+          error
+        ) {
+          toast.error(
+            error instanceof Error
+              ? error.message
+              : "Une erreur est survenue.",
+          );
+        }
+      },
+    );
+  }
+
+  const canUseReason =
+    [
+      "PENDING",
+      "CONFIRMED",
+      "IN_PROGRESS",
+    ].includes(
+      appointment.status,
+    );
+
+  function requestConfirmation(
+    action: Exclude<
+      ConfirmationAction,
+      null
+    >,
+  ) {
+    const requiresReason =
+      action ===
+        "refuse" ||
+      action ===
+        "cancel";
+
+    const cleanedReason =
+      reason.trim();
+
+    if (
+      requiresReason &&
+      cleanedReason.length <
+        5
+    ) {
+      const message =
+        action ===
+        "refuse"
+          ? "Le motif du refus doit contenir au moins 5 caractères."
+          : "Le motif de l’annulation doit contenir au moins 5 caractères.";
+
+      setReasonError(
+        message,
+      );
+
+      toast.error(
+        message,
+      );
+
+      return;
+    }
+
+    setReasonError(
+      null,
+    );
+
+    setConfirmationAction(
+      action,
+    );
+  }
+
+  function executeConfirmedAction() {
+    if (
+      confirmationAction ===
+      "refuse"
+    ) {
+      run(
+        {
+          action:
+            "refuse",
+
+          reason:
+            reason.trim(),
+
+          adminComment,
+        },
+        "Rendez-vous refusé.",
+      );
+
+      return;
+    }
+
+    if (
+      confirmationAction ===
+      "no_show"
+    ) {
+      run(
+        {
+          action:
+            "no_show",
+
+          reason:
+            reason ||
+            undefined,
+        },
+        "Absence enregistrée.",
+      );
+
+      return;
+    }
+
+    if (
+      confirmationAction ===
+      "cancel"
+    ) {
+      run(
+        {
+          action:
+            "cancel",
+
+          reason:
+            reason.trim(),
+
+          adminComment,
+        },
+        "Rendez-vous annulé.",
+      );
+    }
+  }
+
+  const confirmationContent =
+    confirmationAction ===
+    "refuse"
+      ? {
+          title:
+            "Refuser ce rendez-vous ?",
+
+          description:
+            "La cliente ne sera pas confirmée sur ce créneau. Vérifiez le motif avant de continuer.",
+
+          confirmLabel:
+            "Refuser le rendez-vous",
+        }
+      : confirmationAction ===
+          "no_show"
+        ? {
+            title:
+              "Déclarer la cliente absente ?",
+
+            description:
+              "Cette action marquera définitivement le rendez-vous comme non honoré.",
+
+            confirmLabel:
+              "Confirmer l’absence",
+          }
+        : confirmationAction ===
+            "cancel"
+          ? {
+              title:
+                "Annuler ce rendez-vous ?",
+
+              description:
+                "Le créneau sera libéré dans l’agenda. Vérifiez le motif avant de confirmer.",
+
+              confirmLabel:
+                "Annuler le rendez-vous",
+            }
+          : null;
+
+  return (
+    <section className="rounded-3xl border border-pink-100 bg-white p-5 shadow-sm">
+      <div className="flex items-center justify-between gap-4">
+        <div>
+          <h3 className="font-semibold text-zinc-950">
+            Gestion rapide
+          </h3>
+
+          <p className="mt-1 text-sm text-zinc-500">
+            Modifiez le statut sans quitter l’agenda.
+          </p>
+        </div>
+
+        {pending ? (
+          <LoaderCircle className="size-5 animate-spin text-rose-500" />
+        ) : null}
+      </div>
+
+      {/* ------------------------------------------------------------------ */}
+      {/*                            NOTE INTERNE                             */}
+      {/* ------------------------------------------------------------------ */}
+
+      <label className="mt-5 block">
+        <span className="text-sm font-semibold text-zinc-800">
+          Note administrative
+        </span>
+
+        <textarea
+          value={
+            adminComment
+          }
+          onChange={(
+            event,
+          ) =>
+            setAdminComment(
+              event.target.value,
+            )
+          }
+          rows={
+            4
+          }
+          disabled={
+            pending
+          }
+          placeholder="Informations internes visibles uniquement par l’équipe…"
+          className="mt-2 w-full resize-y rounded-2xl border border-zinc-200 bg-white p-3 text-sm outline-none transition focus:border-rose-400 focus:ring-4 focus:ring-rose-100 disabled:cursor-not-allowed disabled:opacity-60"
+        />
+
+        <button
+          type="button"
+          disabled={
+            pending
+          }
+          onClick={() =>
+            run(
+              {
+                action:
+                  "update_note",
+
+                adminComment,
+              },
+              "Note administrative enregistrée.",
+            )
+          }
+          className="mt-3 inline-flex items-center gap-2 rounded-xl border border-zinc-200 bg-white px-4 py-2 text-sm font-semibold text-zinc-800 transition hover:border-rose-300 hover:bg-rose-50 disabled:cursor-not-allowed disabled:opacity-50"
+        >
+          <Save className="size-4" />
+
+          Enregistrer la note
+        </button>
+      </label>
+
+      {/* ------------------------------------------------------------------ */}
+      {/*                         MOTIF D’ANNULATION                          */}
+      {/* ------------------------------------------------------------------ */}
+
+      {canUseReason ? (
+        <label className="mt-5 block">
+          <span className="text-sm font-semibold text-zinc-800">
+            Motif du refus, de l’absence ou de l’annulation
+          </span>
+
+          <span className="mt-1 block text-xs text-zinc-500">
+            Minimum 5 caractères pour un refus ou une annulation.
+          </span>
+
+          <textarea
+            value={
+              reason
+            }
+            onChange={(
+              event,
+            ) => {
+              const nextReason =
+                event.target.value;
+
+              setReason(
+                nextReason,
+              );
+
+              if (
+                nextReason.trim().length >=
+                5
+              ) {
+                setReasonError(
+                  null,
+                );
+              }
+            }}
+            rows={
+              3
+            }
+            disabled={
+              pending
+            }
+            placeholder="Indiquez un motif clair avant de refuser ou d’annuler…"
+            maxLength={500}
+            aria-invalid={
+              reasonError
+                ? "true"
+                : "false"
+            }
+            aria-describedby={
+              reasonError
+                ? "appointment-reason-error"
+                : undefined
+            }
+            className={`mt-2 w-full resize-y rounded-2xl border bg-white p-3 text-sm outline-none transition disabled:cursor-not-allowed disabled:opacity-60 ${
+              reasonError
+                ? "border-red-400 focus:border-red-500 focus:ring-4 focus:ring-red-100"
+                : "border-zinc-200 focus:border-rose-400 focus:ring-4 focus:ring-rose-100"
+            }`}
+          />
+
+          <div className="mt-2 flex items-center justify-between gap-4">
+            <div>
+              {reasonError ? (
+                <p
+                  id="appointment-reason-error"
+                  role="alert"
+                  className="text-sm font-medium text-red-600"
+                >
+                  {reasonError}
+                </p>
+              ) : (
+                <p
+                  className={`text-xs ${
+                    reason.trim().length >=
+                    5
+                      ? "text-emerald-600"
+                      : "text-zinc-500"
+                  }`}
+                >
+                  {reason.trim().length >=
+                  5
+                    ? "Motif suffisamment détaillé."
+                    : "Encore quelques caractères nécessaires."}
+                </p>
+              )}
+            </div>
+
+            <span
+              className={`shrink-0 text-xs font-medium ${
+                reason.length >=
+                500
+                  ? "text-red-600"
+                  : reason.trim().length >=
+                      5
+                    ? "text-emerald-600"
+                    : "text-zinc-500"
+              }`}
+              aria-live="polite"
+            >
+              {reason.length}
+              {" "}
+              / 500
+            </span>
+          </div>
+        </label>
+      ) : null}
+
+      {/* ------------------------------------------------------------------ */}
+      {/*                              ACTIONS                               */}
+      {/* ------------------------------------------------------------------ */}
+
+      <div className="mt-6 flex flex-wrap gap-3 border-t border-zinc-100 pt-5">
+        {appointment.status ===
+        "PENDING" ? (
+          <>
+            <ActionButton
+              disabled={
+                pending
+              }
+              label="Confirmer"
+              icon={
+                <CheckCircle2 className="size-4" />
+              }
+              className="bg-emerald-600 text-white hover:bg-emerald-700"
+              onClick={() =>
+                run(
+                  {
+                    action:
+                      "confirm",
+
+                    adminComment,
+                  },
+                  "Rendez-vous confirmé.",
+                )
+              }
+            />
+
+            <ActionButton
+              disabled={
+                pending
+              }
+              label="Refuser"
+              icon={
+                <XCircle className="size-4" />
+              }
+              className="bg-amber-600 text-white hover:bg-amber-700"
+              onClick={() =>
+                requestConfirmation(
+                  "refuse",
+                )
+              }
+            />
+          </>
+        ) : null}
+
+        {appointment.status ===
+        "CONFIRMED" ? (
+          <>
+            <ActionButton
+              disabled={
+                pending
+              }
+              label="Démarrer"
+              icon={
+                <Play className="size-4" />
+              }
+              className="bg-blue-600 text-white hover:bg-blue-700"
+              onClick={() =>
+                run(
+                  {
+                    action:
+                      "start",
+                  },
+                  "Rendez-vous démarré.",
+                )
+              }
+            />
+
+            <ActionButton
+              disabled={
+                pending
+              }
+              label="Cliente absente"
+              icon={
+                <UserX className="size-4" />
+              }
+              className="border border-zinc-300 bg-white text-zinc-800 hover:bg-zinc-100"
+              onClick={() =>
+                requestConfirmation(
+                  "no_show",
+                )
+              }
+            />
+          </>
+        ) : null}
+
+        {appointment.status ===
+        "IN_PROGRESS" ? (
+          <ActionButton
+            disabled={
+              pending
+            }
+            label="Terminer"
+            icon={
+              <CircleStop className="size-4" />
+            }
+            className="bg-violet-600 text-white hover:bg-violet-700"
+            onClick={() =>
+              run(
+                {
+                  action:
+                    "complete",
+                },
+                "Rendez-vous terminé.",
+              )
+            }
+          />
+        ) : null}
+
+        {[
+          "PENDING",
+          "CONFIRMED",
+          "IN_PROGRESS",
+        ].includes(
+          appointment.status,
+        ) ? (
+          <ActionButton
+            disabled={
+              pending
+            }
+            label="Annuler"
+            icon={
+              <XCircle className="size-4" />
+            }
+            className="bg-red-600 text-white hover:bg-red-700"
+            onClick={() =>
+              requestConfirmation(
+                "cancel",
+              )
+            }
+          />
+        ) : null}
+
+        {![
+          "PENDING",
+          "CONFIRMED",
+          "IN_PROGRESS",
+        ].includes(
+          appointment.status,
+        ) ? (
+          <p className="text-sm text-zinc-500">
+            Ce rendez-vous est clôturé. Seule la note administrative peut encore
+            être modifiée.
+          </p>
+        ) : null}
+      </div>
+
+      <CalendarAppointmentConfirmDialog
+        open={
+          confirmationContent !==
+          null
+        }
+        title={
+          confirmationContent
+            ?.title ??
+          ""
+        }
+        description={
+          confirmationContent
+            ?.description ??
+          ""
+        }
+        confirmLabel={
+          confirmationContent
+            ?.confirmLabel ??
+          "Confirmer"
+        }
+        pending={
+          pending
+        }
+        onCancel={() =>
+          setConfirmationAction(
+            null,
+          )
+        }
+        onConfirm={
+          executeConfirmedAction
+        }
+      />
+    </section>
+  );
+}
+
+/* -------------------------------------------------------------------------- */
+/*                              ACTION BUTTON                                 */
+/* -------------------------------------------------------------------------- */
+
+function ActionButton({
+  label,
+  icon,
+  disabled,
+  className,
+  onClick,
+}: {
+  label: string;
+  icon: React.ReactNode;
+  disabled: boolean;
+  className: string;
+  onClick: () => void;
+}) {
+  return (
+    <button
+      type="button"
+      disabled={
+        disabled
+      }
+      onClick={
+        onClick
+      }
+      className={`inline-flex items-center gap-2 rounded-xl px-4 py-2 text-sm font-semibold transition disabled:cursor-not-allowed disabled:opacity-50 ${className}`}
+    >
+      {icon}
+
+      {label}
+    </button>
+  );
+}

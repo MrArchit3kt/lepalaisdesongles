@@ -1,0 +1,167 @@
+"use client";
+
+import {
+  CalendarDays,
+  CheckCircle2,
+  Clock3,
+  Sparkles,
+} from "lucide-react";
+
+import { GirlyCalendar } from "../girly-calendar";
+
+type ReservationCalendarProps = {
+  value: string;
+  minDate: string;
+  disabled?: boolean;
+  selectedServiceCount: number;
+  compatibleStaffCount: number;
+  onChange: (date: string) => void;
+};
+
+export function ReservationCalendar({
+  value,
+  minDate,
+  disabled = false,
+  selectedServiceCount,
+  compatibleStaffCount,
+  onChange,
+}: ReservationCalendarProps) {
+  const hasSelectedServices =
+    selectedServiceCount > 0;
+
+  const hasCompatibleStaff =
+    compatibleStaffCount > 0;
+
+  return (
+    <section
+      id="reservation-calendar"
+      aria-labelledby="reservation-calendar-title"
+      className="relative overflow-hidden rounded-[2rem] border border-[#241A1D]/8 bg-white p-5 shadow-[0_30px_90px_-55px_rgba(73,41,52,0.55)] sm:p-7 lg:p-8"
+    >
+      <div className="pointer-events-none absolute -right-24 -top-24 size-64 rounded-full bg-[#F7E4E8]/70 blur-3xl" />
+
+      <div className="pointer-events-none absolute -bottom-28 -left-20 size-64 rounded-full bg-[#FFF1ED]/75 blur-3xl" />
+
+      <div className="relative">
+        <header className="flex flex-col gap-5 border-b border-[#241A1D]/8 pb-6 sm:flex-row sm:items-start sm:justify-between">
+          <div className="flex items-start gap-4">
+            <span className="grid size-12 shrink-0 place-items-center rounded-2xl bg-gradient-to-br from-[#D79AAF] via-[#B8768E] to-[#7A485A] text-white shadow-lg shadow-[#B8768E]/20">
+              <CalendarDays className="size-5" />
+            </span>
+
+            <div>
+              <p className="text-xs font-semibold uppercase tracking-[0.22em] text-[#A56C80]">
+                Étape 3
+              </p>
+
+              <h2
+                id="reservation-calendar-title"
+                className="mt-1 font-serif text-3xl text-[#241A1D] sm:text-4xl"
+              >
+                Choisissez votre date
+              </h2>
+
+              <p className="mt-2 max-w-2xl text-sm leading-7 text-[#79676E]">
+                Sélectionnez une journée pour afficher
+                les créneaux réellement disponibles
+                selon vos prestations et votre
+                professionnelle.
+              </p>
+            </div>
+          </div>
+
+          <div className="flex w-fit shrink-0 flex-col gap-2">
+            <span className="inline-flex items-center gap-2 rounded-full border border-[#241A1D]/8 bg-[#FFF8F7] px-4 py-2 text-xs font-semibold text-[#765A64]">
+              <Clock3 className="size-4 text-[#B77C91]" />
+              Disponibilités en temps réel
+            </span>
+
+            {value ? (
+              <span className="inline-flex items-center gap-2 rounded-full bg-[#241A1D] px-4 py-2 text-xs font-semibold text-white">
+                <CheckCircle2 className="size-4" />
+                Date sélectionnée
+              </span>
+            ) : null}
+          </div>
+        </header>
+
+        {!hasSelectedServices ? (
+          <div className="mt-8 rounded-[1.75rem] border border-dashed border-[#241A1D]/12 bg-[#FFF9F8] px-6 py-12 text-center">
+            <span className="mx-auto grid size-14 place-items-center rounded-full bg-white text-[#A76D81] shadow-sm">
+              <Sparkles className="size-6" />
+            </span>
+
+            <h3 className="mt-5 font-serif text-2xl text-[#241A1D]">
+              Sélectionnez vos prestations
+            </h3>
+
+            <p className="mx-auto mt-2 max-w-md text-sm leading-6 text-[#79676E]">
+              Le calendrier sera activé dès qu’au moins
+              une prestation aura été ajoutée à votre
+              réservation.
+            </p>
+          </div>
+        ) : !hasCompatibleStaff ? (
+          <div className="mt-8 rounded-[1.75rem] border border-[#E8C98E]/60 bg-[#FFF9EA] px-6 py-10 text-center">
+            <span className="mx-auto grid size-14 place-items-center rounded-full bg-white text-[#A66E20] shadow-sm">
+              <CalendarDays className="size-6" />
+            </span>
+
+            <h3 className="mt-5 font-serif text-2xl text-[#4B3824]">
+              Calendrier indisponible
+            </h3>
+
+            <p className="mx-auto mt-2 max-w-lg text-sm leading-6 text-[#806A4D]">
+              Aucune professionnelle n’est compatible
+              avec toutes les prestations sélectionnées.
+              Modifiez votre sélection pour continuer.
+            </p>
+          </div>
+        ) : (
+          <div className="mt-8">
+            <GirlyCalendar
+              value={value}
+              minDate={minDate}
+              disabled={disabled}
+              onChange={onChange}
+            />
+
+            <div className="mt-5 grid gap-3 sm:grid-cols-3">
+              <div className="rounded-2xl border border-[#241A1D]/8 bg-[#FFF9F8] p-4">
+                <p className="text-xs font-semibold uppercase tracking-[0.14em] text-[#A08790]">
+                  Prestations
+                </p>
+
+                <p className="mt-2 font-serif text-2xl text-[#241A1D]">
+                  {selectedServiceCount}
+                </p>
+              </div>
+
+              <div className="rounded-2xl border border-[#241A1D]/8 bg-[#FFF9F8] p-4">
+                <p className="text-xs font-semibold uppercase tracking-[0.14em] text-[#A08790]">
+                  Professionnelles
+                </p>
+
+                <p className="mt-2 font-serif text-2xl text-[#241A1D]">
+                  {compatibleStaffCount}
+                </p>
+              </div>
+
+              <div className="rounded-2xl border border-[#241A1D]/8 bg-[#FFF9F8] p-4">
+                <p className="text-xs font-semibold uppercase tracking-[0.14em] text-[#A08790]">
+                  Sélection
+                </p>
+
+                <p className="mt-2 truncate text-sm font-semibold text-[#241A1D]">
+                  {value
+                    ? "Journée choisie"
+                    : "À sélectionner"}
+                </p>
+              </div>
+            </div>
+          </div>
+        )}
+      </div>
+    </section>
+  );
+}

@@ -1,0 +1,3399 @@
+generator client {
+  provider     = "prisma-client"
+  output       = "../src/generated/prisma"
+  moduleFormat = "esm"
+}
+
+datasource db {
+  provider = "postgresql"
+}
+
+enum UserRole {
+  SUPER_ADMIN
+  ADMIN
+  STAFF
+  CLIENT
+}
+
+enum UserStatus {
+  PENDING
+  ACTIVE
+  SUSPENDED
+  DISABLED
+}
+
+enum AppointmentStatus {
+  PENDING
+  CONFIRMED
+  IN_PROGRESS
+  COMPLETED
+  REFUSED
+  CANCELLED_BY_CLIENT
+  CANCELLED_BY_ADMIN
+  NO_SHOW
+  EXPIRED
+}
+
+enum PaymentStatus {
+  NOT_REQUIRED
+  PENDING
+  PARTIALLY_PAID
+  PAID
+  REFUNDED
+  CANCELLED
+}
+
+enum PaymentMethod {
+  CASH
+  CARD
+  BANK_TRANSFER
+  PAYPAL
+  OTHER
+}
+
+enum ReviewStatus {
+  PENDING
+  APPROVED
+  REJECTED
+  HIDDEN
+}
+
+enum ReviewSource {
+  WEBSITE
+  GOOGLE
+  FACEBOOK
+  OTHER
+}
+
+enum MediaType {
+  IMAGE
+  VIDEO
+}
+
+enum MessageType {
+  TEXT
+  IMAGE
+  FILE
+  SYSTEM
+}
+
+enum NotificationType {
+  APPOINTMENT_CREATED
+  APPOINTMENT_CONFIRMED
+  APPOINTMENT_REFUSED
+  APPOINTMENT_CANCELLED
+  APPOINTMENT_REMINDER
+  MESSAGE_RECEIVED
+  REVIEW_RECEIVED
+  REVIEW_REQUEST
+  PROMOTION
+  CONTEST
+  SYSTEM
+}
+
+enum PromotionType {
+  PERCENTAGE
+  FIXED_AMOUNT
+  FREE_SERVICE
+  CUSTOM
+}
+
+enum ContestStatus {
+  DRAFT
+  SCHEDULED
+  ACTIVE
+  CLOSED
+  DRAWN
+  CANCELLED
+}
+
+enum VipProgramStatus {
+  DISABLED
+  PRE_LAUNCH
+  ACTIVE
+  PAUSED
+}
+
+enum VipAssistantMode {
+  DISABLED
+  ADVICE_ONLY
+  SEMI_AUTOMATIC
+}
+
+enum VipVisibility {
+  PRIVATE
+  MEMBERS_ONLY
+  PUBLIC
+}
+
+enum LoyaltyTransactionType {
+  EARN
+  SPEND
+  ADJUSTMENT
+  EXPIRATION
+  REFUND
+  TRANSFER_IN
+  TRANSFER_OUT
+}
+
+enum LoyaltyTransactionSource {
+  APPOINTMENT_CREATED
+  APPOINTMENT_CONFIRMED
+  APPOINTMENT_COMPLETED
+  APPOINTMENT_PAYMENT
+  APPOINTMENT_CANCELLED
+  REVIEW_WEBSITE
+  REVIEW_GOOGLE
+  REFERRAL
+  CONTEST
+  CONTEST_WIN
+  CHALLENGE
+  ACHIEVEMENT
+  BADGE
+  LEVEL_UP
+  SEASON_PASS
+  DAILY_LOGIN
+  BIRTHDAY
+  ANNIVERSARY
+  SOCIAL_SHARE
+  GALLERY_INTERACTION
+  ADMIN
+  SYSTEM
+  REWARD
+  GIFT
+  SHOP
+  OTHER
+}
+
+enum LoyaltyLevelStatus {
+  DRAFT
+  ACTIVE
+  ARCHIVED
+}
+
+enum LoyaltyBadgeCategory {
+  BOOKING
+  LOYALTY
+  SPENDING
+  REVIEW
+  REFERRAL
+  SOCIAL
+  CONTEST
+  SEASONAL
+  COLLECTION
+  COMMUNITY
+  VIP
+  SPECIAL
+}
+
+enum LoyaltyAchievementCategory {
+  BOOKING
+  ATTENDANCE
+  SPENDING
+  REVIEW
+  REFERRAL
+  SOCIAL
+  CONTEST
+  CHALLENGE
+  COLLECTION
+  SEASON_PASS
+  LOGIN_STREAK
+  SPECIAL
+}
+
+enum LoyaltyProgressStatus {
+  LOCKED
+  IN_PROGRESS
+  COMPLETED
+  CLAIMED
+}
+
+enum VipRewardType {
+  FIXED_DISCOUNT
+  PERCENTAGE_DISCOUNT
+  FREE_SERVICE
+  FREE_NAIL_ART
+  FREE_PRODUCT
+  GIFT_CARD
+  LOYALTY_POINTS
+  EXPERIENCE_POINTS
+  CONTEST_ENTRY
+  SEASON_PASS_XP
+  PHYSICAL_GIFT
+  VIP_ACCESS
+  CUSTOM
+}
+
+enum VipRewardStatus {
+  DRAFT
+  ACTIVE
+  INACTIVE
+  ARCHIVED
+}
+
+enum ClientRewardStatus {
+  AVAILABLE
+  RESERVED
+  USED
+  EXPIRED
+  CANCELLED
+  GIFTED
+}
+
+enum ContestType {
+  LOYALTY
+  SPENDING
+  REFERRAL
+  GOOGLE_REVIEW
+  WEBSITE_REVIEW
+  INSTAGRAM
+  SOCIAL_SHARE
+  EARLY_BOOKING
+  APPOINTMENT_STREAK
+  DAILY_CALENDAR
+  LUCKY_WHEEL
+  CUSTOM
+  BEST_NAILS
+  BEFORE_AFTER
+  VIP_CLIENT
+  SPRING
+  SUMMER
+  AUTUMN
+  WINTER
+  BIRTHDAY
+  VALENTINES_DAY
+  HALLOWEEN
+  CHRISTMAS
+  PRESTIGE
+  MYSTERY_PRIZE
+  NAIL_ART
+  SALON_SELFIE
+  AMBASSADOR
+  MOST_ACTIVE
+  LOYALTY_SPRINT
+  LOYALTY_MARATHON
+  GOLDEN_TICKET
+  WEDDING
+  GRADUATION
+  MOTHER_DAUGHTER
+  FRIENDS_DUO
+  COLOR_COLLECTION
+  FIRST_VISIT
+  COMEBACK
+  MYSTERY_CLIENT
+  TWELVE_MONTHS
+  PALACE_LEGEND
+  TEAM_CHALLENGE
+}
+
+enum ContestScoringMode {
+  POINTS
+  HIGHEST_SPEND
+  MOST_APPOINTMENTS
+  MOST_REFERRALS
+  MOST_REVIEWS
+  PUBLIC_VOTE
+  ADMIN_VOTE
+  RANDOM_DRAW
+  GOLDEN_TICKETS
+  COMPLETION
+  CUSTOM
+}
+
+enum ContestEntryStatus {
+  ACTIVE
+  DISQUALIFIED
+  WITHDRAWN
+  WINNER
+}
+
+enum ContestPointSource {
+  APPOINTMENT
+  PAYMENT
+  REVIEW
+  REFERRAL
+  SOCIAL
+  ADMIN
+  BONUS
+  VOTE
+  CHALLENGE
+  GOLDEN_TICKET
+  OTHER
+}
+
+enum ChallengeFrequency {
+  ONCE
+  DAILY
+  WEEKLY
+  MONTHLY
+  SEASONAL
+  CUSTOM
+}
+
+enum ChallengeStatus {
+  DRAFT
+  SCHEDULED
+  ACTIVE
+  COMPLETED
+  CANCELLED
+  ARCHIVED
+}
+
+enum ChallengeMetric {
+  APPOINTMENT_COUNT
+  COMPLETED_APPOINTMENT_COUNT
+  SPENDING_CENTS
+  REVIEW_COUNT
+  REFERRAL_COUNT
+  LOGIN_COUNT
+  LOGIN_STREAK
+  SOCIAL_SHARE_COUNT
+  GALLERY_LIKE_COUNT
+  CONTEST_ENTRY_COUNT
+  SERVICE_VARIETY_COUNT
+  CUSTOM
+}
+
+enum VipSeasonStatus {
+  DRAFT
+  SCHEDULED
+  ACTIVE
+  COMPLETED
+  ARCHIVED
+}
+
+enum VipSeasonTierType {
+  FREE
+  PREMIUM
+}
+
+enum ReferralStatus {
+  PENDING
+  REGISTERED
+  QUALIFIED
+  REWARDED
+  CANCELLED
+  EXPIRED
+}
+
+enum VipTeamStatus {
+  ACTIVE
+  INACTIVE
+  ARCHIVED
+}
+
+enum VipRuleStatus {
+  DRAFT
+  ACTIVE
+  PAUSED
+  ARCHIVED
+}
+
+enum VipRuleTrigger {
+  USER_REGISTERED
+  DAILY_LOGIN
+  APPOINTMENT_CREATED
+  APPOINTMENT_CONFIRMED
+  APPOINTMENT_COMPLETED
+  APPOINTMENT_CANCELLED
+  PAYMENT_COMPLETED
+  REVIEW_CREATED
+  REVIEW_APPROVED
+  REFERRAL_REGISTERED
+  REFERRAL_QUALIFIED
+  CONTEST_JOINED
+  CONTEST_WON
+  CHALLENGE_COMPLETED
+  LEVEL_REACHED
+  BADGE_UNLOCKED
+  ACHIEVEMENT_UNLOCKED
+  BIRTHDAY
+  MEMBERSHIP_ANNIVERSARY
+  INACTIVITY_REACHED
+  MANUAL
+  SCHEDULED
+}
+
+enum VipRuleAction {
+  ADD_XP
+  REMOVE_XP
+  ADD_POINTS
+  REMOVE_POINTS
+  GRANT_REWARD
+  GRANT_BADGE
+  COMPLETE_ACHIEVEMENT
+  ADD_CONTEST_POINTS
+  ADD_CONTEST_ENTRY
+  ADD_SEASON_XP
+  SEND_NOTIFICATION
+  CREATE_PROMOTION
+  ASSIGN_TEAM
+  CUSTOM
+}
+
+enum MarketingRecommendationPriority {
+  LOW
+  MEDIUM
+  HIGH
+  CRITICAL
+}
+
+enum MarketingRecommendationCategory {
+  PLANNING
+  CLIENT_RETENTION
+  CLIENT_REACTIVATION
+  CONTEST
+  LOYALTY
+  REWARD
+  PROMOTION
+  SERVICE
+  REVENUE
+  CANCELLATION
+  NO_SHOW
+  SEASON_PASS
+  REFERRAL
+  COMMUNICATION
+  OTHER
+}
+
+enum MarketingRecommendationStatus {
+  NEW
+  VIEWED
+  ACCEPTED
+  APPLIED
+  DISMISSED
+  EXPIRED
+  FAILED
+}
+
+enum VipEventType {
+  DOUBLE_XP
+  TRIPLE_XP
+  BONUS_POINTS
+  HAPPY_HOUR
+  FLASH_CONTEST
+  WEEKEND_EVENT
+  BIRTHDAY
+  ANNIVERSARY
+  BLACK_FRIDAY
+  CHRISTMAS
+  HALLOWEEN
+  VALENTINES_DAY
+  SEASONAL
+  CUSTOM
+}
+
+enum VipEventStatus {
+  DRAFT
+  SCHEDULED
+  ACTIVE
+  COMPLETED
+  CANCELLED
+}
+
+enum GiftTransferStatus {
+  PENDING
+  ACCEPTED
+  REFUSED
+  CANCELLED
+  EXPIRED
+}
+
+enum CollectionItemStatus {
+  LOCKED
+  UNLOCKED
+  CLAIMED
+}
+
+enum BannerPosition {
+  TOP
+  HERO
+  CONTENT
+  BOTTOM
+  POPUP
+}
+
+enum ContactMessageStatus {
+  NEW
+  READ
+  REPLIED
+  ARCHIVED
+}
+
+enum DayOfWeek {
+  MONDAY
+  TUESDAY
+  WEDNESDAY
+  THURSDAY
+  FRIDAY
+  SATURDAY
+  SUNDAY
+}
+
+model User {
+  id           String     @id @default(cuid())
+  email        String     @unique
+  passwordHash String?
+  firstName    String
+  lastName     String
+  phone        String?
+  image        String?
+  role         UserRole   @default(CLIENT)
+  status       UserStatus @default(ACTIVE)
+
+  // Incrémenté lors d’un changement sensible :
+  // mot de passe, rôle, statut ou adresse e-mail.
+  // Tout JWT portant une ancienne version devient invalide.
+  authVersion Int @default(0)
+
+  emailVerified DateTime?
+  phoneVerified DateTime?
+  lastLoginAt   DateTime?
+  createdAt     DateTime  @default(now())
+  updatedAt     DateTime  @updatedAt
+
+  // ==========================
+  // PROFILS
+  // ==========================
+
+  clientProfile ClientProfile?
+  staffProfile  StaffProfile?
+
+  // ==========================
+  // RENDEZ-VOUS
+  // ==========================
+
+  appointments          Appointment[] @relation("ClientAppointments")
+  processedAppointments Appointment[] @relation("AppointmentProcessor")
+
+  // ==========================
+  // GALERIE
+  // ==========================
+
+  createdGalleryItems GalleryItem[] @relation("GalleryCreator")
+
+  // ==========================
+  // AVIS
+  // ==========================
+
+  reviews         Review[] @relation("ReviewAuthor")
+  reviewResponses Review[] @relation("ReviewResponder")
+
+  // ==========================
+  // MESSAGERIE
+  // ==========================
+
+  conversationParticipants ConversationParticipant[]
+  sentMessages             Message[]                 @relation("MessageSender")
+
+  // ==========================
+  // PROMOTIONS
+  // ==========================
+
+  createdPromotions Promotion[] @relation("PromotionCreator")
+
+  // ==========================
+  // CONCOURS
+  // ==========================
+
+  createdContests       Contest[]            @relation("ContestCreator")
+  contestParticipations ContestParticipant[]
+
+  contestPointEntries ContestPointEntry[]
+  contestVotes        ContestVote[]
+  contestWins         ContestWinner[]
+
+  // ==========================
+  // CLUB VIP
+  // ==========================
+
+  loyaltyAccount      LoyaltyAccount?
+  loyaltyTransactions LoyaltyTransaction[]
+
+  clientBadges       ClientBadge[]
+  clientAchievements ClientAchievement[]
+  clientRewards      ClientReward[]
+  clientChallenges   ClientChallenge[]
+  clientSeasonPasses ClientSeasonPass[]
+
+  referralsSent     Referral[] @relation("ReferralReferrer")
+  referralsReceived Referral[] @relation("ReferralReferred")
+
+  vipTeamMemberships VipTeamMember[]
+
+  vipGiftTransfersSent     VipGiftTransfer[] @relation("VipGiftSender")
+  vipGiftTransfersReceived VipGiftTransfer[] @relation("VipGiftRecipient")
+
+  vipShopPurchases VipShopPurchase[]
+
+  createdVipConfigurations VipConfiguration[] @relation("VipConfigurationCreator")
+  updatedVipConfigurations VipConfiguration[] @relation("VipConfigurationUpdater")
+
+  createdVipRules  VipAutomationRule[] @relation("VipRuleCreator")
+  createdVipEvents VipEvent[]          @relation("VipEventCreator")
+
+  marketingRecommendationsApplied MarketingRecommendation[] @relation("MarketingRecommendationAppliedBy")
+
+  marketingRecommendationsDismissed MarketingRecommendation[] @relation("MarketingRecommendationDismissedBy")
+
+  vipAuditEntries VipAuditLog[]
+
+  // ==========================
+  // NOTIFICATIONS
+  // ==========================
+
+  notifications Notification[]
+
+  // ==========================
+  // CONTACT
+  // ==========================
+
+  contactMessages ContactMessage[]
+
+  // ==========================
+  // AUDIT
+  // ==========================
+
+  auditLogs AuditLog[] @relation("AuditLogActor")
+
+  // ==========================
+  // HORAIRES
+  // ==========================
+
+  createdTimeOffs TimeOff[] @relation("TimeOffCreator")
+
+  createdWorkingHourOverrides WorkingHourOverride[] @relation("WorkingHourOverrideCreator")
+
+  // ==========================
+  // INDEX
+  // ==========================
+
+  @@index([role])
+  @@index([status])
+  @@index([createdAt])
+}
+
+model ClientProfile {
+  id             String    @id @default(cuid())
+  userId         String    @unique
+  birthDate      DateTime?
+  addressLine1   String?
+  addressLine2   String?
+  postalCode     String?
+  city           String?
+  country        String    @default("France")
+  allergies      String?
+  internalNotes  String?
+  marketingEmail Boolean   @default(false)
+  marketingSms   Boolean   @default(false)
+  loyaltyPoints  Int       @default(0)
+  createdAt      DateTime  @default(now())
+  updatedAt      DateTime  @updatedAt
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+}
+
+model ServiceCategory {
+  id          String   @id @default(cuid())
+  name        String
+  slug        String   @unique
+  description String?
+  imageUrl    String?
+  icon        String?
+  color       String?
+  sortOrder   Int      @default(0)
+  isActive    Boolean  @default(true)
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  services Service[]
+
+  @@index([isActive, sortOrder])
+}
+
+model Service {
+  id                    String   @id @default(cuid())
+  categoryId            String
+  name                  String
+  slug                  String   @unique
+  shortDescription      String?
+  description           String?
+  priceCents            Int?
+  promotionalPriceCents Int?
+  durationMinutes       Int
+  cleanupMinutes        Int      @default(0)
+  depositRequired       Boolean  @default(false)
+  depositCents          Int?
+  imageUrl              String?
+  color                 String?
+  isActive              Boolean  @default(true)
+  isFeatured            Boolean  @default(false)
+  allowOnlineBooking    Boolean  @default(true)
+  sortOrder             Int      @default(0)
+  createdAt             DateTime @default(now())
+  updatedAt             DateTime @updatedAt
+
+  category            ServiceCategory      @relation(fields: [categoryId], references: [id], onDelete: Restrict)
+  images              ServiceImage[]
+  appointmentItems    AppointmentService[]
+  promotionServices   PromotionService[]
+  staffServices       StaffService[]
+  workstationServices WorkstationService[]
+
+  @@index([categoryId])
+  @@index([isActive, sortOrder])
+  @@index([isFeatured])
+}
+
+model ServiceImage {
+  id        String   @id @default(cuid())
+  serviceId String
+  url       String
+  alt       String?
+  sortOrder Int      @default(0)
+  createdAt DateTime @default(now())
+
+  service Service @relation(fields: [serviceId], references: [id], onDelete: Cascade)
+
+  @@index([serviceId, sortOrder])
+}
+
+model StaffProfile {
+  id                    String   @id @default(cuid())
+  userId                String   @unique
+  displayName           String?
+  bio                   String?
+  color                 String?
+  isOwner               Boolean  @default(false)
+  isActive              Boolean  @default(true)
+  acceptsOnlineBooking  Boolean  @default(true)
+  defaultCleanupMinutes Int      @default(0)
+  slotIntervalMinutes   Int      @default(15)
+  sortOrder             Int      @default(0)
+  createdAt             DateTime @default(now())
+  updatedAt             DateTime @updatedAt
+
+  user                   User                       @relation(fields: [userId], references: [id], onDelete: Cascade)
+  services               StaffService[]
+  workingHours           StaffWorkingHour[]
+  overrides              StaffWorkingHourOverride[]
+  timeOffs               StaffTimeOff[]
+  appointments           Appointment[]
+  workstationAssignments StaffWorkstation[]
+
+  @@index([isActive, acceptsOnlineBooking, sortOrder])
+  @@index([isOwner])
+}
+
+model StaffService {
+  id              String   @id @default(cuid())
+  staffId         String
+  serviceId       String
+  isActive        Boolean  @default(true)
+  durationMinutes Int?
+  cleanupMinutes  Int?
+  priceCents      Int?
+  depositRequired Boolean?
+  depositCents    Int?
+  sortOrder       Int      @default(0)
+  createdAt       DateTime @default(now())
+  updatedAt       DateTime @updatedAt
+
+  staff   StaffProfile @relation(fields: [staffId], references: [id], onDelete: Cascade)
+  service Service      @relation(fields: [serviceId], references: [id], onDelete: Cascade)
+
+  @@unique([staffId, serviceId])
+  @@index([serviceId, isActive])
+  @@index([staffId, isActive, sortOrder])
+}
+
+model Workstation {
+  id                  String   @id @default(cuid())
+  name                String
+  slug                String   @unique
+  description         String?
+  color               String?
+  isActive            Boolean  @default(true)
+  availableForBooking Boolean  @default(true)
+  sortOrder           Int      @default(0)
+  createdAt           DateTime @default(now())
+  updatedAt           DateTime @updatedAt
+
+  staffAssignments   StaffWorkstation[]
+  serviceAssignments WorkstationService[]
+  appointments       Appointment[]
+
+  @@index([isActive, availableForBooking, sortOrder])
+}
+
+model StaffWorkstation {
+  staffId       String
+  workstationId String
+  isPrimary     Boolean  @default(false)
+  isActive      Boolean  @default(true)
+  createdAt     DateTime @default(now())
+  updatedAt     DateTime @updatedAt
+
+  staff       StaffProfile @relation(fields: [staffId], references: [id], onDelete: Cascade)
+  workstation Workstation  @relation(fields: [workstationId], references: [id], onDelete: Cascade)
+
+  @@id([staffId, workstationId])
+  @@index([workstationId, isActive])
+  @@index([staffId, isPrimary, isActive])
+}
+
+model WorkstationService {
+  workstationId String
+  serviceId     String
+  isActive      Boolean  @default(true)
+  createdAt     DateTime @default(now())
+  updatedAt     DateTime @updatedAt
+
+  workstation Workstation @relation(fields: [workstationId], references: [id], onDelete: Cascade)
+  service     Service     @relation(fields: [serviceId], references: [id], onDelete: Cascade)
+
+  @@id([workstationId, serviceId])
+  @@index([serviceId, isActive])
+  @@index([workstationId, isActive])
+}
+
+model StaffWorkingHour {
+  id         String    @id @default(cuid())
+  staffId    String
+  dayOfWeek  DayOfWeek
+  isOpen     Boolean   @default(true)
+  startTime  String?
+  endTime    String?
+  hasBreak   Boolean   @default(false)
+  breakStart String?
+  breakEnd   String?
+  createdAt  DateTime  @default(now())
+  updatedAt  DateTime  @updatedAt
+
+  staff StaffProfile @relation(fields: [staffId], references: [id], onDelete: Cascade)
+
+  @@unique([staffId, dayOfWeek])
+  @@index([staffId, isOpen])
+}
+
+model StaffWorkingHourOverride {
+  id         String   @id @default(cuid())
+  staffId    String
+  date       DateTime @db.Date
+  isOpen     Boolean  @default(false)
+  startTime  String?
+  endTime    String?
+  hasBreak   Boolean  @default(false)
+  breakStart String?
+  breakEnd   String?
+  reason     String?
+  createdAt  DateTime @default(now())
+  updatedAt  DateTime @updatedAt
+
+  staff StaffProfile @relation(fields: [staffId], references: [id], onDelete: Cascade)
+
+  @@unique([staffId, date])
+  @@index([date])
+  @@index([staffId, date])
+}
+
+model StaffTimeOff {
+  id        String   @id @default(cuid())
+  staffId   String
+  title     String
+  reason    String?
+  startsAt  DateTime
+  endsAt    DateTime
+  allDay    Boolean  @default(false)
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  staff StaffProfile @relation(fields: [staffId], references: [id], onDelete: Cascade)
+
+  @@index([staffId, startsAt, endsAt])
+  @@index([startsAt, endsAt])
+}
+
+model WorkingHour {
+  id         String    @id @default(cuid())
+  dayOfWeek  DayOfWeek @unique
+  isOpen     Boolean   @default(true)
+  startTime  String?
+  endTime    String?
+  breakStart String?
+  breakEnd   String?
+  createdAt  DateTime  @default(now())
+  updatedAt  DateTime  @updatedAt
+}
+
+model WorkingHourOverride {
+  id          String   @id @default(cuid())
+  date        DateTime @db.Date
+  isOpen      Boolean  @default(false)
+  startTime   String?
+  endTime     String?
+  breakStart  String?
+  breakEnd    String?
+  reason      String?
+  createdById String?
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  createdBy User? @relation("WorkingHourOverrideCreator", fields: [createdById], references: [id], onDelete: SetNull)
+
+  @@unique([date])
+  @@index([date])
+}
+
+model TimeOff {
+  id          String   @id @default(cuid())
+  title       String
+  reason      String?
+  startsAt    DateTime
+  endsAt      DateTime
+  allDay      Boolean  @default(false)
+  createdById String?
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  createdBy User? @relation("TimeOffCreator", fields: [createdById], references: [id], onDelete: SetNull)
+
+  @@index([startsAt, endsAt])
+}
+
+model Appointment {
+  id                   String            @id @default(cuid())
+  reference            String            @unique
+  clientId             String
+  staffId              String?
+  workstationId        String?
+  processedById        String?
+  status               AppointmentStatus @default(PENDING)
+  startsAt             DateTime
+  endsAt               DateTime
+  totalDurationMinutes Int
+  totalPriceCents      Int
+  depositCents         Int               @default(0)
+  paymentStatus        PaymentStatus     @default(NOT_REQUIRED)
+  paymentMethod        PaymentMethod?
+  clientComment        String?
+  adminComment         String?
+  cancellationReason   String?
+  paypalOrderId        String?           @unique
+  paypalCaptureId      String?
+  paypalPayerId        String?
+  paidAt               DateTime?
+  confirmedAt          DateTime?
+  refusedAt            DateTime?
+  cancelledAt          DateTime?
+  completedAt          DateTime?
+  reminderSentAt       DateTime?
+  reviewRequestSentAt  DateTime?
+  createdAt            DateTime          @default(now())
+  updatedAt            DateTime          @updatedAt
+
+  client      User          @relation("ClientAppointments", fields: [clientId], references: [id], onDelete: Restrict)
+  staff       StaffProfile? @relation(fields: [staffId], references: [id], onDelete: SetNull)
+  workstation Workstation?  @relation(fields: [workstationId], references: [id], onDelete: SetNull)
+  processedBy User?         @relation("AppointmentProcessor", fields: [processedById], references: [id], onDelete: SetNull)
+
+  services AppointmentService[]
+  images   AppointmentImage[]
+  review   Review?
+  history  AppointmentHistory[]
+
+  @@index([clientId, startsAt])
+  @@index([staffId, startsAt, endsAt])
+  @@index([workstationId, startsAt, endsAt])
+  @@index([workstationId, status, startsAt])
+  @@index([staffId, status, startsAt])
+  @@index([status, startsAt])
+  @@index([startsAt, endsAt])
+  @@index([createdAt])
+}
+
+model AppointmentHistory {
+  id               String             @id @default(cuid())
+  appointmentId    String
+  actorId          String?
+  action           String
+  previousStatus   AppointmentStatus?
+  nextStatus       AppointmentStatus?
+  previousStartsAt DateTime?
+  nextStartsAt     DateTime?
+  reason           String?
+  metadata         Json?
+  createdAt        DateTime           @default(now())
+
+  appointment Appointment @relation(fields: [appointmentId], references: [id], onDelete: Cascade)
+
+  @@index([appointmentId, createdAt])
+  @@index([actorId, createdAt])
+  @@index([action, createdAt])
+}
+
+model AppointmentService {
+  id              String  @id @default(cuid())
+  appointmentId   String
+  serviceId       String
+  serviceName     String
+  unitPriceCents  Int
+  durationMinutes Int
+  quantity        Int     @default(1)
+  comment         String?
+  sortOrder       Int     @default(0)
+
+  appointment Appointment @relation(fields: [appointmentId], references: [id], onDelete: Cascade)
+  service     Service     @relation(fields: [serviceId], references: [id], onDelete: Restrict)
+
+  @@index([appointmentId])
+  @@index([serviceId])
+}
+
+model AppointmentImage {
+  id            String   @id @default(cuid())
+  appointmentId String
+  url           String
+  fileName      String?
+  mimeType      String?
+  sizeBytes     Int?
+  createdAt     DateTime @default(now())
+
+  appointment Appointment @relation(fields: [appointmentId], references: [id], onDelete: Cascade)
+
+  @@index([appointmentId])
+}
+
+model GalleryCategory {
+  id          String   @id @default(cuid())
+  name        String
+  slug        String   @unique
+  description String?
+  sortOrder   Int      @default(0)
+  isActive    Boolean  @default(true)
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  items GalleryItem[]
+
+  @@index([isActive, sortOrder])
+}
+
+model GalleryItem {
+  id              String    @id @default(cuid())
+  categoryId      String?
+  createdById     String?
+  title           String
+  slug            String    @unique
+  description     String?
+  coverUrl        String
+  alt             String?
+  serviceName     String?
+  priceCents      Int?
+  durationMinutes Int?
+  tags            String[]
+  isFeatured      Boolean   @default(false)
+  isPublished     Boolean   @default(true)
+  publishedAt     DateTime?
+  sortOrder       Int       @default(0)
+  viewCount       Int       @default(0)
+  createdAt       DateTime  @default(now())
+  updatedAt       DateTime  @updatedAt
+
+  category  GalleryCategory? @relation(fields: [categoryId], references: [id], onDelete: SetNull)
+  createdBy User?            @relation("GalleryCreator", fields: [createdById], references: [id], onDelete: SetNull)
+  media     GalleryMedia[]
+
+  @@index([categoryId])
+  @@index([isPublished, publishedAt])
+  @@index([isFeatured, sortOrder])
+}
+
+model GalleryMedia {
+  id            String    @id @default(cuid())
+  galleryItemId String
+  type          MediaType @default(IMAGE)
+  url           String
+  thumbnailUrl  String?
+  alt           String?
+  width         Int?
+  height        Int?
+  sortOrder     Int       @default(0)
+  createdAt     DateTime  @default(now())
+
+  galleryItem GalleryItem @relation(fields: [galleryItemId], references: [id], onDelete: Cascade)
+
+  @@index([galleryItemId, sortOrder])
+}
+
+model Review {
+  id            String       @id @default(cuid())
+  authorId      String?
+  appointmentId String?      @unique
+  responderId   String?
+  source        ReviewSource @default(WEBSITE)
+  sourceId      String?
+  authorName    String
+  authorAvatar  String?
+  rating        Int
+  title         String?
+  content       String
+  response      String?
+  status        ReviewStatus @default(PENDING)
+  isVerified    Boolean      @default(false)
+  isFeatured    Boolean      @default(false)
+  publishedAt   DateTime?
+  respondedAt   DateTime?
+  createdAt     DateTime     @default(now())
+  updatedAt     DateTime     @updatedAt
+
+  author      User?        @relation("ReviewAuthor", fields: [authorId], references: [id], onDelete: SetNull)
+  appointment Appointment? @relation(fields: [appointmentId], references: [id], onDelete: SetNull)
+  responder   User?        @relation("ReviewResponder", fields: [responderId], references: [id], onDelete: SetNull)
+
+  @@index([status, publishedAt])
+  @@index([source, sourceId])
+  @@index([rating])
+  @@index([isFeatured])
+}
+
+model Conversation {
+  id            String    @id @default(cuid())
+  subject       String?
+  appointmentId String?
+  lastMessageAt DateTime?
+  isClosed      Boolean   @default(false)
+  createdAt     DateTime  @default(now())
+  updatedAt     DateTime  @updatedAt
+
+  participants ConversationParticipant[]
+  messages     Message[]
+
+  @@index([lastMessageAt])
+  @@index([isClosed])
+}
+
+model ConversationParticipant {
+  id             String    @id @default(cuid())
+  conversationId String
+  userId         String
+  joinedAt       DateTime  @default(now())
+  lastReadAt     DateTime?
+  isMuted        Boolean   @default(false)
+
+  conversation Conversation @relation(fields: [conversationId], references: [id], onDelete: Cascade)
+  user         User         @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([conversationId, userId])
+  @@index([userId])
+}
+
+model Message {
+  id             String      @id @default(cuid())
+  conversationId String
+  senderId       String?
+  type           MessageType @default(TEXT)
+  content        String?
+  isEdited       Boolean     @default(false)
+  editedAt       DateTime?
+  deletedAt      DateTime?
+  createdAt      DateTime    @default(now())
+
+  conversation Conversation        @relation(fields: [conversationId], references: [id], onDelete: Cascade)
+  sender       User?               @relation("MessageSender", fields: [senderId], references: [id], onDelete: SetNull)
+  attachments  MessageAttachment[]
+
+  @@index([conversationId, createdAt])
+  @@index([senderId])
+}
+
+model MessageAttachment {
+  id        String   @id @default(cuid())
+  messageId String
+  url       String
+  fileName  String?
+  mimeType  String?
+  sizeBytes Int?
+  createdAt DateTime @default(now())
+
+  message Message @relation(fields: [messageId], references: [id], onDelete: Cascade)
+
+  @@index([messageId])
+}
+
+model Promotion {
+  id                String        @id @default(cuid())
+  createdById       String?
+  name              String
+  slug              String        @unique
+  description       String?
+  type              PromotionType
+  percentageValue   Int?
+  amountCents       Int?
+  code              String?       @unique
+  imageUrl          String?
+  startsAt          DateTime
+  endsAt            DateTime
+  usageLimit        Int?
+  usageCount        Int           @default(0)
+  perClientLimit    Int?
+  minimumSpendCents Int?
+  isActive          Boolean       @default(true)
+  showOnHomepage    Boolean       @default(false)
+  createdAt         DateTime      @default(now())
+  updatedAt         DateTime      @updatedAt
+
+  createdBy User?              @relation("PromotionCreator", fields: [createdById], references: [id], onDelete: SetNull)
+  services  PromotionService[]
+  banners   Banner[]
+
+  @@index([isActive, startsAt, endsAt])
+  @@index([showOnHomepage])
+}
+
+model PromotionService {
+  promotionId String
+  serviceId   String
+
+  promotion Promotion @relation(fields: [promotionId], references: [id], onDelete: Cascade)
+  service   Service   @relation(fields: [serviceId], references: [id], onDelete: Cascade)
+
+  @@id([promotionId, serviceId])
+}
+
+model Banner {
+  id              String         @id @default(cuid())
+  promotionId     String?
+  title           String
+  subtitle        String?
+  imageUrl        String?
+  mobileImageUrl  String?
+  buttonLabel     String?
+  buttonUrl       String?
+  position        BannerPosition @default(TOP)
+  backgroundColor String?
+  textColor       String?
+  startsAt        DateTime?
+  endsAt          DateTime?
+  isActive        Boolean        @default(true)
+  sortOrder       Int            @default(0)
+  createdAt       DateTime       @default(now())
+  updatedAt       DateTime       @updatedAt
+
+  promotion Promotion? @relation(fields: [promotionId], references: [id], onDelete: SetNull)
+
+  @@index([isActive, position, sortOrder])
+}
+
+model VipConfiguration {
+  id  String @id @default(cuid())
+  key String @unique @default("default")
+
+  // ==========================
+  // ÉTAT GÉNÉRAL DU CLUB VIP
+  // ==========================
+
+  programStatus VipProgramStatus @default(DISABLED)
+
+  clubEnabled           Boolean @default(false)
+  showPreLaunchPage     Boolean @default(false)
+  showInPublicMenu      Boolean @default(false)
+  showInClientMenu      Boolean @default(false)
+  allowNewRegistrations Boolean @default(false)
+
+  // ==========================
+  // MODULES DU CLUB VIP
+  // ==========================
+
+  xpEnabled           Boolean @default(false)
+  levelsEnabled       Boolean @default(false)
+  badgesEnabled       Boolean @default(false)
+  achievementsEnabled Boolean @default(false)
+  rewardsEnabled      Boolean @default(false)
+  contestsEnabled     Boolean @default(false)
+  challengesEnabled   Boolean @default(false)
+  referralsEnabled    Boolean @default(false)
+  teamsEnabled        Boolean @default(false)
+  collectionsEnabled  Boolean @default(false)
+  seasonPassEnabled   Boolean @default(false)
+  vipShopEnabled      Boolean @default(false)
+  dailyWheelEnabled   Boolean @default(false)
+  giftChestsEnabled   Boolean @default(false)
+  giftingEnabled      Boolean @default(false)
+
+  // ==========================
+  // CLASSEMENTS
+  // ==========================
+
+  publicLeaderboardEnabled Boolean       @default(false)
+  leaderboardVisibility    VipVisibility @default(MEMBERS_ONLY)
+  anonymizeLeaderboard     Boolean       @default(true)
+  leaderboardSize          Int           @default(20)
+
+  // ==========================
+  // NOTIFICATIONS
+  // ==========================
+
+  notificationsEnabled Boolean @default(false)
+
+  notifyOnXpEarned          Boolean @default(false)
+  notifyOnLevelUp           Boolean @default(false)
+  notifyOnBadgeUnlocked     Boolean @default(false)
+  notifyOnAchievement       Boolean @default(false)
+  notifyOnRewardUnlocked    Boolean @default(false)
+  notifyOnContestUpdate     Boolean @default(false)
+  notifyOnRankingChange     Boolean @default(false)
+  notifyOnSeasonProgress    Boolean @default(false)
+  notifyOnReferralQualified Boolean @default(false)
+  notifyOnRewardExpiration  Boolean @default(false)
+
+  // ==========================
+  // ASSISTANT MARKETING
+  // ==========================
+
+  assistantEnabled Boolean          @default(false)
+  assistantMode    VipAssistantMode @default(DISABLED)
+
+  assistantPlanningAnalysisEnabled     Boolean @default(false)
+  assistantRetentionAnalysisEnabled    Boolean @default(false)
+  assistantContestAnalysisEnabled      Boolean @default(false)
+  assistantRevenueAnalysisEnabled      Boolean @default(false)
+  assistantCancellationAnalysisEnabled Boolean @default(false)
+  assistantReferralAnalysisEnabled     Boolean @default(false)
+
+  // ==========================
+  // AUTOMATISATIONS
+  // ==========================
+
+  automaticRulesEnabled Boolean @default(false)
+
+  automaticBirthdayRewardsEnabled    Boolean @default(false)
+  automaticAnniversaryRewardsEnabled Boolean @default(false)
+  automaticInactiveClientRules       Boolean @default(false)
+  automaticSeasonActivationEnabled   Boolean @default(false)
+  automaticContestActivationEnabled  Boolean @default(false)
+
+  // ==========================
+  // MULTIPLICATEURS
+  // ==========================
+
+  baseXpMultiplier     Decimal @default(1.00) @db.Decimal(6, 2)
+  basePointsMultiplier Decimal @default(1.00) @db.Decimal(6, 2)
+
+  // ==========================
+  // PARAMÈTRES D’EXPIRATION
+  // ==========================
+
+  pointsExpirationEnabled Boolean @default(false)
+  pointsExpirationMonths  Int?
+
+  xpExpirationEnabled Boolean @default(false)
+  xpExpirationMonths  Int?
+
+  rewardsExpirationEnabled  Boolean @default(false)
+  defaultRewardValidityDays Int?
+
+  // ==========================
+  // IDENTITÉ DU CLUB
+  // ==========================
+
+  clubName String @default("Club VIP Le Palais des Ongles")
+
+  pointsLabel String @default("Points")
+  xpLabel     String @default("XP")
+
+  logoUrl       String?
+  iconUrl       String?
+  bannerUrl     String?
+  backgroundUrl String?
+
+  primaryColor   String?
+  secondaryColor String?
+  accentColor    String?
+
+  // ==========================
+  // PRÉ-LANCEMENT
+  // ==========================
+
+  preLaunchTitle       String?
+  preLaunchDescription String?
+  preLaunchImageUrl    String?
+  preLaunchButtonLabel String?
+  preLaunchButtonUrl   String?
+
+  // ==========================
+  // PRÉSENTATION PUBLIQUE
+  // ==========================
+
+  publicTitle       String?
+  publicDescription String?
+  publicImageUrl    String?
+
+  // ==========================
+  // CONDITIONS ET CONFIDENTIALITÉ
+  // ==========================
+
+  termsUrl       String?
+  privacyMessage String?
+  legalNotice    String?
+
+  minimumAge Int?
+
+  // ==========================
+  // DATES DU PROGRAMME
+  // ==========================
+
+  launchedAt DateTime?
+  pausedAt   DateTime?
+  disabledAt DateTime?
+
+  // ==========================
+  // UTILISATEURS ADMINISTRATEURS
+  // ==========================
+
+  createdById String?
+  updatedById String?
+
+  createdBy User? @relation("VipConfigurationCreator", fields: [createdById], references: [id], onDelete: SetNull)
+
+  updatedBy User? @relation("VipConfigurationUpdater", fields: [updatedById], references: [id], onDelete: SetNull)
+
+  // ==========================
+  // MÉTADONNÉES
+  // ==========================
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  // ==========================
+  // INDEX
+  // ==========================
+
+  @@index([programStatus])
+  @@index([clubEnabled])
+  @@index([assistantEnabled])
+  @@index([createdById])
+  @@index([updatedById])
+}
+
+model Contest {
+  id              String        @id @default(cuid())
+  createdById     String?
+  title           String
+  slug            String        @unique
+  description     String
+  rules           String?
+  prize           String
+  imageUrl        String?
+  status          ContestStatus @default(DRAFT)
+  startsAt        DateTime
+  endsAt          DateTime
+  drawAt          DateTime?
+  winnerId        String?
+  maximumEntries  Int?
+  requiresAccount Boolean       @default(true)
+  showOnHomepage  Boolean       @default(false)
+  createdAt       DateTime      @default(now())
+  updatedAt       DateTime      @updatedAt
+
+  createdBy    User?                @relation("ContestCreator", fields: [createdById], references: [id], onDelete: SetNull)
+  participants ContestParticipant[]
+  pointEntries ContestPointEntry[]
+  votes        ContestVote[]
+  winners      ContestWinner[]
+
+  @@index([status, startsAt, endsAt])
+  @@index([showOnHomepage])
+}
+
+model ContestParticipant {
+  id        String   @id @default(cuid())
+  contestId String
+  userId    String
+  answer    String?
+  isWinner  Boolean  @default(false)
+  createdAt DateTime @default(now())
+
+  contest Contest @relation(fields: [contestId], references: [id], onDelete: Cascade)
+  user    User    @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([contestId, userId])
+  @@index([userId])
+}
+
+model Notification {
+  id        String           @id @default(cuid())
+  userId    String
+  type      NotificationType
+  title     String
+  message   String
+  actionUrl String?
+  metadata  Json?
+  readAt    DateTime?
+  createdAt DateTime         @default(now())
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId, readAt, createdAt])
+}
+
+model ContactMessage {
+  id        String               @id @default(cuid())
+  userId    String?
+  firstName String
+  lastName  String?
+  email     String
+  phone     String?
+  subject   String
+  message   String
+  status    ContactMessageStatus @default(NEW)
+  repliedAt DateTime?
+  createdAt DateTime             @default(now())
+  updatedAt DateTime             @updatedAt
+
+  user User? @relation(fields: [userId], references: [id], onDelete: SetNull)
+
+  @@index([status, createdAt])
+  @@index([email])
+}
+
+model Setting {
+  id          String   @id @default(cuid())
+  key         String   @unique
+  value       Json
+  description String?
+  isPublic    Boolean  @default(false)
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  @@index([isPublic])
+}
+
+model AuditLog {
+  id         String   @id @default(cuid())
+  actorId    String?
+  action     String
+  entityType String
+  entityId   String?
+  metadata   Json?
+  ipAddress  String?
+  userAgent  String?
+  createdAt  DateTime @default(now())
+
+  actor User? @relation("AuditLogActor", fields: [actorId], references: [id], onDelete: SetNull)
+
+  @@index([actorId, createdAt])
+  @@index([entityType, entityId])
+  @@index([createdAt])
+}
+
+// ==========================
+// SÉCURITÉ / ANTI-BRUTE-FORCE
+// ==========================
+
+model SecurityRateLimit {
+  id              String    @id @default(cuid())
+  bucket          String    @unique
+  action          String
+  subjectHash     String
+  attempts        Int       @default(0)
+  windowStartedAt DateTime
+  blockedUntil    DateTime?
+  lastAttemptAt   DateTime
+  expiresAt       DateTime
+  createdAt       DateTime  @default(now())
+  updatedAt       DateTime  @updatedAt
+
+  @@index([action, lastAttemptAt])
+  @@index([subjectHash])
+  @@index([blockedUntil])
+  @@index([expiresAt])
+}
+
+model LoyaltyAccount {
+  id String @id @default(cuid())
+
+  // ==========================
+  // CLIENT
+  // ==========================
+
+  userId String @unique
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  // ==========================
+  // IDENTIFIANTS
+  // ==========================
+
+  memberNumber String @unique
+
+  referralCode String @unique
+
+  qrCode String?
+
+  // ==========================
+  // ETAT
+  // ==========================
+
+  isActive    Boolean   @default(true)
+  isSuspended Boolean   @default(false)
+  suspendedAt DateTime?
+
+  // ==========================
+  // XP
+  // ==========================
+
+  experience Int @default(0)
+
+  totalExperienceEarned Int @default(0)
+
+  experienceSpent Int @default(0)
+
+  // ==========================
+  // POINTS
+  // ==========================
+
+  points Int @default(0)
+
+  totalPointsEarned Int @default(0)
+
+  totalPointsSpent Int @default(0)
+
+  // ==========================
+  // NIVEAU
+  // ==========================
+
+  currentLevelId String?
+
+  currentLevel LoyaltyLevel? @relation(fields: [currentLevelId], references: [id], onDelete: SetNull)
+
+  levelReachedAt DateTime?
+
+  // ==========================
+  // STATISTIQUES
+  // ==========================
+
+  completedAppointments Int @default(0)
+
+  cancelledAppointments Int @default(0)
+
+  noShowAppointments Int @default(0)
+
+  totalSpentCents Int @default(0)
+
+  totalReviews Int @default(0)
+
+  totalReferrals Int @default(0)
+
+  totalContestEntries Int @default(0)
+
+  totalContestWins Int @default(0)
+
+  totalBadges Int @default(0)
+
+  totalAchievements Int @default(0)
+
+  totalRewardsUnlocked Int @default(0)
+
+  loginStreak Int @default(0)
+
+  longestLoginStreak Int @default(0)
+
+  // ==========================
+  // DERNIÈRES ACTIVITÉS
+  // ==========================
+
+  lastExperienceEarnedAt DateTime?
+
+  lastAppointmentAt DateTime?
+
+  lastRewardClaimedAt DateTime?
+
+  lastLoginAt DateTime?
+
+  // ==========================
+  // HISTORIQUES
+  // ==========================
+
+  transactions LoyaltyTransaction[]
+
+  badges ClientBadge[]
+
+  achievements ClientAchievement[]
+
+  rewards ClientReward[]
+
+  challenges ClientChallenge[]
+
+  seasonPasses ClientSeasonPass[]
+
+  levelHistory ClientLevelHistory[]
+
+  // ==========================
+  // DATES
+  // ==========================
+
+  joinedAt DateTime @default(now())
+
+  createdAt DateTime @default(now())
+
+  updatedAt DateTime @updatedAt
+
+  // ==========================
+  // INDEX
+  // ==========================
+  vipShopPurchases VipShopPurchase[]
+
+  @@index([experience])
+  @@index([points])
+  @@index([currentLevelId])
+  @@index([isActive])
+}
+
+model LoyaltyTransaction {
+  id String @id @default(cuid())
+
+  // ==========================
+  // CLIENT ET COMPTE VIP
+  // ==========================
+
+  userId    String
+  accountId String
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  account LoyaltyAccount @relation(fields: [accountId], references: [id], onDelete: Cascade)
+
+  // ==========================
+  // TYPE DE MOUVEMENT
+  // ==========================
+
+  type   LoyaltyTransactionType
+  source LoyaltyTransactionSource
+
+  // ==========================
+  // VALEURS DU MOUVEMENT
+  // ==========================
+
+  xpAmount     Int @default(0)
+  pointsAmount Int @default(0)
+
+  // Solde du compte après cette transaction.
+  xpBalanceAfter     Int
+  pointsBalanceAfter Int
+
+  // ==========================
+  // MULTIPLICATEURS
+  // ==========================
+
+  baseXpAmount     Int?
+  basePointsAmount Int?
+
+  xpMultiplier     Decimal @default(1.00) @db.Decimal(6, 2)
+  pointsMultiplier Decimal @default(1.00) @db.Decimal(6, 2)
+
+  // ==========================
+  // INFORMATIONS AFFICHÉES
+  // ==========================
+
+  title       String
+  description String?
+
+  // ==========================
+  // ORIGINE MÉTIER
+  // ==========================
+
+  sourceEntityType String?
+  sourceEntityId   String?
+
+  appointmentReference String?
+  contestReference     String?
+  rewardReference      String?
+  challengeReference   String?
+
+  // Empêche une même action de créditer deux fois les points.
+  idempotencyKey String? @unique
+
+  // ==========================
+  // EXPIRATION
+  // ==========================
+
+  expiresAt DateTime?
+  expiredAt DateTime?
+
+  // ==========================
+  // ANNULATION ET CORRECTION
+  // ==========================
+
+  isReversed     Boolean   @default(false)
+  reversedAt     DateTime?
+  reversalReason String?
+
+  reversalOfId String? @unique
+
+  reversalOf LoyaltyTransaction? @relation("LoyaltyTransactionReversal", fields: [reversalOfId], references: [id], onDelete: SetNull)
+
+  reversedBy LoyaltyTransaction? @relation("LoyaltyTransactionReversal")
+
+  // ==========================
+  // TRAÇABILITÉ
+  // ==========================
+
+  actorId   String?
+  actorName String?
+
+  metadata Json?
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  // ==========================
+  // INDEX
+  // ==========================
+
+  @@index([userId, createdAt])
+  @@index([accountId, createdAt])
+  @@index([type, createdAt])
+  @@index([source, createdAt])
+  @@index([sourceEntityType, sourceEntityId])
+  @@index([expiresAt])
+  @@index([isReversed])
+}
+
+model LoyaltyLevel {
+  id String @id @default(cuid())
+
+  // ==========================
+  // IDENTITÉ
+  // ==========================
+
+  name String
+
+  slug String @unique
+
+  description String?
+
+  shortDescription String?
+
+  color String?
+
+  icon String?
+
+  imageUrl String?
+
+  bannerUrl String?
+
+  // ==========================
+  // PROGRESSION
+  // ==========================
+
+  level Int @unique
+
+  requiredXp Int
+
+  requiredPoints Int @default(0)
+
+  // ==========================
+  // BONUS
+  // ==========================
+
+  xpMultiplier Decimal @default(1.00) @db.Decimal(6, 2)
+
+  pointsMultiplier Decimal @default(1.00) @db.Decimal(6, 2)
+
+  referralMultiplier Decimal @default(1.00) @db.Decimal(6, 2)
+
+  // ==========================
+  // AVANTAGES
+  // ==========================
+
+  priorityBooking Boolean @default(false)
+
+  vipSupport Boolean @default(false)
+
+  exclusiveContests Boolean @default(false)
+
+  exclusiveRewards Boolean @default(false)
+
+  exclusiveEvents Boolean @default(false)
+
+  freeGift Boolean @default(false)
+
+  birthdayGift Boolean @default(false)
+
+  // ==========================
+  // RÉDUCTIONS
+  // ==========================
+
+  permanentDiscountPercent Int?
+
+  // ==========================
+  // ÉTAT
+  // ==========================
+
+  status LoyaltyLevelStatus @default(ACTIVE)
+
+  visible Boolean @default(true)
+
+  isDefault Boolean @default(false)
+
+  // ==========================
+  // RELATIONS
+  // ==========================
+
+  accounts LoyaltyAccount[]
+
+  previousHistory ClientLevelHistory[] @relation("PreviousLevelHistory")
+
+  newHistory ClientLevelHistory[] @relation("NewLevelHistory")
+
+  // ==========================
+  // ORDRE
+  // ==========================
+
+  sortOrder Int @default(0)
+
+  // ==========================
+  // MÉTADONNÉES
+  // ==========================
+
+  metadata Json?
+
+  createdAt DateTime @default(now())
+
+  updatedAt DateTime @updatedAt
+
+  // ==========================
+  // INDEX
+  // ==========================
+
+  @@index([status])
+  @@index([visible])
+  @@index([sortOrder])
+}
+
+model Referral {
+  id String @id @default(cuid())
+
+  // ==========================
+  // PARRAIN
+  // ==========================
+
+  referrerId String
+
+  referrer User @relation("ReferralReferrer", fields: [referrerId], references: [id], onDelete: Cascade)
+
+  // ==========================
+  // PERSONNE PARRAINÉE
+  // ==========================
+
+  referredUserId String? @unique
+
+  referredUser User? @relation("ReferralReferred", fields: [referredUserId], references: [id], onDelete: SetNull)
+
+  referredEmail     String?
+  referredFirstName String?
+  referredLastName  String?
+  referredPhone     String?
+
+  // ==========================
+  // CODE ET LIEN
+  // ==========================
+
+  referralCode    String
+  invitationToken String? @unique
+  invitationUrl   String?
+
+  // ==========================
+  // ÉTAT
+  // ==========================
+
+  status ReferralStatus @default(PENDING)
+
+  // ==========================
+  // QUALIFICATION
+  // ==========================
+
+  qualificationReason String?
+
+  qualifyingAppointmentId String?
+  qualifyingPaymentCents  Int?
+
+  // ==========================
+  // RÉCOMPENSE DU PARRAIN
+  // ==========================
+
+  referrerXpReward     Int     @default(0)
+  referrerPointsReward Int     @default(0)
+  referrerRewardId     String?
+
+  referrerRewardGranted   Boolean   @default(false)
+  referrerRewardGrantedAt DateTime?
+
+  // ==========================
+  // RÉCOMPENSE DU FILLEUL
+  // ==========================
+
+  referredXpReward     Int     @default(0)
+  referredPointsReward Int     @default(0)
+  referredRewardId     String?
+
+  referredRewardGranted   Boolean   @default(false)
+  referredRewardGrantedAt DateTime?
+
+  // ==========================
+  // DATES MÉTIER
+  // ==========================
+
+  invitedAt    DateTime  @default(now())
+  registeredAt DateTime?
+  qualifiedAt  DateTime?
+  rewardedAt   DateTime?
+  cancelledAt  DateTime?
+  expiredAt    DateTime?
+  expiresAt    DateTime?
+
+  // ==========================
+  // TRAÇABILITÉ
+  // ==========================
+
+  source    String?
+  ipAddress String?
+  userAgent String?
+  metadata  Json?
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  // ==========================
+  // CONTRAINTES ET INDEX
+  // ==========================
+
+  @@unique([referrerId, referredEmail])
+  @@index([referrerId, status])
+  @@index([referredUserId])
+  @@index([referralCode])
+  @@index([referredEmail])
+  @@index([status, createdAt])
+  @@index([expiresAt])
+}
+
+model ClientLevelHistory {
+  id String @id @default(cuid())
+
+  accountId String
+
+  previousLevelId String?
+
+  newLevelId String
+
+  experienceAtUpgrade Int
+
+  pointsAtUpgrade Int
+
+  upgradedAutomatically Boolean @default(true)
+
+  reason String?
+
+  metadata Json?
+
+  account LoyaltyAccount @relation(fields: [accountId], references: [id], onDelete: Cascade)
+
+  previousLevel LoyaltyLevel? @relation("PreviousLevelHistory", fields: [previousLevelId], references: [id], onDelete: SetNull)
+
+  newLevel LoyaltyLevel @relation("NewLevelHistory", fields: [newLevelId], references: [id], onDelete: Restrict)
+
+  createdAt DateTime @default(now())
+
+  @@index([accountId])
+  @@index([newLevelId])
+  @@index([createdAt])
+}
+
+model LoyaltyBadge {
+  id String @id @default(cuid())
+
+  // ==========================
+  // IDENTITÉ
+  // ==========================
+
+  name             String
+  slug             String  @unique
+  description      String?
+  shortDescription String?
+
+  category LoyaltyBadgeCategory
+
+  // ==========================
+  // APPARENCE
+  // ==========================
+
+  icon            String?
+  imageUrl        String?
+  lockedImageUrl  String?
+  color           String?
+  backgroundColor String?
+
+  // ==========================
+  // CONDITIONS
+  // ==========================
+
+  targetValue Int @default(1)
+
+  conditionType String?
+
+  conditionConfig Json?
+
+  // ==========================
+  // RÉCOMPENSES
+  // ==========================
+
+  xpReward     Int @default(0)
+  pointsReward Int @default(0)
+
+  rewardId String?
+
+  reward VipReward? @relation(fields: [rewardId], references: [id], onDelete: SetNull)
+
+  // ==========================
+  // DISPONIBILITÉ
+  // ==========================
+
+  isActive Boolean @default(true)
+
+  isSecret Boolean @default(false)
+
+  isRepeatable Boolean @default(false)
+
+  maximumUnlocks Int?
+
+  startsAt DateTime?
+  endsAt   DateTime?
+
+  // ==========================
+  // AFFICHAGE
+  // ==========================
+
+  sortOrder Int @default(0)
+
+  visibleInProfile Boolean @default(true)
+
+  visibleInGallery Boolean @default(true)
+
+  // ==========================
+  // RELATIONS
+  // ==========================
+
+  clients ClientBadge[]
+
+  // ==========================
+  // MÉTADONNÉES
+  // ==========================
+
+  metadata Json?
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  // ==========================
+  // INDEX
+  // ==========================
+
+  @@index([category])
+  @@index([isActive])
+  @@index([isSecret])
+  @@index([startsAt, endsAt])
+  @@index([sortOrder])
+  @@index([rewardId])
+}
+
+model ClientBadge {
+  id String @id @default(cuid())
+
+  // ==========================
+  // CLIENT
+  // ==========================
+
+  userId    String
+  accountId String
+  badgeId   String
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  account LoyaltyAccount @relation(fields: [accountId], references: [id], onDelete: Cascade)
+
+  badge LoyaltyBadge @relation(fields: [badgeId], references: [id], onDelete: Cascade)
+
+  // ==========================
+  // PROGRESSION
+  // ==========================
+
+  status LoyaltyProgressStatus @default(LOCKED)
+
+  currentValue Int @default(0)
+  targetValue  Int @default(1)
+
+  progressPercent Int @default(0)
+
+  unlockCount Int @default(0)
+
+  // ==========================
+  // DÉBLOCAGE
+  // ==========================
+
+  unlockedAt DateTime?
+  claimedAt  DateTime?
+
+  lastProgressAt DateTime?
+
+  // ==========================
+  // ORIGINE
+  // ==========================
+
+  sourceEntityType String?
+  sourceEntityId   String?
+
+  // ==========================
+  // RÉCOMPENSE DISTRIBUÉE
+  // ==========================
+
+  rewardGranted   Boolean   @default(false)
+  rewardGrantedAt DateTime?
+
+  // ==========================
+  // AFFICHAGE
+  // ==========================
+
+  isFeatured Boolean @default(false)
+
+  displayOrder Int @default(0)
+
+  // ==========================
+  // MÉTADONNÉES
+  // ==========================
+
+  metadata Json?
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  // ==========================
+  // CONTRAINTES
+  // ==========================
+
+  // ==========================
+  // INDEX
+  // ==========================
+
+  @@unique([accountId, badgeId])
+  @@index([userId])
+  @@index([accountId])
+  @@index([badgeId])
+  @@index([status])
+  @@index([unlockedAt])
+  @@index([isFeatured])
+}
+
+model LoyaltyAchievement {
+  id String @id @default(cuid())
+
+  // ==========================
+  // IDENTITÉ
+  // ==========================
+
+  name             String
+  slug             String  @unique
+  description      String
+  shortDescription String?
+
+  category LoyaltyAchievementCategory
+
+  // ==========================
+  // APPARENCE
+  // ==========================
+
+  icon           String?
+  imageUrl       String?
+  lockedImageUrl String?
+  bannerUrl      String?
+
+  color           String?
+  backgroundColor String?
+
+  // ==========================
+  // PROGRESSION
+  // ==========================
+
+  targetValue Int @default(1)
+
+  metric String?
+
+  conditionConfig Json?
+
+  // ==========================
+  // DIFFICULTÉ ET RARETÉ
+  // ==========================
+
+  difficulty Int @default(1)
+
+  rarity String?
+
+  hiddenUntilUnlocked Boolean @default(false)
+
+  // ==========================
+  // RÉCOMPENSES
+  // ==========================
+
+  xpReward     Int @default(0)
+  pointsReward Int @default(0)
+
+  rewardId String?
+
+  reward VipReward? @relation(fields: [rewardId], references: [id], onDelete: SetNull)
+
+  // ==========================
+  // DISPONIBILITÉ
+  // ==========================
+
+  isActive Boolean @default(true)
+
+  isRepeatable Boolean @default(false)
+
+  maximumCompletions Int?
+
+  startsAt DateTime?
+  endsAt   DateTime?
+
+  // ==========================
+  // AFFICHAGE
+  // ==========================
+
+  sortOrder Int @default(0)
+
+  visibleInProfile Boolean @default(true)
+
+  // ==========================
+  // RELATIONS
+  // ==========================
+
+  clients ClientAchievement[]
+
+  // ==========================
+  // MÉTADONNÉES
+  // ==========================
+
+  metadata Json?
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  // ==========================
+  // INDEX
+  // ==========================
+
+  @@index([category])
+  @@index([isActive])
+  @@index([startsAt, endsAt])
+  @@index([sortOrder])
+  @@index([rewardId])
+}
+
+model ClientAchievement {
+  id String @id @default(cuid())
+
+  // ==========================
+  // CLIENT
+  // ==========================
+
+  userId        String
+  accountId     String
+  achievementId String
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  account LoyaltyAccount @relation(fields: [accountId], references: [id], onDelete: Cascade)
+
+  achievement LoyaltyAchievement @relation(fields: [achievementId], references: [id], onDelete: Cascade)
+
+  // ==========================
+  // PROGRESSION
+  // ==========================
+
+  status LoyaltyProgressStatus @default(LOCKED)
+
+  currentValue Int @default(0)
+  targetValue  Int @default(1)
+
+  progressPercent Int @default(0)
+
+  completionCount Int @default(0)
+
+  // ==========================
+  // DATES
+  // ==========================
+
+  startedAt   DateTime?
+  completedAt DateTime?
+  claimedAt   DateTime?
+
+  lastProgressAt DateTime?
+
+  // ==========================
+  // RÉCOMPENSE
+  // ==========================
+
+  rewardGranted   Boolean   @default(false)
+  rewardGrantedAt DateTime?
+
+  // ==========================
+  // ORIGINE
+  // ==========================
+
+  sourceEntityType String?
+  sourceEntityId   String?
+
+  // ==========================
+  // AFFICHAGE
+  // ==========================
+
+  isFeatured Boolean @default(false)
+
+  displayOrder Int @default(0)
+
+  // ==========================
+  // MÉTADONNÉES
+  // ==========================
+
+  metadata Json?
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  // ==========================
+  // CONTRAINTES
+  // ==========================
+
+  // ==========================
+  // INDEX
+  // ==========================
+
+  @@unique([accountId, achievementId])
+  @@index([userId])
+  @@index([accountId])
+  @@index([achievementId])
+  @@index([status])
+  @@index([completedAt])
+  @@index([isFeatured])
+}
+
+model VipReward {
+  id String @id @default(cuid())
+
+  // ==========================
+  // IDENTITÉ
+  // ==========================
+
+  name String
+
+  slug String @unique
+
+  description String?
+
+  shortDescription String?
+
+  type VipRewardType
+
+  // ==========================
+  // APPARENCE
+  // ==========================
+
+  icon String?
+
+  imageUrl String?
+
+  bannerUrl String?
+
+  color String?
+
+  // ==========================
+  // VALEUR
+  // ==========================
+
+  fixedAmountCents Int?
+
+  percentage Int?
+
+  loyaltyPoints Int?
+
+  experiencePoints Int?
+
+  freeServiceId String?
+
+  quantity Int?
+
+  // ==========================
+  // CONDITIONS
+  // ==========================
+
+  minimumLevelId String?
+
+  minimumPoints Int?
+
+  minimumXp Int?
+
+  rewardCode String?
+
+  couponCodePrefix String?
+
+  // ==========================
+  // VALIDITÉ
+  // ==========================
+
+  validForDays Int?
+
+  startsAt DateTime?
+
+  endsAt DateTime?
+
+  // ==========================
+  // STOCK
+  // ==========================
+
+  unlimitedStock Boolean @default(true)
+
+  stock Int?
+
+  remainingStock Int?
+
+  // ==========================
+  // ÉTAT
+  // ==========================
+
+  status VipRewardStatus @default(ACTIVE)
+
+  visible Boolean @default(true)
+
+  featured Boolean @default(false)
+
+  repeatable Boolean @default(false)
+
+  // ==========================
+  // RELATIONS
+  // ==========================
+
+  badges LoyaltyBadge[]
+
+  achievements LoyaltyAchievement[]
+
+  clientRewards ClientReward[]
+
+  contestWinners   ContestWinner[]
+  clientChallenges ClientChallenge[]
+  automationRules  VipAutomationRule[]
+  vipEvents        VipEvent[]
+
+  // ==========================
+  // TRI
+  // ==========================
+
+  sortOrder Int @default(0)
+
+  // ==========================
+  // MÉTADONNÉES
+  // ==========================
+
+  metadata Json?
+
+  createdAt DateTime @default(now())
+
+  updatedAt        DateTime          @updatedAt
+  vipShopItem      VipShopItem?
+  vipShopPurchases VipShopPurchase[]
+
+  @@index([status])
+  @@index([featured])
+  @@index([visible])
+  @@index([type])
+  @@index([startsAt, endsAt])
+  @@index([sortOrder])
+}
+
+model ClientReward {
+  id String @id @default(cuid())
+
+  // ==========================
+  // CLIENT
+  // ==========================
+
+  userId String
+
+  accountId String
+
+  rewardId String
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  account LoyaltyAccount @relation(fields: [accountId], references: [id], onDelete: Cascade)
+
+  reward VipReward @relation(fields: [rewardId], references: [id], onDelete: Cascade)
+
+  // ==========================
+  // ÉTAT
+  // ==========================
+
+  status ClientRewardStatus @default(AVAILABLE)
+
+  // ==========================
+  // CODE
+  // ==========================
+
+  uniqueCode String @unique
+
+  qrCode String?
+
+  barcode String?
+
+  // ==========================
+  // UTILISATION
+  // ==========================
+
+  usedAt DateTime?
+
+  expiresAt DateTime?
+
+  cancelledAt DateTime?
+
+  giftedAt DateTime?
+
+  reservedAt DateTime?
+
+  // ==========================
+  // LIAISONS
+  // ==========================
+
+  appointmentId String?
+
+  transactionId String?
+
+  sourceEntityType String?
+
+  sourceEntityId String?
+
+  // ==========================
+  // HISTORIQUE
+  // ==========================
+
+  usage RewardUsage?
+
+  // ==========================
+  // MÉTADONNÉES
+  // ==========================
+
+  metadata Json?
+
+  createdAt DateTime @default(now())
+
+  updatedAt       DateTime         @updatedAt
+  vipGiftTransfer VipGiftTransfer?
+
+  @@index([userId])
+  @@index([accountId])
+  @@index([rewardId])
+  @@index([status])
+  @@index([expiresAt])
+}
+
+model RewardUsage {
+  id String @id @default(cuid())
+
+  clientRewardId String @unique
+
+  appointmentId String?
+
+  usedById String?
+
+  validatedById String?
+
+  notes String?
+
+  metadata Json?
+
+  clientReward ClientReward @relation(fields: [clientRewardId], references: [id], onDelete: Cascade)
+
+  usedAt DateTime @default(now())
+
+  createdAt DateTime @default(now())
+
+  updatedAt DateTime @updatedAt
+
+  @@index([appointmentId])
+  @@index([usedById])
+  @@index([validatedById])
+}
+
+model VipShopItem {
+  id String @id @default(cuid())
+
+  rewardId String @unique
+
+  reward VipReward @relation(fields: [rewardId], references: [id], onDelete: Cascade)
+
+  pointsPrice Int
+
+  xpPrice Int?
+
+  featured Boolean @default(false)
+
+  visible Boolean @default(true)
+
+  stock Int?
+
+  unlimitedStock Boolean @default(true)
+
+  maximumPerClient Int?
+
+  sortOrder Int @default(0)
+
+  startsAt DateTime?
+
+  endsAt DateTime?
+
+  metadata Json?
+
+  purchases VipShopPurchase[]
+
+  createdAt DateTime @default(now())
+
+  updatedAt DateTime @updatedAt
+
+  @@index([featured])
+  @@index([visible])
+  @@index([sortOrder])
+}
+
+model VipShopPurchase {
+  id String @id @default(cuid())
+
+  userId String
+
+  accountId String
+
+  shopItemId String
+
+  rewardId String
+
+  pointsSpent Int
+
+  xpSpent Int?
+
+  clientRewardId String?
+
+  metadata Json?
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  account LoyaltyAccount @relation(fields: [accountId], references: [id], onDelete: Cascade)
+
+  shopItem VipShopItem @relation(fields: [shopItemId], references: [id], onDelete: Cascade)
+
+  reward VipReward @relation(fields: [rewardId], references: [id], onDelete: Cascade)
+
+  createdAt DateTime @default(now())
+
+  @@index([userId])
+  @@index([accountId])
+  @@index([rewardId])
+  @@index([createdAt])
+}
+
+model VipGiftTransfer {
+  id String @id @default(cuid())
+
+  // ==========================
+  // EXPÉDITEUR
+  // ==========================
+
+  senderId String
+
+  sender User @relation("VipGiftSender", fields: [senderId], references: [id], onDelete: Cascade)
+
+  // ==========================
+  // DESTINATAIRE
+  // ==========================
+
+  recipientId String
+
+  recipient User @relation("VipGiftRecipient", fields: [recipientId], references: [id], onDelete: Cascade)
+
+  // ==========================
+  // RÉCOMPENSE ENVOYÉE
+  // ==========================
+
+  clientRewardId String? @unique
+
+  clientReward ClientReward? @relation(fields: [clientRewardId], references: [id], onDelete: SetNull)
+
+  // ==========================
+  // INFORMATIONS
+  // ==========================
+
+  message String?
+
+  status GiftTransferStatus @default(PENDING)
+
+  transferCode String? @unique
+
+  // ==========================
+  // DATES
+  // ==========================
+
+  acceptedAt  DateTime?
+  refusedAt   DateTime?
+  cancelledAt DateTime?
+  expiresAt   DateTime?
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  // ==========================
+  // MÉTADONNÉES
+  // ==========================
+
+  metadata Json?
+
+  // ==========================
+  // INDEX
+  // ==========================
+
+  @@index([senderId])
+  @@index([recipientId])
+  @@index([status])
+  @@index([createdAt])
+}
+
+model VipAuditLog {
+  id String @id @default(cuid())
+
+  // ==========================
+  // ACTEUR
+  // ==========================
+
+  actorId String?
+
+  actor User? @relation(fields: [actorId], references: [id], onDelete: SetNull)
+
+  // ==========================
+  // ACTION
+  // ==========================
+
+  action String
+
+  category String?
+
+  // ==========================
+  // ENTITÉ CONCERNÉE
+  // ==========================
+
+  entityType String
+
+  entityId String?
+
+  entityReference String?
+
+  // ==========================
+  // DONNÉES AVANT / APRÈS
+  // ==========================
+
+  previousData Json?
+
+  nextData Json?
+
+  changes Json?
+
+  metadata Json?
+
+  // ==========================
+  // CONTEXTE TECHNIQUE
+  // ==========================
+
+  ipAddress String?
+
+  userAgent String?
+
+  requestId String?
+
+  route String?
+
+  method String?
+
+  // ==========================
+  // RÉSULTAT
+  // ==========================
+
+  success Boolean @default(true)
+
+  errorCode String?
+
+  errorMessage String?
+
+  // ==========================
+  // DATE
+  // ==========================
+
+  createdAt DateTime @default(now())
+
+  // ==========================
+  // INDEX
+  // ==========================
+
+  @@index([actorId, createdAt])
+  @@index([action, createdAt])
+  @@index([category, createdAt])
+  @@index([entityType, entityId])
+  @@index([success, createdAt])
+  @@index([requestId])
+  @@index([createdAt])
+}
+
+// ======================================================
+// MOTEUR DE CONCOURS VIP
+// ======================================================
+
+model ContestPointEntry {
+  id String @id @default(cuid())
+
+  contestId String
+  userId    String
+
+  source ContestPointSource @default(OTHER)
+
+  points Int
+
+  title       String?
+  description String?
+
+  sourceEntityType String?
+  sourceEntityId   String?
+
+  idempotencyKey String? @unique
+
+  metadata Json?
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  contest Contest @relation(fields: [contestId], references: [id], onDelete: Cascade)
+  user    User    @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([contestId, createdAt])
+  @@index([userId, createdAt])
+  @@index([contestId, userId])
+  @@index([source])
+  @@index([sourceEntityType, sourceEntityId])
+}
+
+model ContestVote {
+  id String @id @default(cuid())
+
+  contestId String
+  userId    String
+
+  candidateUserId  String?
+  candidateEntryId String?
+
+  score Int @default(1)
+
+  comment String?
+
+  ipAddress String?
+  userAgent String?
+
+  metadata Json?
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  contest Contest @relation(fields: [contestId], references: [id], onDelete: Cascade)
+  user    User    @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([contestId, userId])
+  @@index([contestId, createdAt])
+  @@index([userId, createdAt])
+  @@index([candidateUserId])
+  @@index([candidateEntryId])
+}
+
+model ContestWinner {
+  id String @id @default(cuid())
+
+  contestId String
+  userId    String
+
+  position Int @default(1)
+
+  score  Int?
+  points Int?
+
+  prizeName        String?
+  prizeDescription String?
+  prizeValueCents  Int?
+
+  rewardId String?
+
+  announcedAt DateTime?
+  notifiedAt  DateTime?
+  claimedAt   DateTime?
+
+  metadata Json?
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  contest Contest    @relation(fields: [contestId], references: [id], onDelete: Cascade)
+  user    User       @relation(fields: [userId], references: [id], onDelete: Cascade)
+  reward  VipReward? @relation(fields: [rewardId], references: [id], onDelete: SetNull)
+
+  @@unique([contestId, position])
+  @@unique([contestId, userId])
+  @@index([contestId])
+  @@index([userId])
+  @@index([rewardId])
+  @@index([claimedAt])
+}
+
+// ======================================================
+// CHALLENGES CLIENTS
+// ======================================================
+
+model ClientChallenge {
+  id String @id @default(cuid())
+
+  userId    String
+  accountId String
+
+  challengeId String
+
+  status LoyaltyProgressStatus @default(IN_PROGRESS)
+
+  currentValue Int @default(0)
+  targetValue  Int
+
+  progressPercent Int @default(0)
+
+  xpReward     Int @default(0)
+  pointsReward Int @default(0)
+
+  rewardId String?
+
+  startedAt   DateTime  @default(now())
+  completedAt DateTime?
+  claimedAt   DateTime?
+  expiresAt   DateTime?
+  cancelledAt DateTime?
+
+  lastProgressAt DateTime?
+
+  idempotencyKey String? @unique
+
+  metadata Json?
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  user    User           @relation(fields: [userId], references: [id], onDelete: Cascade)
+  account LoyaltyAccount @relation(fields: [accountId], references: [id], onDelete: Cascade)
+  reward  VipReward?     @relation(fields: [rewardId], references: [id], onDelete: SetNull)
+
+  @@unique([userId, challengeId])
+  @@index([userId, status])
+  @@index([accountId, status])
+  @@index([challengeId])
+  @@index([rewardId])
+  @@index([expiresAt])
+  @@index([completedAt])
+}
+
+// ======================================================
+// PASS SAISONNIERS CLIENTS
+// ======================================================
+
+model ClientSeasonPass {
+  id String @id @default(cuid())
+
+  userId    String
+  accountId String
+
+  seasonId String
+
+  tierType VipSeasonTierType @default(FREE)
+
+  currentXp    Int @default(0)
+  currentLevel Int @default(0)
+
+  isPremium Boolean @default(false)
+
+  premiumPurchasedAt DateTime?
+  premiumPriceCents  Int?
+
+  startedAt   DateTime  @default(now())
+  completedAt DateTime?
+  expiresAt   DateTime?
+
+  lastProgressAt DateTime?
+
+  metadata Json?
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  user    User           @relation(fields: [userId], references: [id], onDelete: Cascade)
+  account LoyaltyAccount @relation(fields: [accountId], references: [id], onDelete: Cascade)
+
+  @@unique([userId, seasonId])
+  @@index([userId])
+  @@index([accountId])
+  @@index([seasonId])
+  @@index([tierType])
+  @@index([isPremium])
+  @@index([expiresAt])
+}
+
+// ======================================================
+// ÉQUIPES VIP
+// ======================================================
+
+model VipTeamMember {
+  id String @id @default(cuid())
+
+  teamId String
+  userId String
+
+  status VipTeamStatus @default(ACTIVE)
+
+  role String @default("MEMBER")
+
+  contributionPoints Int @default(0)
+  contributionXp     Int @default(0)
+
+  contestPoints Int @default(0)
+
+  isCaptain Boolean @default(false)
+
+  joinedAt DateTime  @default(now())
+  leftAt   DateTime?
+
+  metadata Json?
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([teamId, userId])
+  @@index([teamId, status])
+  @@index([userId, status])
+  @@index([isCaptain])
+  @@index([joinedAt])
+}
+
+// ======================================================
+// RÈGLES AUTOMATIQUES DU CLUB VIP
+// ======================================================
+
+model VipAutomationRule {
+  id String @id @default(cuid())
+
+  createdById String?
+
+  name        String
+  slug        String  @unique
+  description String?
+
+  status  VipRuleStatus  @default(DRAFT)
+  trigger VipRuleTrigger
+  action  VipRuleAction
+
+  priority Int @default(0)
+
+  conditions          Json?
+  actionConfiguration Json?
+
+  xpAmount     Int?
+  pointsAmount Int?
+
+  rewardId String?
+
+  maximumExecutions        Int?
+  maximumExecutionsPerUser Int?
+
+  executionCount Int @default(0)
+  successCount   Int @default(0)
+  failureCount   Int @default(0)
+
+  startsAt DateTime?
+  endsAt   DateTime?
+
+  lastExecutedAt  DateTime?
+  nextExecutionAt DateTime?
+
+  isSystemRule Boolean @default(false)
+
+  metadata Json?
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  createdBy User?      @relation("VipRuleCreator", fields: [createdById], references: [id], onDelete: SetNull)
+  reward    VipReward? @relation(fields: [rewardId], references: [id], onDelete: SetNull)
+
+  @@index([status, priority])
+  @@index([trigger, status])
+  @@index([action])
+  @@index([createdById])
+  @@index([rewardId])
+  @@index([startsAt, endsAt])
+  @@index([nextExecutionAt])
+}
+
+// ======================================================
+// ÉVÉNEMENTS DU CLUB VIP
+// ======================================================
+
+model VipEvent {
+  id String @id @default(cuid())
+
+  createdById String?
+
+  title       String
+  slug        String  @unique
+  description String?
+
+  type   VipEventType
+  status VipEventStatus @default(DRAFT)
+
+  imageUrl  String?
+  bannerUrl String?
+
+  startsAt DateTime
+  endsAt   DateTime
+
+  xpMultiplier     Decimal @default(1.00) @db.Decimal(6, 2)
+  pointsMultiplier Decimal @default(1.00) @db.Decimal(6, 2)
+
+  bonusXp     Int @default(0)
+  bonusPoints Int @default(0)
+
+  rewardId String?
+
+  visibility VipVisibility @default(MEMBERS_ONLY)
+
+  showOnHomepage   Boolean @default(false)
+  notificationSent Boolean @default(false)
+
+  activatedAt DateTime?
+  completedAt DateTime?
+  cancelledAt DateTime?
+
+  metadata Json?
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  createdBy User?      @relation("VipEventCreator", fields: [createdById], references: [id], onDelete: SetNull)
+  reward    VipReward? @relation(fields: [rewardId], references: [id], onDelete: SetNull)
+
+  @@index([status, startsAt, endsAt])
+  @@index([type, status])
+  @@index([createdById])
+  @@index([rewardId])
+  @@index([showOnHomepage])
+  @@index([visibility])
+}
+
+// ======================================================
+// RECOMMANDATIONS MARKETING
+// ======================================================
+
+model MarketingRecommendation {
+  id String @id @default(cuid())
+
+  title       String
+  description String
+
+  category MarketingRecommendationCategory
+  priority MarketingRecommendationPriority @default(MEDIUM)
+  status   MarketingRecommendationStatus   @default(NEW)
+
+  reason String?
+
+  expectedImpact       String?
+  expectedRevenueCents Int?
+  confidenceScore      Int?
+
+  recommendedAction Json?
+  analysisData      Json?
+
+  targetEntityType String?
+  targetEntityId   String?
+
+  appliedById   String?
+  dismissedById String?
+
+  viewedAt    DateTime?
+  acceptedAt  DateTime?
+  appliedAt   DateTime?
+  dismissedAt DateTime?
+  expiresAt   DateTime?
+  failedAt    DateTime?
+
+  dismissalReason String?
+  failureReason   String?
+
+  resultData Json?
+  metadata   Json?
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  appliedBy   User? @relation("MarketingRecommendationAppliedBy", fields: [appliedById], references: [id], onDelete: SetNull)
+  dismissedBy User? @relation("MarketingRecommendationDismissedBy", fields: [dismissedById], references: [id], onDelete: SetNull)
+
+  @@index([status, priority])
+  @@index([category, status])
+  @@index([appliedById])
+  @@index([dismissedById])
+  @@index([targetEntityType, targetEntityId])
+  @@index([expiresAt])
+  @@index([createdAt])
+}
+
+model SecurityUpload {
+  id                String    @id @default(cuid())
+  key               String    @unique
+  url               String
+  uploadedById      String
+  purpose           String
+  fileName          String?
+  mimeType          String
+  sizeBytes         Int
+  claimedAt         DateTime?
+  claimedEntityType String?
+  claimedEntityId   String?
+  expiresAt         DateTime
+
+  // Nettoyage des fichiers expirés non revendiqués.
+  cleanupRunId     String?
+  cleanupStartedAt DateTime?
+  cleanupAttempts  Int       @default(0)
+  cleanupLastError String?
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@index([uploadedById, purpose, claimedAt])
+  @@index([claimedEntityType, claimedEntityId])
+  @@index([claimedAt, expiresAt, cleanupStartedAt])
+  @@index([cleanupRunId])
+  @@index([expiresAt])
+  @@index([createdAt])
+}

@@ -1,0 +1,1534 @@
+import {
+  Prisma,
+} from "@/generated/prisma/client";
+
+import type {
+  AdminServiceFormInput,
+} from "@/features/admin/services/schemas/admin-service.schema";
+
+import type {
+  AdminServiceCategoryOption,
+  AdminServiceDetails,
+  AdminServiceImage,
+  AdminServiceListItem,
+  AdminServicesPageData,
+} from "@/features/admin/services/types/admin-service.types";
+
+import {
+  prisma,
+} from "@/lib/prisma";
+
+/* -------------------------------------------------------------------------- */
+/*                                  ERREURS                                   */
+/* -------------------------------------------------------------------------- */
+
+export class AdminServiceValidationError extends Error {
+  readonly fieldErrors: Record<
+    string,
+    string[]
+  >;
+
+  constructor(
+    message: string,
+    fieldErrors: Record<
+      string,
+      string[]
+    > = {},
+  ) {
+    super(message);
+
+    this.name =
+      "AdminServiceValidationError";
+
+    this.fieldErrors =
+      fieldErrors;
+  }
+}
+
+export class AdminServiceNotFoundError extends Error {
+  constructor() {
+    super(
+      "Cette prestation est introuvable.",
+    );
+
+    this.name =
+      "AdminServiceNotFoundError";
+  }
+}
+
+export class AdminServiceDeleteError extends Error {
+  constructor(message: string) {
+    super(message);
+
+    this.name =
+      "AdminServiceDeleteError";
+  }
+}
+
+/* -------------------------------------------------------------------------- */
+/*                              AUTHENTIFICATION                              */
+/* -------------------------------------------------------------------------- */
+
+async function assertServiceActor(
+  actorId: string,
+): Promise<void> {
+  const actor =
+    await prisma.user.findFirst({
+      where: {
+        id:
+          actorId,
+
+        status:
+          "ACTIVE",
+
+        role: {
+          in: [
+            "SUPER_ADMIN",
+            "ADMIN",
+          ],
+        },
+      },
+
+      select: {
+        id:
+          true,
+      },
+    });
+
+  if (!actor) {
+    throw new Error(
+      "Accès à la gestion des prestations refusé.",
+    );
+  }
+}
+
+/* -------------------------------------------------------------------------- */
+/*                                  SLUG                                      */
+/* -------------------------------------------------------------------------- */
+
+function slugify(
+  value: string,
+): string {
+  return value
+    .normalize("NFD")
+    .replace(
+      /[\u0300-\u036f]/g,
+      "",
+    )
+    .toLocaleLowerCase("fr-FR")
+    .trim()
+    .replace(
+      /['’"]/g,
+      "",
+    )
+    .replace(
+      /[^a-z0-9]+/g,
+      "-",
+    )
+    .replace(
+      /^-+|-+$/g,
+      "",
+    )
+    .replace(
+      /-{2,}/g,
+      "-",
+    );
+}
+
+async function generateUniqueServiceSlug(
+  name: string,
+  excludedServiceId?: string,
+): Promise<string> {
+  const normalizedName =
+    slugify(name);
+
+  const baseSlug =
+    normalizedName ||
+    crypto.randomUUID();
+
+  let candidate =
+    baseSlug;
+
+  let suffix =
+    1;
+
+  while (true) {
+    const existing =
+      await prisma.service.findUnique({
+        where: {
+          slug:
+            candidate,
+        },
+
+        select: {
+          id:
+            true,
+        },
+      });
+
+    if (
+      !existing ||
+      existing.id ===
+        excludedServiceId
+    ) {
+      return candidate;
+    }
+
+    candidate =
+      `${baseSlug}-${suffix}`;
+
+    suffix +=
+      1;
+  }
+}
+
+/* -------------------------------------------------------------------------- */
+/*                                 INCLUDES                                   */
+/* -------------------------------------------------------------------------- */
+
+const ADMIN_SERVICE_INCLUDE = {
+  category: {
+    select: {
+      id:
+        true,
+
+      name:
+        true,
+
+      slug:
+        true,
+
+      color:
+        true,
+    },
+  },
+
+  images: {
+    orderBy: [
+      {
+        sortOrder:
+          "asc",
+      },
+
+      {
+        createdAt:
+          "asc",
+      },
+    ],
+  },
+
+  _count: {
+    select: {
+      appointmentItems:
+        true,
+
+      staffServices:
+        true,
+    },
+  },
+} satisfies Prisma.ServiceInclude;
+
+type AdminServiceRecord =
+  Prisma.ServiceGetPayload<{
+    include:
+      typeof ADMIN_SERVICE_INCLUDE;
+  }>;
+
+/* -------------------------------------------------------------------------- */
+/*                                TRANSFORMATION                              */
+/* -------------------------------------------------------------------------- */
+
+function mapServiceImages(
+  service: AdminServiceRecord,
+): AdminServiceImage[] {
+  return service.images.map(
+    (
+      image,
+      index,
+    ) => ({
+      id:
+        image.id,
+
+      url:
+        image.url,
+
+      alt:
+        image.alt,
+
+      sortOrder:
+        image.sortOrder,
+
+      isCover:
+        service.imageUrl ===
+          image.url ||
+        (
+          !service.imageUrl &&
+          index === 0
+        ),
+    }),
+  );
+}
+
+function mapAdminService(
+  service: AdminServiceRecord,
+): AdminServiceListItem {
+  return {
+    id:
+      service.id,
+
+    categoryId:
+      service.categoryId,
+
+    name:
+      service.name,
+
+    slug:
+      service.slug,
+
+    shortDescription:
+      service.shortDescription,
+
+    description:
+      service.description,
+
+    priceCents:
+      service.priceCents,
+
+    promotionalPriceCents:
+      service.promotionalPriceCents,
+
+    durationMinutes:
+      service.durationMinutes,
+
+    cleanupMinutes:
+      service.cleanupMinutes,
+
+    depositRequired:
+      service.depositRequired,
+
+    depositCents:
+      service.depositCents,
+
+    imageUrl:
+      service.imageUrl,
+
+    color:
+      service.color,
+
+    isActive:
+      service.isActive,
+
+    isFeatured:
+      service.isFeatured,
+
+    allowOnlineBooking:
+      service.allowOnlineBooking,
+
+    sortOrder:
+      service.sortOrder,
+
+    createdAt:
+      service.createdAt,
+
+    updatedAt:
+      service.updatedAt,
+
+    category:
+      service.category,
+
+    images:
+      mapServiceImages(
+        service,
+      ),
+
+    appointmentCount:
+      service._count
+        .appointmentItems,
+
+    staffCount:
+      service._count
+        .staffServices,
+  };
+}
+
+function normalizeServiceInput(
+  input: AdminServiceFormInput,
+): AdminServiceFormInput {
+  const hasPrice =
+    input.priceCents !== null &&
+    input.priceCents !== undefined;
+
+  return {
+    ...input,
+
+    shortDescription:
+      input.shortDescription?.trim() ||
+      null,
+
+    description:
+      input.description?.trim() ||
+      null,
+
+    priceCents:
+      hasPrice
+        ? input.priceCents
+        : null,
+
+    promotionalPriceCents:
+      hasPrice
+        ? input.promotionalPriceCents ??
+          null
+        : null,
+
+    depositRequired:
+      hasPrice &&
+      input.depositRequired,
+
+    depositCents:
+      hasPrice &&
+      input.depositRequired
+        ? input.depositCents ??
+          null
+        : null,
+
+    color:
+      input.color?.trim() ||
+      null,
+
+    allowOnlineBooking:
+      hasPrice &&
+      input.allowOnlineBooking,
+
+    images:
+      [...input.images]
+        .sort(
+          (
+            firstImage,
+            secondImage,
+          ) =>
+            firstImage.sortOrder -
+            secondImage.sortOrder,
+        )
+        .map(
+          (
+            image,
+            index,
+          ) => ({
+            ...image,
+
+            uploadKey:
+              image.uploadKey?.trim() ||
+              null,
+
+            alt:
+              image.alt?.trim() ||
+              null,
+
+            sortOrder:
+              index,
+          }),
+        ),
+  };
+}
+
+type ExistingServiceImageReference = {
+  id:
+    string;
+
+  url:
+    string;
+};
+
+type TrustedServiceImage = {
+  sourceId:
+    string;
+
+  url:
+    string;
+
+  uploadKey:
+    string | null;
+
+  alt:
+    string | null;
+
+  sortOrder:
+    number;
+
+  isCover:
+    boolean;
+};
+
+function throwServiceImageError(
+  message:
+    string,
+): never {
+  throw new AdminServiceValidationError(
+    message,
+    {
+      images: [
+        message,
+      ],
+    },
+  );
+}
+
+async function resolveTrustedServiceImages({
+  transaction,
+  actorId,
+  images,
+  existingImages,
+}: {
+  transaction:
+    Prisma.TransactionClient;
+
+  actorId:
+    string;
+
+  images:
+    AdminServiceFormInput["images"];
+
+  existingImages:
+    ExistingServiceImageReference[];
+}): Promise<TrustedServiceImage[]> {
+  if (
+    images.length ===
+    0
+  ) {
+    return [];
+  }
+
+  const existingImageById =
+    new Map(
+      existingImages.map(
+        (image) => [
+          image.id,
+          image,
+        ],
+      ),
+    );
+
+  const seenInputIds =
+    new Set<string>();
+
+  const seenUploadKeys =
+    new Set<string>();
+
+  const uploadKeys:
+    string[] =
+    [];
+
+  for (
+    const image
+    of images
+  ) {
+    if (
+      seenInputIds.has(
+        image.id,
+      )
+    ) {
+      throwServiceImageError(
+        "Une même image apparaît plusieurs fois dans la prestation.",
+      );
+    }
+
+    seenInputIds.add(
+      image.id,
+    );
+
+    const uploadKey =
+      image.uploadKey?.trim() ||
+      null;
+
+    if (
+      uploadKey
+    ) {
+      if (
+        seenUploadKeys.has(
+          uploadKey,
+        )
+      ) {
+        throwServiceImageError(
+          "Une même image envoyée apparaît plusieurs fois.",
+        );
+      }
+
+      seenUploadKeys.add(
+        uploadKey,
+      );
+
+      uploadKeys.push(
+        uploadKey,
+      );
+
+      continue;
+    }
+
+    /*
+     * Sans clé UploadThing, l’image doit déjà
+     * appartenir à cette prestation en base.
+     */
+    if (
+      !existingImageById.has(
+        image.id,
+      )
+    ) {
+      throwServiceImageError(
+        "Une image de la prestation n’a pas pu être authentifiée.",
+      );
+    }
+  }
+
+  const validationDate =
+    new Date();
+
+  const registeredUploads =
+    uploadKeys.length >
+    0
+      ? await transaction.securityUpload.findMany({
+          where: {
+            key: {
+              in:
+                uploadKeys,
+            },
+
+            uploadedById:
+              actorId,
+
+            purpose:
+              "SERVICE",
+
+            claimedAt:
+              null,
+
+            expiresAt: {
+              gt:
+                validationDate,
+            },
+          },
+
+          select: {
+            key:
+              true,
+
+            url:
+              true,
+          },
+        })
+      : [];
+
+  if (
+    registeredUploads.length !==
+    uploadKeys.length
+  ) {
+    throwServiceImageError(
+      "Une image envoyée est expirée, déjà utilisée ou n’appartient pas à votre compte.",
+    );
+  }
+
+  const registeredUploadByKey =
+    new Map(
+      registeredUploads.map(
+        (upload) => [
+          upload.key,
+          upload,
+        ],
+      ),
+    );
+
+  return images.map(
+    (
+      image,
+    ): TrustedServiceImage => {
+      const uploadKey =
+        image.uploadKey?.trim() ||
+        null;
+
+      if (
+        uploadKey
+      ) {
+        const upload =
+          registeredUploadByKey.get(
+            uploadKey,
+          );
+
+        if (
+          !upload
+        ) {
+          throwServiceImageError(
+            "Une image envoyée n’a pas pu être vérifiée.",
+          );
+        }
+
+        return {
+          sourceId:
+            image.id,
+
+          url:
+            upload.url,
+
+          uploadKey,
+
+          alt:
+            image.alt?.trim() ||
+            null,
+
+          sortOrder:
+            image.sortOrder,
+
+          isCover:
+            image.isCover,
+        };
+      }
+
+      const existingImage =
+        existingImageById.get(
+          image.id,
+        );
+
+      if (
+        !existingImage
+      ) {
+        throwServiceImageError(
+          "Une image existante de la prestation est invalide.",
+        );
+      }
+
+      return {
+        sourceId:
+          existingImage.id,
+
+        /*
+         * L’URL envoyée par le navigateur
+         * est volontairement ignorée.
+         */
+        url:
+          existingImage.url,
+
+        uploadKey:
+          null,
+
+        alt:
+          image.alt?.trim() ||
+          null,
+
+        sortOrder:
+          image.sortOrder,
+
+        isCover:
+          image.isCover,
+      };
+    },
+  );
+}
+
+function getTrustedCoverImageUrl(
+  images:
+    TrustedServiceImage[],
+): string | null {
+  const coverImage =
+    images.find(
+      (image) =>
+        image.isCover,
+    ) ??
+    images[0];
+
+  return (
+    coverImage?.url ??
+    null
+  );
+}
+
+async function claimServiceUploads({
+  transaction,
+  actorId,
+  serviceId,
+  images,
+}: {
+  transaction:
+    Prisma.TransactionClient;
+
+  actorId:
+    string;
+
+  serviceId:
+    string;
+
+  images:
+    TrustedServiceImage[];
+}): Promise<void> {
+  const uploadKeys =
+    images.flatMap(
+      (image) =>
+        image.uploadKey
+          ? [
+              image.uploadKey,
+            ]
+          : [],
+    );
+
+  if (
+    uploadKeys.length ===
+    0
+  ) {
+    return;
+  }
+
+  const claimedAt =
+    new Date();
+
+  const claimResult =
+    await transaction.securityUpload.updateMany({
+      where: {
+        key: {
+          in:
+            uploadKeys,
+        },
+
+        uploadedById:
+          actorId,
+
+        purpose:
+          "SERVICE",
+
+        claimedAt:
+          null,
+
+        expiresAt: {
+          gt:
+            claimedAt,
+        },
+      },
+
+      data: {
+        claimedAt,
+
+        claimedEntityType:
+          "Service",
+
+        claimedEntityId:
+          serviceId,
+      },
+    });
+
+  if (
+    claimResult.count !==
+    uploadKeys.length
+  ) {
+    throwServiceImageError(
+      "Une image vient déjà d’être utilisée. Rechargez la page puis recommencez.",
+    );
+  }
+}
+
+/* -------------------------------------------------------------------------- */
+/*                               VALIDATIONS                                  */
+/* -------------------------------------------------------------------------- */
+
+async function assertCategoryExists(
+  categoryId: string,
+): Promise<void> {
+  const category =
+    await prisma.serviceCategory.findUnique({
+      where: {
+        id:
+          categoryId,
+      },
+
+      select: {
+        id:
+          true,
+      },
+    });
+
+  if (!category) {
+    throw new AdminServiceValidationError(
+      "La catégorie sélectionnée est introuvable.",
+      {
+        categoryId: [
+          "Sélectionnez une catégorie valide.",
+        ],
+      },
+    );
+  }
+}
+
+/* -------------------------------------------------------------------------- */
+/*                                  LECTURE                                   */
+/* -------------------------------------------------------------------------- */
+
+export async function getAdminServicesPageData(): Promise<AdminServicesPageData> {
+  const [
+    services,
+    categories,
+  ] = await Promise.all([
+    prisma.service.findMany({
+      include:
+        ADMIN_SERVICE_INCLUDE,
+
+      orderBy: [
+        {
+          sortOrder:
+            "asc",
+        },
+
+        {
+          name:
+            "asc",
+        },
+      ],
+    }),
+
+    prisma.serviceCategory.findMany({
+      orderBy: [
+        {
+          sortOrder:
+            "asc",
+        },
+
+        {
+          name:
+            "asc",
+        },
+      ],
+    }),
+  ]);
+
+  const mappedServices =
+    services.map(
+      mapAdminService,
+    );
+
+  const categoryOptions:
+    AdminServiceCategoryOption[] =
+    categories.map(
+      (category) => ({
+        id:
+          category.id,
+
+        name:
+          category.name,
+
+        slug:
+          category.slug,
+
+        color:
+          category.color,
+
+        isActive:
+          category.isActive,
+
+        sortOrder:
+          category.sortOrder,
+      }),
+    );
+
+  return {
+    services:
+      mappedServices,
+
+    categories:
+      categoryOptions,
+
+    statistics: {
+      totalServices:
+        mappedServices.length,
+
+      activeServices:
+        mappedServices.filter(
+          (service) =>
+            service.isActive,
+        ).length,
+
+      hiddenServices:
+        mappedServices.filter(
+          (service) =>
+            !service.isActive,
+        ).length,
+
+      featuredServices:
+        mappedServices.filter(
+          (service) =>
+            service.isFeatured,
+        ).length,
+
+      onlineBookingServices:
+        mappedServices.filter(
+          (service) =>
+            service.isActive &&
+            service.allowOnlineBooking &&
+            service.priceCents !== null,
+        ).length,
+
+      quoteOnlyServices:
+        mappedServices.filter(
+          (service) =>
+            service.priceCents === null,
+        ).length,
+
+      totalCategories:
+        categoryOptions.length,
+    },
+  };
+}
+
+export async function getAdminServiceById(
+  serviceId: string,
+): Promise<AdminServiceDetails | null> {
+  const service =
+    await prisma.service.findUnique({
+      where: {
+        id:
+          serviceId,
+      },
+
+      include:
+        ADMIN_SERVICE_INCLUDE,
+    });
+
+  return service
+    ? mapAdminService(
+        service,
+      )
+    : null;
+}
+
+/* -------------------------------------------------------------------------- */
+/*                                  CRÉATION                                  */
+/* -------------------------------------------------------------------------- */
+
+export async function createAdminService({
+  actorId,
+  input,
+}: {
+  actorId: string;
+  input: AdminServiceFormInput;
+}): Promise<AdminServiceDetails> {
+  await assertServiceActor(
+    actorId,
+  );
+
+  await assertCategoryExists(
+    input.categoryId,
+  );
+
+  const normalizedInput =
+    normalizeServiceInput(
+      input,
+    );
+
+  const slug =
+    await generateUniqueServiceSlug(
+      normalizedInput.name,
+    );
+
+  const service =
+    await prisma.$transaction(
+      async (
+        transaction,
+      ) => {
+        /*
+         * Une nouvelle prestation ne possède
+         * encore aucune image existante.
+         *
+         * Chaque image doit donc avoir une clé
+         * UploadThing valide appartenant à l’acteur.
+         */
+        const trustedImages =
+          await resolveTrustedServiceImages({
+            transaction,
+
+            actorId,
+
+            images:
+              normalizedInput.images,
+
+            existingImages:
+              [],
+          });
+
+        const coverImageUrl =
+          getTrustedCoverImageUrl(
+            trustedImages,
+          );
+
+        const createdService =
+          await transaction.service.create({
+            data: {
+              categoryId:
+                normalizedInput.categoryId,
+
+              name:
+                normalizedInput.name,
+
+              slug,
+
+              shortDescription:
+                normalizedInput.shortDescription,
+
+              description:
+                normalizedInput.description,
+
+              priceCents:
+                normalizedInput.priceCents,
+
+              promotionalPriceCents:
+                normalizedInput.promotionalPriceCents,
+
+              durationMinutes:
+                normalizedInput.durationMinutes,
+
+              cleanupMinutes:
+                normalizedInput.cleanupMinutes,
+
+              depositRequired:
+                normalizedInput.depositRequired,
+
+              depositCents:
+                normalizedInput.depositCents,
+
+              imageUrl:
+                coverImageUrl,
+
+              color:
+                normalizedInput.color,
+
+              isActive:
+                normalizedInput.isActive,
+
+              isFeatured:
+                normalizedInput.isFeatured,
+
+              allowOnlineBooking:
+                normalizedInput.allowOnlineBooking,
+
+              sortOrder:
+                normalizedInput.sortOrder,
+
+              images: {
+                create:
+                  trustedImages.map(
+                    (image) => ({
+                      url:
+                        image.url,
+
+                      alt:
+                        image.alt,
+
+                      sortOrder:
+                        image.sortOrder,
+                    }),
+                  ),
+              },
+            },
+
+            include:
+              ADMIN_SERVICE_INCLUDE,
+          });
+
+        await claimServiceUploads({
+          transaction,
+
+          actorId,
+
+          serviceId:
+            createdService.id,
+
+          images:
+            trustedImages,
+        });
+
+        return createdService;
+      },
+      {
+        isolationLevel:
+          Prisma.TransactionIsolationLevel
+            .Serializable,
+      },
+    );
+
+  return mapAdminService(
+    service,
+  );
+}
+
+/* -------------------------------------------------------------------------- */
+/*                              MISE À JOUR                                   */
+/* -------------------------------------------------------------------------- */
+
+export async function updateAdminService({
+  actorId,
+  serviceId,
+  input,
+}: {
+  actorId: string;
+  serviceId: string;
+  input: AdminServiceFormInput;
+}): Promise<AdminServiceDetails> {
+  await assertServiceActor(
+    actorId,
+  );
+
+  const existingService =
+    await prisma.service.findUnique({
+      where: {
+        id:
+          serviceId,
+      },
+
+      select: {
+        id:
+          true,
+
+        images: {
+          select: {
+            id:
+              true,
+
+            url:
+              true,
+          },
+        },
+      },
+    });
+
+  if (
+    !existingService
+  ) {
+    throw new AdminServiceNotFoundError();
+  }
+
+  await assertCategoryExists(
+    input.categoryId,
+  );
+
+  const normalizedInput =
+    normalizeServiceInput(
+      input,
+    );
+
+  const slug =
+    await generateUniqueServiceSlug(
+      normalizedInput.name,
+      serviceId,
+    );
+
+  const service =
+    await prisma.$transaction(
+      async (
+        transaction,
+      ) => {
+        /*
+         * Les images sans uploadKey doivent
+         * appartenir à la prestation actuelle.
+         *
+         * Les nouvelles images doivent appartenir
+         * au registre UploadThing de l’administrateur.
+         */
+        const trustedImages =
+          await resolveTrustedServiceImages({
+            transaction,
+
+            actorId,
+
+            images:
+              normalizedInput.images,
+
+            existingImages:
+              existingService.images,
+          });
+
+        const coverImageUrl =
+          getTrustedCoverImageUrl(
+            trustedImages,
+          );
+
+        const updatedService =
+          await transaction.service.update({
+            where: {
+              id:
+                serviceId,
+            },
+
+            data: {
+              categoryId:
+                normalizedInput.categoryId,
+
+              name:
+                normalizedInput.name,
+
+              slug,
+
+              shortDescription:
+                normalizedInput.shortDescription,
+
+              description:
+                normalizedInput.description,
+
+              priceCents:
+                normalizedInput.priceCents,
+
+              promotionalPriceCents:
+                normalizedInput.promotionalPriceCents,
+
+              durationMinutes:
+                normalizedInput.durationMinutes,
+
+              cleanupMinutes:
+                normalizedInput.cleanupMinutes,
+
+              depositRequired:
+                normalizedInput.depositRequired,
+
+              depositCents:
+                normalizedInput.depositCents,
+
+              imageUrl:
+                coverImageUrl,
+
+              color:
+                normalizedInput.color,
+
+              isActive:
+                normalizedInput.isActive,
+
+              isFeatured:
+                normalizedInput.isFeatured,
+
+              allowOnlineBooking:
+                normalizedInput.allowOnlineBooking,
+
+              sortOrder:
+                normalizedInput.sortOrder,
+
+              images: {
+                deleteMany:
+                  {},
+
+                create:
+                  trustedImages.map(
+                    (image) => ({
+                      url:
+                        image.url,
+
+                      alt:
+                        image.alt,
+
+                      sortOrder:
+                        image.sortOrder,
+                    }),
+                  ),
+              },
+            },
+
+            include:
+              ADMIN_SERVICE_INCLUDE,
+          });
+
+        await claimServiceUploads({
+          transaction,
+
+          actorId,
+
+          serviceId:
+            updatedService.id,
+
+          images:
+            trustedImages,
+        });
+
+        return updatedService;
+      },
+      {
+        isolationLevel:
+          Prisma.TransactionIsolationLevel
+            .Serializable,
+      },
+    );
+
+  return mapAdminService(
+    service,
+  );
+}
+
+/* -------------------------------------------------------------------------- */
+/*                              ACTIONS RAPIDES                               */
+/* -------------------------------------------------------------------------- */
+
+export async function toggleAdminServiceVisibility({
+  actorId,
+  serviceId,
+}: {
+  actorId: string;
+  serviceId: string;
+}): Promise<boolean> {
+  await assertServiceActor(
+    actorId,
+  );
+
+  const service =
+    await prisma.service.findUnique({
+      where: {
+        id:
+          serviceId,
+      },
+
+      select: {
+        id:
+          true,
+
+        isActive:
+          true,
+      },
+    });
+
+  if (!service) {
+    throw new AdminServiceNotFoundError();
+  }
+
+  const updatedService =
+    await prisma.service.update({
+      where: {
+        id:
+          serviceId,
+      },
+
+      data: {
+        isActive:
+          !service.isActive,
+      },
+
+      select: {
+        isActive:
+          true,
+      },
+    });
+
+  return updatedService.isActive;
+}
+
+export async function toggleAdminServiceFeatured({
+  actorId,
+  serviceId,
+}: {
+  actorId: string;
+  serviceId: string;
+}): Promise<boolean> {
+  await assertServiceActor(
+    actorId,
+  );
+
+  const service =
+    await prisma.service.findUnique({
+      where: {
+        id:
+          serviceId,
+      },
+
+      select: {
+        id:
+          true,
+
+        isFeatured:
+          true,
+      },
+    });
+
+  if (!service) {
+    throw new AdminServiceNotFoundError();
+  }
+
+  const updatedService =
+    await prisma.service.update({
+      where: {
+        id:
+          serviceId,
+      },
+
+      data: {
+        isFeatured:
+          !service.isFeatured,
+      },
+
+      select: {
+        isFeatured:
+          true,
+      },
+    });
+
+  return updatedService.isFeatured;
+}
+
+/* -------------------------------------------------------------------------- */
+/*                                SUPPRESSION                                 */
+/* -------------------------------------------------------------------------- */
+
+export async function deleteAdminService({
+  actorId,
+  serviceId,
+}: {
+  actorId: string;
+  serviceId: string;
+}): Promise<void> {
+  await assertServiceActor(
+    actorId,
+  );
+
+  const service =
+    await prisma.service.findUnique({
+      where: {
+        id:
+          serviceId,
+      },
+
+      select: {
+        id:
+          true,
+
+        name:
+          true,
+
+        _count: {
+          select: {
+            appointmentItems:
+              true,
+          },
+        },
+      },
+    });
+
+  if (!service) {
+    throw new AdminServiceNotFoundError();
+  }
+
+  if (
+    service._count
+      .appointmentItems > 0
+  ) {
+    throw new AdminServiceDeleteError(
+      `La prestation « ${service.name} » est utilisée dans ${service._count.appointmentItems} rendez-vous. Masquez-la pour conserver l’historique.`,
+    );
+  }
+
+  try {
+    await prisma.service.delete({
+      where: {
+        id:
+          serviceId,
+      },
+    });
+  } catch (error) {
+    if (
+      error instanceof
+        Prisma.PrismaClientKnownRequestError &&
+      error.code ===
+        "P2003"
+    ) {
+      throw new AdminServiceDeleteError(
+        "Cette prestation est encore utilisée dans le site. Masquez-la plutôt que de la supprimer.",
+      );
+    }
+
+    throw error;
+  }
+}

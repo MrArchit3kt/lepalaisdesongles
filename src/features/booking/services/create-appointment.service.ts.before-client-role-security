@@ -1,0 +1,680 @@
+import { randomBytes } from "node:crypto";
+
+import {
+  AppointmentStatus,
+  PaymentMethod,
+  PaymentStatus,
+  Prisma,
+} from "@/generated/prisma/client";
+import { prisma } from "@/lib/prisma";
+import { createNotification } from "@/features/notifications/services/notification.service";
+import { appointmentCreatedNotification } from "@/features/notifications/utils/notification-helper";
+
+import type {
+  CreateAppointmentInput,
+  CreateAppointmentResult,
+} from "../types/create-appointment.types";
+import { getAvailability } from "./availability.service";
+import {
+  calculateRequiredPaymentCents,
+} from "../utils/booking-rules";
+
+const BLOCKING_STATUSES: AppointmentStatus[] = [
+  AppointmentStatus.PENDING,
+  AppointmentStatus.CONFIRMED,
+  AppointmentStatus.IN_PROGRESS,
+];
+
+const MAX_APPOINTMENT_IMAGES = 5;
+
+type SanitizedAppointmentImage = {
+  url: string;
+  fileName: string | null;
+  mimeType: string | null;
+  sizeBytes: number | null;
+};
+
+function cleanIds(values: string[]): string[] {
+  return Array.from(
+    new Set(
+      values
+        .map((value) => value.trim())
+        .filter(Boolean),
+    ),
+  );
+}
+
+function parseIsoDate(
+  value: string,
+  field: string,
+): Date {
+  const parsed = new Date(value);
+
+  if (Number.isNaN(parsed.getTime())) {
+    throw new Error(`${field} est invalide.`);
+  }
+
+  return parsed;
+}
+
+function dateInParis(value: Date): string {
+  return new Intl.DateTimeFormat("en-CA", {
+    timeZone: "Europe/Paris",
+    year: "numeric",
+    month: "2-digit",
+    day: "2-digit",
+  }).format(value);
+}
+
+function makeReference(): string {
+  const date = new Intl.DateTimeFormat(
+    "fr-CA",
+    {
+      timeZone: "Europe/Paris",
+      year: "2-digit",
+      month: "2-digit",
+      day: "2-digit",
+    },
+  )
+    .format(new Date())
+    .replaceAll("-", "");
+
+  const randomPart = randomBytes(3)
+    .toString("hex")
+    .toUpperCase();
+
+  return `PDO-${date}-${randomPart}`;
+}
+
+function sanitizeOptionalText(
+  value: string | null | undefined,
+): string | null {
+  const normalizedValue = value?.trim();
+
+  return normalizedValue || null;
+}
+
+function validateImageUrl(value: string): string {
+  const normalizedValue = value.trim();
+
+  if (!normalizedValue) {
+    throw new Error(
+      "Une photo d'inspiration possède une adresse invalide.",
+    );
+  }
+
+  let parsedUrl: URL;
+
+  try {
+    parsedUrl = new URL(normalizedValue);
+  } catch {
+    throw new Error(
+      "Une photo d'inspiration possède une adresse invalide.",
+    );
+  }
+
+  if (
+    parsedUrl.protocol !== "https:" &&
+    parsedUrl.protocol !== "http:"
+  ) {
+    throw new Error(
+      "Une photo d'inspiration possède une adresse non autorisée.",
+    );
+  }
+
+  return parsedUrl.toString();
+}
+
+function cleanAppointmentImages(
+  images:
+    | CreateAppointmentInput["images"]
+    | undefined,
+): SanitizedAppointmentImage[] {
+  if (!images || images.length === 0) {
+    return [];
+  }
+
+  if (images.length > MAX_APPOINTMENT_IMAGES) {
+    throw new Error(
+      `Vous pouvez joindre au maximum ${MAX_APPOINTMENT_IMAGES} photos.`,
+    );
+  }
+
+  const uniqueImages = new Map<
+    string,
+    SanitizedAppointmentImage
+  >();
+
+  for (const image of images) {
+    const url = validateImageUrl(image.url);
+
+    const sizeBytes =
+      typeof image.sizeBytes === "number"
+        ? image.sizeBytes
+        : null;
+
+    if (
+      sizeBytes !== null &&
+      (!Number.isInteger(sizeBytes) ||
+        sizeBytes < 0 ||
+        sizeBytes > 8 * 1024 * 1024)
+    ) {
+      throw new Error(
+        "Une photo d'inspiration dépasse la taille maximale autorisée de 8 Mo.",
+      );
+    }
+
+    uniqueImages.set(url, {
+      url,
+      fileName: sanitizeOptionalText(
+        image.fileName,
+      ),
+      mimeType: sanitizeOptionalText(
+        image.mimeType,
+      ),
+      sizeBytes,
+    });
+  }
+
+  return Array.from(uniqueImages.values());
+}
+
+function isRetryableTransactionError(
+  error: unknown,
+): boolean {
+  return (
+    error instanceof
+      Prisma.PrismaClientKnownRequestError &&
+    (error.code === "P2034" ||
+      error.code === "P2002")
+  );
+}
+
+async function createWithRetry<T>(
+  operation: () => Promise<T>,
+): Promise<T> {
+  let lastError: unknown;
+
+  for (
+    let attempt = 1;
+    attempt <= 3;
+    attempt += 1
+  ) {
+    try {
+      return await operation();
+    } catch (error) {
+      lastError = error;
+
+      if (
+        !isRetryableTransactionError(error) ||
+        attempt === 3
+      ) {
+        throw error;
+      }
+    }
+  }
+
+  throw lastError;
+}
+
+export async function createAppointment(
+  clientId: string,
+  input: CreateAppointmentInput,
+): Promise<CreateAppointmentResult> {
+  const serviceIds = cleanIds(
+    input.serviceIds,
+  );
+
+  const staffId = input.staffId.trim();
+
+  const workstationId =
+    input.workstationId.trim();
+
+  const startsAt = parseIsoDate(
+    input.startsAt,
+    "L'heure de début",
+  );
+
+  const endsAt = parseIsoDate(
+    input.endsAt,
+    "L'heure de fin",
+  );
+
+  const appointmentImages =
+    cleanAppointmentImages(input.images);
+
+  if (!clientId) {
+    throw new Error(
+      "Vous devez être connecté pour réserver.",
+    );
+  }
+
+  if (serviceIds.length === 0) {
+    throw new Error(
+      "Sélectionnez au moins une prestation.",
+    );
+  }
+
+  if (!staffId || staffId === "any") {
+    throw new Error(
+      "La professionnelle du créneau est manquante.",
+    );
+  }
+
+  if (!workstationId) {
+    throw new Error(
+      "Le poste de travail du créneau est manquant.",
+    );
+  }
+
+  if (startsAt <= new Date()) {
+    throw new Error(
+      "Ce créneau est déjà passé.",
+    );
+  }
+
+  if (endsAt <= startsAt) {
+    throw new Error(
+      "La durée du rendez-vous est invalide.",
+    );
+  }
+
+  /*
+   * Première vérification via le service public
+   * de disponibilités.
+   */
+  const availability =
+    await getAvailability({
+      staffId,
+      serviceIds,
+      date: dateInParis(startsAt),
+    });
+
+  const exactSlot = availability.slots.find(
+    (slot) =>
+      slot.startsAt ===
+        startsAt.toISOString() &&
+      slot.endsAt ===
+        endsAt.toISOString() &&
+      slot.staff.id === staffId &&
+      slot.workstation.id ===
+        workstationId,
+  );
+
+  if (!exactSlot) {
+    throw new Error(
+      "Ce créneau n'est plus disponible. Choisissez-en un autre.",
+    );
+  }
+
+  const result = await createWithRetry(() =>
+    prisma.$transaction(
+      async (tx) => {
+        const client =
+          await tx.user.findFirst({
+            where: {
+              id: clientId,
+              status: "ACTIVE",
+            },
+
+            select: {
+              id: true,
+            },
+          });
+
+        if (!client) {
+          throw new Error(
+            "Votre compte client n'est pas actif.",
+          );
+        }
+
+        const staff =
+          await tx.staffProfile.findFirst({
+            where: {
+              id: staffId,
+              isActive: true,
+              acceptsOnlineBooking: true,
+
+              user: {
+                status: "ACTIVE",
+              },
+            },
+
+            include: {
+              services: {
+                where: {
+                  serviceId: {
+                    in: serviceIds,
+                  },
+
+                  isActive: true,
+
+                  service: {
+                    isActive: true,
+                    allowOnlineBooking: true,
+                  },
+                },
+
+                include: {
+                  service: true,
+                },
+              },
+            },
+          });
+
+        if (
+          !staff ||
+          staff.services.length !==
+            serviceIds.length
+        ) {
+          throw new Error(
+            "Cette professionnelle ne réalise plus toutes les prestations choisies.",
+          );
+        }
+
+        const workstation =
+          await tx.staffWorkstation.findFirst({
+            where: {
+              staffId,
+              workstationId,
+              isActive: true,
+
+              workstation: {
+                isActive: true,
+                availableForBooking: true,
+
+                AND: serviceIds.map(
+                  (serviceId) => ({
+                    serviceAssignments: {
+                      some: {
+                        serviceId,
+                        isActive: true,
+                      },
+                    },
+                  }),
+                ),
+              },
+            },
+
+            select: {
+              workstationId: true,
+            },
+          });
+
+        if (!workstation) {
+          throw new Error(
+            "Le poste choisi n'est plus compatible avec cette réservation.",
+          );
+        }
+
+        const totalDurationMinutes =
+          staff.services.reduce(
+            (total, assignment) =>
+              total +
+              (assignment.durationMinutes ??
+                assignment.service
+                  .durationMinutes),
+            0,
+          );
+
+        const cleanupMinutes = Math.max(
+          staff.defaultCleanupMinutes,
+          ...staff.services.map(
+            (assignment) =>
+              assignment.cleanupMinutes ??
+              assignment.service
+                .cleanupMinutes,
+          ),
+        );
+
+        const expectedEndsAt = new Date(
+          startsAt.getTime() +
+            totalDurationMinutes * 60_000,
+        );
+
+        if (
+          expectedEndsAt.getTime() !==
+          endsAt.getTime()
+        ) {
+          throw new Error(
+            "La durée des prestations a changé. Rechargez les créneaux.",
+          );
+        }
+
+        const occupiedEndsAt = new Date(
+          endsAt.getTime() +
+            cleanupMinutes * 60_000,
+        );
+
+        /*
+         * Seconde vérification dans une transaction
+         * Serializable afin d'éviter les doubles
+         * réservations.
+         */
+        const conflict =
+          await tx.appointment.findFirst({
+            where: {
+              status: {
+                in: BLOCKING_STATUSES,
+              },
+
+              startsAt: {
+                lt: occupiedEndsAt,
+              },
+
+              endsAt: {
+                gt: startsAt,
+              },
+
+              OR: [
+                {
+                  staffId,
+                },
+                {
+                  workstationId,
+                },
+              ],
+            },
+
+            select: {
+              id: true,
+            },
+          });
+
+        if (conflict) {
+          throw new Error(
+            "Ce créneau vient d'être réservé. Choisissez-en un autre.",
+          );
+        }
+
+        const resolvedServices =
+          staff.services.map(
+            (assignment, index) => {
+              const unitPriceCents =
+                assignment.priceCents ??
+                assignment.service
+                  .promotionalPriceCents ??
+                assignment.service
+                  .priceCents;
+
+              if (unitPriceCents === null) {
+                throw new Error(
+                  `La prestation « ${assignment.service.name} » est disponible uniquement sur devis.`,
+                );
+              }
+
+              return {
+                serviceId:
+                  assignment.serviceId,
+
+                serviceName:
+                  assignment.service.name,
+
+                unitPriceCents,
+
+                durationMinutes:
+                  assignment.durationMinutes ??
+                  assignment.service
+                    .durationMinutes,
+
+                quantity: 1,
+                sortOrder: index,
+              };
+            },
+          );
+
+        const totalPriceCents =
+          resolvedServices.reduce(
+            (
+              total,
+              service,
+            ) =>
+              total +
+              service.unitPriceCents,
+            0,
+          );
+
+        if (totalPriceCents < 0) {
+          throw new Error(
+            "Le montant total des prestations est invalide.",
+          );
+        }
+
+        /*
+         * Ce champ conserve le nom depositCents
+         * dans la base, mais contient :
+         *
+         * - le paiement intégral jusqu'à 35 € ;
+         * - l'acompte fixe de 35 € au-dessus.
+         */
+        const depositCents =
+          calculateRequiredPaymentCents(
+            totalPriceCents,
+          );
+
+        const requiresPayment =
+          depositCents > 0;
+
+        const appointmentStatus =
+          requiresPayment
+            ? AppointmentStatus.PENDING
+            : AppointmentStatus.CONFIRMED;
+
+        const paymentStatus =
+          requiresPayment
+            ? PaymentStatus.PENDING
+            : PaymentStatus.NOT_REQUIRED;
+
+        const reference = makeReference();
+
+        const appointment =
+          await tx.appointment.create({
+            data: {
+              reference,
+              clientId,
+              staffId,
+              workstationId,
+
+              status: appointmentStatus,
+
+              startsAt,
+              endsAt,
+
+              totalDurationMinutes,
+              totalPriceCents,
+              depositCents,
+
+              paymentStatus,
+
+              paymentMethod: requiresPayment
+                ? PaymentMethod.PAYPAL
+                : null,
+
+              confirmedAt: requiresPayment
+                ? null
+                : new Date(),
+
+              clientComment:
+                input.clientComment?.trim() ||
+                null,
+
+              services: {
+                create:
+                  resolvedServices,
+              },
+
+              images:
+                appointmentImages.length > 0
+                  ? {
+                      create:
+                        appointmentImages.map(
+                          (image) => ({
+                            url: image.url,
+                            fileName:
+                              image.fileName,
+                            mimeType:
+                              image.mimeType,
+                            sizeBytes:
+                              image.sizeBytes,
+                          }),
+                        ),
+                    }
+                  : undefined,
+            },
+
+            select: {
+              id: true,
+              reference: true,
+            },
+          });
+
+        return {
+          reference:
+            appointment.reference,
+
+          appointmentId:
+            appointment.id,
+
+          status: requiresPayment
+            ? ("PENDING" as const)
+            : ("CONFIRMED" as const),
+
+          paymentStatus: requiresPayment
+            ? ("PENDING" as const)
+            : ("NOT_REQUIRED" as const),
+
+          depositCents,
+          requiresPayment,
+
+          confirmationUrl:
+            requiresPayment
+              ? `/reservation/paiement/${appointment.reference}`
+              : `/reservation/confirmation/${appointment.reference}`,
+        };
+      },
+
+      {
+        isolationLevel:
+          Prisma.TransactionIsolationLevel
+            .Serializable,
+      },
+    ),
+  );
+
+  try {
+    await createNotification(
+      appointmentCreatedNotification({
+        userId: clientId,
+        reference: result.reference,
+        startsAt,
+      }),
+    );
+  } catch (reason: unknown) {
+    console.error(
+      "[APPOINTMENT_CREATED_NOTIFICATION]",
+      reason,
+    );
+  }
+
+  return result;
+}

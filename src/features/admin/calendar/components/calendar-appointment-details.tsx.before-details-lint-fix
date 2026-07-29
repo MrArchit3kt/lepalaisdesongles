@@ -1,0 +1,1002 @@
+"use client";
+
+import {
+  CalendarClock,
+  CircleDollarSign,
+  Clock3,
+  ExternalLink,
+  Images,
+  Mail,
+  MapPin,
+  MessageSquareText,
+  Phone,
+  UserRound,
+  X,
+  ZoomIn,
+} from "lucide-react";
+import {
+  useEffect,
+  useRef,
+  useState,
+} from "react";
+
+import type {
+  CalendarAppointment,
+  CalendarStatus,
+} from "../types/admin-calendar.types";
+
+import {
+  CalendarAppointmentActions,
+} from "./calendar-appointment-actions";
+
+import {
+  CalendarAppointmentHistory,
+} from "./calendar-appointment-history";
+
+/* -------------------------------------------------------------------------- */
+/*                                   TYPES                                    */
+/* -------------------------------------------------------------------------- */
+
+type CalendarAppointmentDetailsProps = {
+  appointment: CalendarAppointment | null;
+  onClose: () => void;
+  onUpdated: () => void | Promise<void>;
+};
+
+type AppointmentImage = {
+  id: string;
+  url: string;
+  fileName: string | null;
+  mimeType: string | null;
+  sizeBytes: number | null;
+};
+
+/* -------------------------------------------------------------------------- */
+/*                              STATUS CONFIG                                 */
+/* -------------------------------------------------------------------------- */
+
+const STATUS_LABELS: Record<
+  CalendarStatus,
+  string
+> = {
+  PENDING: "En attente",
+  CONFIRMED: "Confirmé",
+  IN_PROGRESS: "En cours",
+  COMPLETED: "Terminé",
+  REFUSED: "Refusé",
+  CANCELLED_BY_CLIENT:
+    "Annulé par la cliente",
+  CANCELLED_BY_ADMIN:
+    "Annulé par le salon",
+  NO_SHOW: "Cliente absente",
+  EXPIRED: "Expiré",
+};
+
+const STATUS_CLASSES: Record<
+  CalendarStatus,
+  string
+> = {
+  PENDING:
+    "border-amber-200 bg-amber-50 text-amber-800",
+
+  CONFIRMED:
+    "border-emerald-200 bg-emerald-50 text-emerald-800",
+
+  IN_PROGRESS:
+    "border-blue-200 bg-blue-50 text-blue-800",
+
+  COMPLETED:
+    "border-violet-200 bg-violet-50 text-violet-800",
+
+  REFUSED:
+    "border-orange-200 bg-orange-50 text-orange-800",
+
+  CANCELLED_BY_CLIENT:
+    "border-red-200 bg-red-50 text-red-800",
+
+  CANCELLED_BY_ADMIN:
+    "border-red-200 bg-red-50 text-red-800",
+
+  NO_SHOW:
+    "border-slate-300 bg-slate-100 text-slate-800",
+
+  EXPIRED:
+    "border-zinc-200 bg-zinc-50 text-zinc-600",
+};
+
+/* -------------------------------------------------------------------------- */
+/*                                  HELPERS                                   */
+/* -------------------------------------------------------------------------- */
+
+function formatDateTime(
+  value: string,
+): string {
+  return new Intl.DateTimeFormat(
+    "fr-FR",
+    {
+      timeZone: "Europe/Paris",
+      dateStyle: "full",
+      timeStyle: "short",
+    },
+  ).format(new Date(value));
+}
+
+function formatMoney(
+  cents: number,
+): string {
+  return new Intl.NumberFormat(
+    "fr-FR",
+    {
+      style: "currency",
+      currency: "EUR",
+    },
+  ).format(cents / 100);
+}
+
+function formatFileSize(
+  sizeBytes: number | null,
+): string | null {
+  if (
+    sizeBytes === null ||
+    sizeBytes < 0
+  ) {
+    return null;
+  }
+
+  if (sizeBytes < 1024) {
+    return `${sizeBytes} octets`;
+  }
+
+  if (sizeBytes < 1024 * 1024) {
+    return `${(
+      sizeBytes / 1024
+    ).toFixed(1)} Ko`;
+  }
+
+  return `${(
+    sizeBytes /
+    (1024 * 1024)
+  ).toFixed(1)} Mo`;
+}
+
+/* -------------------------------------------------------------------------- */
+/*                                 COMPONENT                                  */
+/* -------------------------------------------------------------------------- */
+
+export function CalendarAppointmentDetails({
+  appointment,
+  onClose,
+  onUpdated,
+}: CalendarAppointmentDetailsProps) {
+  const panelRef =
+    useRef<HTMLElement | null>(
+      null,
+    );
+
+  const closeButtonRef =
+    useRef<HTMLButtonElement | null>(
+      null,
+    );
+
+  const previouslyFocusedElementRef =
+    useRef<HTMLElement | null>(
+      null,
+    );
+
+  const [
+    historyRefreshKey,
+    setHistoryRefreshKey,
+  ] = useState(0);
+
+  const [
+    selectedImage,
+    setSelectedImage,
+  ] =
+    useState<AppointmentImage | null>(
+      null,
+    );
+
+  useEffect(() => {
+    setSelectedImage(null);
+  }, [appointment?.id]);
+
+  useEffect(() => {
+    if (!appointment) {
+      return;
+    }
+
+    previouslyFocusedElementRef.current =
+      document.activeElement instanceof
+      HTMLElement
+        ? document.activeElement
+        : null;
+
+    const previousOverflow =
+      document.body.style.overflow;
+
+    document.body.style.overflow =
+      "hidden";
+
+    const focusTimeout =
+      window.setTimeout(() => {
+        closeButtonRef.current?.focus();
+      }, 0);
+
+    function handleKeyDown(
+      event: KeyboardEvent,
+    ) {
+      if (event.key === "Escape") {
+        event.preventDefault();
+
+        if (selectedImage) {
+          setSelectedImage(null);
+          return;
+        }
+
+        onClose();
+        return;
+      }
+
+      if (
+        event.key !== "Tab" ||
+        !panelRef.current ||
+        selectedImage
+      ) {
+        return;
+      }
+
+      const focusableElements =
+        Array.from(
+          panelRef.current.querySelectorAll<HTMLElement>(
+            [
+              "a[href]",
+              "button:not([disabled])",
+              "textarea:not([disabled])",
+              "input:not([disabled])",
+              "select:not([disabled])",
+              '[tabindex]:not([tabindex="-1"])',
+            ].join(","),
+          ),
+        ).filter(
+          (element) =>
+            !element.hasAttribute(
+              "hidden",
+            ) &&
+            element.getAttribute(
+              "aria-hidden",
+            ) !== "true",
+        );
+
+      if (
+        focusableElements.length === 0
+      ) {
+        event.preventDefault();
+        panelRef.current.focus();
+        return;
+      }
+
+      const firstElement =
+        focusableElements[0];
+
+      const lastElement =
+        focusableElements[
+          focusableElements.length - 1
+        ];
+
+      if (
+        event.shiftKey &&
+        document.activeElement ===
+          firstElement
+      ) {
+        event.preventDefault();
+        lastElement.focus();
+        return;
+      }
+
+      if (
+        !event.shiftKey &&
+        document.activeElement ===
+          lastElement
+      ) {
+        event.preventDefault();
+        firstElement.focus();
+      }
+    }
+
+    document.addEventListener(
+      "keydown",
+      handleKeyDown,
+    );
+
+    return () => {
+      window.clearTimeout(
+        focusTimeout,
+      );
+
+      document.removeEventListener(
+        "keydown",
+        handleKeyDown,
+      );
+
+      document.body.style.overflow =
+        previousOverflow;
+
+      previouslyFocusedElementRef.current?.focus();
+    };
+  }, [
+    appointment,
+    onClose,
+    selectedImage,
+  ]);
+
+  if (!appointment) {
+    return null;
+  }
+
+  const clientName =
+    `${appointment.client.firstName} ${appointment.client.lastName}`.trim();
+
+  const remainingCents = Math.max(
+    0,
+    appointment.totalPriceCents -
+      appointment.depositCents,
+  );
+
+  const appointmentImages =
+    appointment.images ?? [];
+
+  return (
+    <div
+      className="fixed inset-0 z-[100] flex justify-end bg-zinc-950/40 backdrop-blur-sm"
+      role="presentation"
+      onMouseDown={(event) => {
+        if (
+          event.target ===
+          event.currentTarget
+        ) {
+          onClose();
+        }
+      }}
+    >
+      <aside
+        ref={panelRef}
+        role="dialog"
+        aria-modal="true"
+        aria-labelledby="calendar-appointment-title"
+        aria-describedby="calendar-appointment-description"
+        tabIndex={-1}
+        className="h-full w-full max-w-xl overflow-y-auto bg-white shadow-2xl outline-none"
+      >
+        <header className="sticky top-0 z-10 border-b border-zinc-100 bg-white/95 px-5 py-5 backdrop-blur sm:px-7">
+          <div className="flex items-start justify-between gap-4">
+            <div>
+              <p
+                id="calendar-appointment-description"
+                className="text-xs font-semibold uppercase tracking-[0.2em] text-rose-600"
+              >
+                Rendez-vous
+              </p>
+
+              <h2
+                id="calendar-appointment-title"
+                className="mt-1 text-2xl font-semibold tracking-tight text-zinc-950"
+              >
+                {clientName}
+              </h2>
+
+              <p className="mt-1 text-sm text-zinc-500">
+                Référence&nbsp;:{" "}
+                {appointment.reference}
+              </p>
+            </div>
+
+            <button
+              ref={closeButtonRef}
+              type="button"
+              onClick={onClose}
+              className="grid size-10 shrink-0 place-items-center rounded-full border border-zinc-200 text-zinc-600 transition hover:bg-zinc-100 hover:text-zinc-950 focus:outline-none focus:ring-4 focus:ring-rose-100"
+              aria-label="Fermer la fiche du rendez-vous"
+            >
+              <X className="size-5" />
+            </button>
+          </div>
+
+          <div className="mt-4">
+            <span
+              className={`inline-flex rounded-full border px-3 py-1 text-xs font-semibold ${STATUS_CLASSES[appointment.status]}`}
+            >
+              {
+                STATUS_LABELS[
+                  appointment.status
+                ]
+              }
+            </span>
+          </div>
+        </header>
+
+        <div className="space-y-6 px-5 py-6 sm:px-7">
+          <CalendarAppointmentActions
+            appointment={appointment}
+            onUpdated={async () => {
+              await onUpdated();
+
+              setHistoryRefreshKey(
+                (value) => value + 1,
+              );
+            }}
+          />
+
+          <Section
+            title="Date et organisation"
+            icon={
+              <CalendarClock className="size-5" />
+            }
+          >
+            <DetailRow
+              icon={
+                <Clock3 className="size-4" />
+              }
+              label="Début"
+              value={formatDateTime(
+                appointment.startsAt,
+              )}
+            />
+
+            <DetailRow
+              icon={
+                <Clock3 className="size-4" />
+              }
+              label="Fin"
+              value={formatDateTime(
+                appointment.endsAt,
+              )}
+            />
+
+            <DetailRow
+              icon={
+                <Clock3 className="size-4" />
+              }
+              label="Durée totale"
+              value={`${appointment.totalDurationMinutes} minutes`}
+            />
+
+            <DetailRow
+              icon={
+                <UserRound className="size-4" />
+              }
+              label="Professionnelle"
+              value={
+                appointment.staff
+                  ?.displayName ??
+                "Non attribuée"
+              }
+            />
+
+            <DetailRow
+              icon={
+                <MapPin className="size-4" />
+              }
+              label="Poste de travail"
+              value={
+                appointment.workstation
+                  ?.name ??
+                "Non attribué"
+              }
+            />
+          </Section>
+
+          <Section
+            title="Cliente"
+            icon={
+              <UserRound className="size-5" />
+            }
+          >
+            <DetailRow
+              icon={
+                <UserRound className="size-4" />
+              }
+              label="Nom"
+              value={clientName}
+            />
+
+            <DetailRow
+              icon={
+                <Mail className="size-4" />
+              }
+              label="E-mail"
+              value={
+                appointment.client.email
+              }
+              href={`mailto:${appointment.client.email}`}
+            />
+
+            <DetailRow
+              icon={
+                <Phone className="size-4" />
+              }
+              label="Téléphone"
+              value={
+                appointment.client.phone ??
+                "Non renseigné"
+              }
+              href={
+                appointment.client.phone
+                  ? `tel:${appointment.client.phone}`
+                  : undefined
+              }
+            />
+          </Section>
+
+          <Section
+            title="Prestations"
+            icon={
+              <CalendarClock className="size-5" />
+            }
+          >
+            <div className="space-y-3">
+              {appointment.services.map(
+                (service) => (
+                  <div
+                    key={service.id}
+                    className="rounded-2xl border border-zinc-100 bg-zinc-50 p-4"
+                  >
+                    <div className="flex items-start justify-between gap-4">
+                      <div>
+                        <p className="font-semibold text-zinc-950">
+                          {
+                            service.serviceName
+                          }
+                        </p>
+
+                        <p className="mt-1 text-xs text-zinc-500">
+                          {
+                            service.durationMinutes
+                          }{" "}
+                          minutes · Quantité{" "}
+                          {service.quantity}
+                        </p>
+                      </div>
+
+                      <p className="shrink-0 font-semibold text-zinc-900">
+                        {formatMoney(
+                          service.unitPriceCents *
+                            service.quantity,
+                        )}
+                      </p>
+                    </div>
+                  </div>
+                ),
+              )}
+            </div>
+          </Section>
+
+          {appointmentImages.length >
+          0 ? (
+            <Section
+              title="Photos d’inspiration"
+              icon={
+                <Images className="size-5" />
+              }
+            >
+              <p className="text-sm leading-6 text-zinc-500">
+                Photos transmises par la
+                cliente lors de sa
+                réservation.
+              </p>
+
+              <div className="grid grid-cols-2 gap-3 sm:grid-cols-3">
+                {appointmentImages.map(
+                  (image, index) => {
+                    const fileSize =
+                      formatFileSize(
+                        image.sizeBytes,
+                      );
+
+                    return (
+                      <button
+                        key={image.id}
+                        type="button"
+                        onClick={() => {
+                          setSelectedImage(
+                            image,
+                          );
+                        }}
+                        className="group overflow-hidden rounded-2xl border border-zinc-200 bg-zinc-50 text-left transition hover:border-rose-300 hover:shadow-md focus:outline-none focus:ring-4 focus:ring-rose-100"
+                        aria-label={`Agrandir la photo d’inspiration ${index + 1}`}
+                      >
+                        <div className="relative aspect-square overflow-hidden bg-zinc-100">
+                          {/* eslint-disable-next-line @next/next/no-img-element */}
+                          <img
+                            src={image.url}
+                            alt={
+                              image.fileName?.trim() ||
+                              `Photo d’inspiration ${index + 1}`
+                            }
+                            className="size-full object-cover transition duration-300 group-hover:scale-105"
+                            loading="lazy"
+                          />
+
+                          <div className="absolute inset-0 grid place-items-center bg-zinc-950/0 transition group-hover:bg-zinc-950/30">
+                            <span className="grid size-10 scale-90 place-items-center rounded-full bg-white/95 text-zinc-900 opacity-0 shadow-lg transition group-hover:scale-100 group-hover:opacity-100">
+                              <ZoomIn className="size-5" />
+                            </span>
+                          </div>
+                        </div>
+
+                        <div className="p-3">
+                          <p className="truncate text-xs font-medium text-zinc-800">
+                            {image.fileName?.trim() ||
+                              `Photo ${index + 1}`}
+                          </p>
+
+                          {fileSize ? (
+                            <p className="mt-1 text-[11px] text-zinc-500">
+                              {fileSize}
+                            </p>
+                          ) : null}
+                        </div>
+                      </button>
+                    );
+                  },
+                )}
+              </div>
+            </Section>
+          ) : null}
+
+          <Section
+            title="Paiement"
+            icon={
+              <CircleDollarSign className="size-5" />
+            }
+          >
+            <MoneyRow
+              label="Prix total"
+              value={
+                appointment.totalPriceCents
+              }
+            />
+
+            <MoneyRow
+              label="Acompte"
+              value={
+                appointment.depositCents
+              }
+            />
+
+            <MoneyRow
+              label="Reste à payer"
+              value={remainingCents}
+              emphasized
+            />
+
+            <div className="rounded-2xl bg-zinc-50 px-4 py-3 text-sm">
+              <span className="text-zinc-500">
+                Statut du paiement
+              </span>
+
+              <p className="mt-1 font-semibold text-zinc-900">
+                {
+                  appointment.paymentStatus
+                }
+              </p>
+            </div>
+          </Section>
+
+          <Section
+            title="Commentaires"
+            icon={
+              <MessageSquareText className="size-5" />
+            }
+          >
+            <CommentBox
+              label="Commentaire de la cliente"
+              value={
+                appointment.clientComment
+              }
+            />
+
+            <CommentBox
+              label="Note administrative"
+              value={
+                appointment.adminComment
+              }
+            />
+
+            {appointment.cancellationReason ? (
+              <CommentBox
+                label="Motif d’annulation"
+                value={
+                  appointment.cancellationReason
+                }
+                danger
+              />
+            ) : null}
+          </Section>
+
+          <section className="rounded-3xl border border-pink-100 bg-white p-5 shadow-sm">
+            <div className="mb-4">
+              <h3 className="text-lg font-semibold text-zinc-950">
+                Historique
+              </h3>
+
+              <p className="mt-1 text-sm text-zinc-500">
+                Toutes les actions réalisées
+                sur ce rendez-vous.
+              </p>
+            </div>
+
+            <div className="max-h-[420px] overflow-y-auto pr-2">
+              <CalendarAppointmentHistory
+                reference={
+                  appointment.reference
+                }
+                refreshKey={
+                  historyRefreshKey
+                }
+              />
+            </div>
+          </section>
+        </div>
+      </aside>
+
+      {selectedImage ? (
+        <ImagePreviewModal
+          image={selectedImage}
+          onClose={() => {
+            setSelectedImage(null);
+          }}
+        />
+      ) : null}
+    </div>
+  );
+}
+
+/* -------------------------------------------------------------------------- */
+/*                            IMAGE PREVIEW MODAL                             */
+/* -------------------------------------------------------------------------- */
+
+function ImagePreviewModal({
+  image,
+  onClose,
+}: {
+  image: AppointmentImage;
+  onClose: () => void;
+}) {
+  const fileSize = formatFileSize(
+    image.sizeBytes,
+  );
+
+  return (
+    <div
+      className="fixed inset-0 z-[120] flex items-center justify-center bg-zinc-950/90 p-4 backdrop-blur-md sm:p-8"
+      role="dialog"
+      aria-modal="true"
+      aria-label="Aperçu de la photo d’inspiration"
+      onMouseDown={(event) => {
+        if (
+          event.target ===
+          event.currentTarget
+        ) {
+          onClose();
+        }
+      }}
+    >
+      <div className="relative flex max-h-full w-full max-w-5xl flex-col overflow-hidden rounded-3xl bg-white shadow-2xl">
+        <header className="flex items-center justify-between gap-4 border-b border-zinc-100 px-4 py-3 sm:px-5">
+          <div className="min-w-0">
+            <p className="truncate text-sm font-semibold text-zinc-950">
+              {image.fileName?.trim() ||
+                "Photo d’inspiration"}
+            </p>
+
+            <p className="mt-0.5 text-xs text-zinc-500">
+              {[
+                image.mimeType,
+                fileSize,
+              ]
+                .filter(Boolean)
+                .join(" · ") ||
+                "Image envoyée par la cliente"}
+            </p>
+          </div>
+
+          <div className="flex shrink-0 items-center gap-2">
+            <a
+              href={image.url}
+              target="_blank"
+              rel="noreferrer"
+              className="grid size-10 place-items-center rounded-full border border-zinc-200 text-zinc-600 transition hover:bg-zinc-100 hover:text-zinc-950 focus:outline-none focus:ring-4 focus:ring-rose-100"
+              aria-label="Ouvrir la photo dans un nouvel onglet"
+            >
+              <ExternalLink className="size-4" />
+            </a>
+
+            <button
+              type="button"
+              onClick={onClose}
+              className="grid size-10 place-items-center rounded-full border border-zinc-200 text-zinc-600 transition hover:bg-zinc-100 hover:text-zinc-950 focus:outline-none focus:ring-4 focus:ring-rose-100"
+              aria-label="Fermer l’aperçu"
+              autoFocus
+            >
+              <X className="size-5" />
+            </button>
+          </div>
+        </header>
+
+        <div className="flex min-h-0 flex-1 items-center justify-center overflow-auto bg-zinc-100 p-3 sm:p-6">
+          {/* eslint-disable-next-line @next/next/no-img-element */}
+          <img
+            src={image.url}
+            alt={
+              image.fileName?.trim() ||
+              "Photo d’inspiration"
+            }
+            className="max-h-[calc(100vh-10rem)] max-w-full rounded-2xl object-contain shadow-sm"
+          />
+        </div>
+      </div>
+    </div>
+  );
+}
+
+/* -------------------------------------------------------------------------- */
+/*                                  SECTION                                   */
+/* -------------------------------------------------------------------------- */
+
+function Section({
+  title,
+  icon,
+  children,
+}: {
+  title: string;
+  icon: React.ReactNode;
+  children: React.ReactNode;
+}) {
+  return (
+    <section className="rounded-3xl border border-pink-100 bg-white p-5 shadow-sm">
+      <div className="flex items-center gap-2 text-zinc-950">
+        <span className="text-rose-500">
+          {icon}
+        </span>
+
+        <h3 className="font-semibold">
+          {title}
+        </h3>
+      </div>
+
+      <div className="mt-4 space-y-3">
+        {children}
+      </div>
+    </section>
+  );
+}
+
+/* -------------------------------------------------------------------------- */
+/*                               DETAIL ROW                                   */
+/* -------------------------------------------------------------------------- */
+
+function DetailRow({
+  icon,
+  label,
+  value,
+  href,
+}: {
+  icon: React.ReactNode;
+  label: string;
+  value: string;
+  href?: string;
+}) {
+  const content = (
+    <div className="flex items-start gap-3">
+      <span className="mt-0.5 text-zinc-400">
+        {icon}
+      </span>
+
+      <div className="min-w-0">
+        <p className="text-xs text-zinc-500">
+          {label}
+        </p>
+
+        <p className="mt-0.5 break-words text-sm font-medium text-zinc-900">
+          {value}
+        </p>
+      </div>
+    </div>
+  );
+
+  if (!href) {
+    return content;
+  }
+
+  return (
+    <a
+      href={href}
+      className="block rounded-xl p-1 transition hover:bg-zinc-50 focus:outline-none focus:ring-4 focus:ring-rose-100"
+    >
+      {content}
+    </a>
+  );
+}
+
+/* -------------------------------------------------------------------------- */
+/*                                MONEY ROW                                   */
+/* -------------------------------------------------------------------------- */
+
+function MoneyRow({
+  label,
+  value,
+  emphasized = false,
+}: {
+  label: string;
+  value: number;
+  emphasized?: boolean;
+}) {
+  return (
+    <div
+      className={`flex items-center justify-between gap-4 rounded-2xl px-4 py-3 ${
+        emphasized
+          ? "bg-rose-50"
+          : "bg-zinc-50"
+      }`}
+    >
+      <span className="text-sm text-zinc-600">
+        {label}
+      </span>
+
+      <strong
+        className={
+          emphasized
+            ? "text-rose-700"
+            : "text-zinc-950"
+        }
+      >
+        {formatMoney(value)}
+      </strong>
+    </div>
+  );
+}
+
+/* -------------------------------------------------------------------------- */
+/*                               COMMENT BOX                                  */
+/* -------------------------------------------------------------------------- */
+
+function CommentBox({
+  label,
+  value,
+  danger = false,
+}: {
+  label: string;
+  value: string | null;
+  danger?: boolean;
+}) {
+  return (
+    <div
+      className={`rounded-2xl border p-4 ${
+        danger
+          ? "border-red-200 bg-red-50"
+          : "border-zinc-100 bg-zinc-50"
+      }`}
+    >
+      <p
+        className={`text-xs font-semibold ${
+          danger
+            ? "text-red-700"
+            : "text-zinc-500"
+        }`}
+      >
+        {label}
+      </p>
+
+      <p
+        className={`mt-2 whitespace-pre-wrap text-sm ${
+          danger
+            ? "text-red-900"
+            : "text-zinc-800"
+        }`}
+      >
+        {value?.trim() ||
+          "Aucun commentaire."}
+      </p>
+    </div>
+  );
+}
