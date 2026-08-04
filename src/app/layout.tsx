@@ -21,6 +21,10 @@ import {
 
 import "./globals.css";
 
+import {
+  StructuredData,
+} from "@/components/seo/structured-data";
+
 /* -------------------------------------------------------------------------- */
 /*                                   POLICES                                  */
 /* -------------------------------------------------------------------------- */
@@ -208,9 +212,26 @@ type RootLayoutProps =
 /*                                  LAYOUT                                    */
 /* -------------------------------------------------------------------------- */
 
-export default function RootLayout({
+export default async function RootLayout({
   children,
 }: RootLayoutProps) {
+  const websiteSettings =
+    await getPublicWebsiteSettings();
+
+  const siteTitle =
+    websiteSettings.siteTitle ||
+    "Le Palais des Ongles";
+
+  const description =
+    websiteSettings.seoDescription ||
+    websiteSettings.siteDescription ||
+    "Institut spécialisé en prothésie ongulaire, poses en gel, semi-permanent et nail art personnalisé.";
+
+  const siteUrl = (
+    process.env.NEXT_PUBLIC_APP_URL ??
+    "http://localhost:3000"
+  ).replace(/\/+$/, "");
+
   return (
     <html
       lang="fr"
@@ -219,11 +240,21 @@ export default function RootLayout({
     >
       <body className="min-h-screen bg-[#FFF9F8] font-sans text-[#241A1D] antialiased">
         <AppProviders>
+
+          <StructuredData
+            siteUrl={siteUrl}
+            siteName={siteTitle}
+            description={description}
+            logo={websiteSettings.logoUrl}
+            image={websiteSettings.socialShareImageUrl}
+          />
+
           <LuxuryFloralBackground />
 
           <div className="relative z-10 min-h-screen">
             {children}
           </div>
+
         </AppProviders>
       </body>
     </html>

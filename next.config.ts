@@ -363,6 +363,37 @@ const nextConfig: NextConfig = {
   compress:
     true,
 
+  /*
+   * Les images téléversées (galerie, prestations,
+   * paramètres du site, photos d’inspiration) sont
+   * hébergées par UploadThing et affichées via
+   * next/image, qui exige une liste explicite
+   * d’hôtes distants autorisés.
+   */
+  images: {
+    remotePatterns: [
+      {
+        protocol: "https",
+        hostname: "*.ufs.sh",
+      },
+
+      {
+        protocol: "https",
+        hostname: "ufs.sh",
+      },
+
+      {
+        protocol: "https",
+        hostname: "*.utfs.io",
+      },
+
+      {
+        protocol: "https",
+        hostname: "utfs.io",
+      },
+    ],
+  },
+
   async headers() {
     return [
       {
