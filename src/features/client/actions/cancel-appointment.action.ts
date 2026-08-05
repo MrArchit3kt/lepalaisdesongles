@@ -7,6 +7,7 @@ import { prisma } from "@/lib/prisma";
 import { requireClientUser } from "@/lib/session";
 import { createNotification } from "@/features/notifications/services/notification.service";
 import { appointmentCancelledNotification } from "@/features/notifications/utils/notification-helper";
+import { sendAppointmentEmail } from "@/features/notifications/services/appointment-email.service";
 
 const CANCELLATION_LIMIT_HOURS = 48;
 
@@ -14,11 +15,9 @@ function buildAppointmentUrl(
   reference: string,
   parameters?: Record<string, string>,
 ): string {
-  const encodedReference =
-    encodeURIComponent(reference);
+  const encodedReference = encodeURIComponent(reference);
 
-  const searchParameters =
-    new URLSearchParams(parameters);
+  const searchParameters = new URLSearchParams(parameters);
 
   const query = searchParameters.toString();
 
@@ -38,26 +37,20 @@ export async function cancelAppointmentAction(
 ): Promise<never> {
   const user = await requireClientUser();
 
-  const reference = String(
-    formData.get("reference") ?? "",
-  ).trim();
+  const reference = String(formData.get("reference") ?? "").trim();
 
-  const reason = normalizeReason(
-    formData.get("reason"),
-  );
+  const reason = normalizeReason(formData.get("reason"));
 
   if (!reference) {
     redirect("/espace-client/rendez-vous");
   }
 
-  const appointmentUrl =
-    buildAppointmentUrl(reference);
+  const appointmentUrl = buildAppointmentUrl(reference);
 
   if (reason.length < 5) {
     redirect(
       buildAppointmentUrl(reference, {
-        error:
-          "Le motif d’annulation doit contenir au moins 5 caractères.",
+        error: "Le motif d’annulation doit contenir au moins 5 caractères.",
       }),
     );
   }
@@ -65,51 +58,73 @@ export async function cancelAppointmentAction(
   if (reason.length > 500) {
     redirect(
       buildAppointmentUrl(reference, {
-        error:
-          "Le motif d’annulation ne peut pas dépasser 500 caractères.",
+        error: "Le motif d’annulation ne peut pas dépasser 500 caractères.",
       }),
     );
   }
 
-  const appointment =
-    await prisma.appointment.findFirst({
-      where: {
-        reference,
-        clientId: user.id,
+  const appointment = await prisma.appointment.findFirst({
+    where: {
+      reference,
+      clientId: user.id,
+    },
+
+    select: {
+      id: true,
+      reference: true,
+      status: true,
+      startsAt: true,
+      depositCents: true,
+      paymentStatus: true,
+
+      client: {
+        select: {
+          email: true,
+          firstName: true,
+          lastName: true,
+        },
       },
 
-      select: {
-        id: true,
-        status: true,
-        startsAt: true,
-        depositCents: true,
-        paymentStatus: true,
+      staff: {
+        select: {
+          displayName: true,
+
+          user: {
+            select: {
+              firstName: true,
+              lastName: true,
+            },
+          },
+        },
       },
-    });
+
+      services: {
+        orderBy: {
+          sortOrder: "asc",
+        },
+
+        select: {
+          serviceName: true,
+          quantity: true,
+        },
+      },
+    },
+  });
 
   if (!appointment) {
     redirect(
       buildAppointmentUrl(reference, {
-        error:
-          "Ce rendez-vous est introuvable ou ne vous appartient pas.",
+        error: "Ce rendez-vous est introuvable ou ne vous appartient pas.",
       }),
     );
   }
 
-  const cancellableStatuses = [
-    "PENDING",
-    "CONFIRMED",
-  ];
+  const cancellableStatuses = ["PENDING", "CONFIRMED"];
 
-  if (
-    !cancellableStatuses.includes(
-      appointment.status,
-    )
-  ) {
+  if (!cancellableStatuses.includes(appointment.status)) {
     redirect(
       buildAppointmentUrl(reference, {
-        error:
-          "Ce rendez-vous ne peut plus être annulé.",
+        error: "Ce rendez-vous ne peut plus être annulé.",
       }),
     );
   }
@@ -119,23 +134,18 @@ export async function cancelAppointmentAction(
   if (appointment.startsAt <= now) {
     redirect(
       buildAppointmentUrl(reference, {
-        error:
-          "Un rendez-vous déjà commencé ou passé ne peut pas être annulé.",
+        error: "Un rendez-vous déjà commencé ou passé ne peut pas être annulé.",
       }),
     );
   }
 
   const millisecondsBeforeAppointment =
-    appointment.startsAt.getTime() -
-    now.getTime();
+    appointment.startsAt.getTime() - now.getTime();
 
   const hoursBeforeAppointment =
-    millisecondsBeforeAppointment /
-    (1000 * 60 * 60);
+    millisecondsBeforeAppointment / (1000 * 60 * 60);
 
-  const isLateCancellation =
-    hoursBeforeAppointment <
-    CANCELLATION_LIMIT_HOURS;
+  const isLateCancellation = hoursBeforeAppointment < CANCELLATION_LIMIT_HOURS;
 
   /*
    * Le statut du paiement n’est pas modifié automatiquement.
@@ -153,10 +163,9 @@ export async function cancelAppointmentAction(
       status: "CANCELLED_BY_CLIENT",
       cancelledAt: now,
 
-      cancellationReason:
-        isLateCancellation
-          ? `${reason} — Annulation effectuée moins de 48 heures avant le rendez-vous.`
-          : reason,
+      cancellationReason: isLateCancellation
+        ? `${reason} — Annulation effectuée moins de 48 heures avant le rendez-vous.`
+        : reason,
     },
   });
 
@@ -169,15 +178,70 @@ export async function cancelAppointmentAction(
       }),
     );
   } catch (reason: unknown) {
-    console.error(
-      "[APPOINTMENT_CANCELLED_NOTIFICATION]",
-      reason,
-    );
+    console.error("[APPOINTMENT_CANCELLED_NOTIFICATION]", reason);
   }
 
-  revalidatePath(
-    "/espace-client/rendez-vous",
-  );
+  try {
+    const siteUrl = (
+      process.env.NEXT_PUBLIC_APP_URL?.trim() ||
+      process.env.NEXTAUTH_URL?.trim() ||
+      "https://lepalaisdesongles.fr"
+    ).replace(/\/+$/, "");
+
+    const recipientName = [
+      appointment.client.firstName,
+      appointment.client.lastName,
+    ]
+      .filter(Boolean)
+      .join(" ")
+      .trim();
+
+    const staffName =
+      appointment.staff?.displayName?.trim() ||
+      [appointment.staff?.user.firstName, appointment.staff?.user.lastName]
+        .filter(Boolean)
+        .join(" ")
+        .trim() ||
+      null;
+
+    const serviceNames = appointment.services.flatMap((service) =>
+      Array.from(
+        {
+          length: Math.max(service.quantity, 1),
+        },
+        () => service.serviceName,
+      ),
+    );
+
+    await sendAppointmentEmail({
+      kind: "APPOINTMENT_CANCELLED",
+
+      recipientEmail: appointment.client.email,
+
+      recipientName,
+
+      appointmentReference: appointment.reference,
+
+      startsAt: appointment.startsAt.toISOString(),
+
+      serviceNames,
+
+      staffName,
+
+      manageUrl: `${siteUrl}/espace-client/rendez-vous/${encodeURIComponent(
+        appointment.reference,
+      )}`,
+    });
+  } catch (reason: unknown) {
+    /*
+     * Le rendez-vous est déjà annulé en base.
+     * Une panne Resend ne doit jamais annuler
+     * ou inverser cette opération.
+     */
+    console.error("[APPOINTMENT_CANCELLED_EMAIL]", reason);
+  }
+
+  revalidatePath("/espace-client/rendez-vous");
 
   revalidatePath(appointmentUrl);
 
@@ -187,9 +251,7 @@ export async function cancelAppointmentAction(
   redirect(
     buildAppointmentUrl(reference, {
       cancelled: "1",
-      late: isLateCancellation
-        ? "1"
-        : "0",
+      late: isLateCancellation ? "1" : "0",
     }),
   );
 }

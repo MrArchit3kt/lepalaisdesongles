@@ -1,34 +1,18 @@
-import {
-  ApiError,
-} from "@paypal/paypal-server-sdk";
-import {
-  NextRequest,
-  NextResponse,
-} from "next/server";
+import { ApiError } from "@paypal/paypal-server-sdk";
+import { NextRequest, NextResponse } from "next/server";
 
-import {
-  notifyAppointmentStatusChange,
-} from "@/features/notifications/services/appointment-status-notification.service";
-import {
-  expireAppointmentIfNeeded,
-} from "@/features/booking/services/appointment-expiration.service";
+import { notifyAppointmentStatusChange } from "@/features/notifications/services/appointment-status-notification.service";
+import { sendAppointmentEmail } from "@/features/notifications/services/appointment-email.service";
+import { expireAppointmentIfNeeded } from "@/features/booking/services/appointment-expiration.service";
 import {
   AppointmentStatus,
   PaymentMethod,
   PaymentStatus,
 } from "@/generated/prisma/client";
-import {
-  requireApiUser,
-} from "@/lib/api-session";
-import {
-  paypalOrdersController,
-} from "@/lib/paypal";
-import {
-  prisma,
-} from "@/lib/prisma";
-import {
-  isTrustedRequestOrigin,
-} from "@/lib/security/request-origin";
+import { requireApiUser } from "@/lib/api-session";
+import { paypalOrdersController } from "@/lib/paypal";
+import { prisma } from "@/lib/prisma";
+import { isTrustedRequestOrigin } from "@/lib/security/request-origin";
 
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
@@ -45,7 +29,23 @@ type PayPalCapture = {
 
   amount?: {
     currencyCode?: string;
+    currency_code?: string;
     value?: string;
+  };
+};
+
+type PayPalPurchaseUnit = {
+  referenceId?: string;
+  reference_id?: string;
+
+  customId?: string;
+  custom_id?: string;
+
+  invoiceId?: string;
+  invoice_id?: string;
+
+  payments?: {
+    captures?: PayPalCapture[];
   };
 };
 
@@ -55,54 +55,38 @@ type PayPalCaptureResponse = {
 
   payer?: {
     payerId?: string;
+    payer_id?: string;
+
     emailAddress?: string;
+    email_address?: string;
   };
 
-  purchaseUnits?: Array<{
-    referenceId?: string;
-    customId?: string;
-    invoiceId?: string;
-
-    payments?: {
-      captures?: PayPalCapture[];
-    };
-  }>;
+  purchaseUnits?: PayPalPurchaseUnit[];
+  purchase_units?: PayPalPurchaseUnit[];
 };
 
 const PRIVATE_NO_STORE_HEADERS = {
-  "Cache-Control":
-    "private, no-store, no-cache, max-age=0, must-revalidate",
+  "Cache-Control": "private, no-store, no-cache, max-age=0, must-revalidate",
 };
 
 function jsonResponse(
   body: Record<string, unknown>,
   status = 200,
 ): NextResponse {
-  return NextResponse.json(
-    body,
-    {
-      status,
-      headers:
-        PRIVATE_NO_STORE_HEADERS,
-    },
-  );
+  return NextResponse.json(body, {
+    status,
+    headers: PRIVATE_NO_STORE_HEADERS,
+  });
 }
 
-function parseCaptureResponse(
-  body: unknown,
-): PayPalCaptureResponse {
-  if (
-    typeof body === "object" &&
-    body !== null
-  ) {
+function parseCaptureResponse(body: unknown): PayPalCaptureResponse {
+  if (typeof body === "object" && body !== null) {
     return body as PayPalCaptureResponse;
   }
 
   if (typeof body === "string") {
     try {
-      return JSON.parse(
-        body,
-      ) as PayPalCaptureResponse;
+      return JSON.parse(body) as PayPalCaptureResponse;
     } catch {
       return {};
     }
@@ -111,65 +95,45 @@ function parseCaptureResponse(
   return {};
 }
 
-export async function POST(
-  request: NextRequest,
-  context: RouteContext,
-) {
+export async function POST(request: NextRequest, context: RouteContext) {
   try {
-    if (
-      !isTrustedRequestOrigin(
-        request,
-      )
-    ) {
+    if (!isTrustedRequestOrigin(request)) {
       return jsonResponse(
         {
           success: false,
-          error:
-            "L’origine de la requête n’est pas autorisée.",
+          error: "L’origine de la requête n’est pas autorisée.",
         },
         403,
       );
     }
 
-    const authentication =
-      await requireApiUser();
+    const authentication = await requireApiUser();
 
     if (!authentication.user) {
       return authentication.response;
     }
 
-    const user =
-      authentication.user;
+    const user = authentication.user;
 
-    if (
-      user.role !== "CLIENT"
-    ) {
+    if (user.role !== "CLIENT") {
       return jsonResponse(
         {
           success: false,
-          error:
-            "Seul un compte client peut finaliser ce paiement.",
+          error: "Seul un compte client peut finaliser ce paiement.",
         },
         403,
       );
     }
 
-    const {
-      orderId,
-    } = await context.params;
+    const { orderId } = await context.params;
 
-    const cleanOrderId =
-      orderId.trim();
+    const cleanOrderId = orderId.trim();
 
-    if (
-      !cleanOrderId ||
-      cleanOrderId.length > 128
-    ) {
+    if (!cleanOrderId || cleanOrderId.length > 128) {
       return jsonResponse(
         {
           success: false,
-          error:
-            "Identifiant PayPal invalide.",
+          error: "Identifiant PayPal invalide.",
         },
         400,
       );
@@ -180,54 +144,41 @@ export async function POST(
      * de capturer la commande associée
      * au rendez-vous d’une autre cliente.
      */
-    const appointment =
-      await prisma.appointment.findFirst({
-        where: {
-          paypalOrderId:
-            cleanOrderId,
+    const appointment = await prisma.appointment.findFirst({
+      where: {
+        paypalOrderId: cleanOrderId,
 
-          clientId:
-            user.id,
+        clientId: user.id,
 
-          client: {
-            status:
-              "ACTIVE",
-          },
+        client: {
+          status: "ACTIVE",
         },
+      },
 
-        select: {
-          id:
-            true,
+      select: {
+        id: true,
 
-          reference:
-            true,
+        reference: true,
 
-          status:
-            true,
+        status: true,
 
-          paymentStatus:
-            true,
+        paymentStatus: true,
 
-          depositCents:
-            true,
+        depositCents: true,
 
-          confirmedAt:
-            true,
+        confirmedAt: true,
 
-          paypalOrderId:
-            true,
+        paypalOrderId: true,
 
-          paypalCaptureId:
-            true,
-        },
-      });
+        paypalCaptureId: true,
+      },
+    });
 
     if (!appointment) {
       return jsonResponse(
         {
           success: false,
-          error:
-            "Aucun rendez-vous associé à cette commande PayPal.",
+          error: "Aucun rendez-vous associé à cette commande PayPal.",
         },
         404,
       );
@@ -238,89 +189,65 @@ export async function POST(
      * aucun nouvel appel n’est envoyé à PayPal.
      */
     if (
-      appointment.paymentStatus ===
-        PaymentStatus.PAID &&
+      appointment.paymentStatus === PaymentStatus.PAID &&
       appointment.paypalCaptureId
     ) {
       return jsonResponse({
-        success:
-          true,
+        success: true,
 
-        alreadyCaptured:
-          true,
+        alreadyCaptured: true,
 
-        reference:
+        reference: appointment.reference,
+
+        confirmationUrl: `/reservation/confirmation/${encodeURIComponent(
           appointment.reference,
-
-        confirmationUrl:
-          `/reservation/confirmation/${encodeURIComponent(
-            appointment.reference,
-          )}`,
+        )}`,
       });
     }
 
-    const wasExpired =
-      await expireAppointmentIfNeeded(
-        appointment.id,
-      );
+    const wasExpired = await expireAppointmentIfNeeded(appointment.id);
 
     if (wasExpired) {
       return jsonResponse(
         {
           success: false,
-          error:
-            "Le délai de paiement de cette réservation a expiré.",
+          error: "Le délai de paiement de cette réservation a expiré.",
         },
         410,
       );
     }
 
     if (
-      appointment.status ===
-        AppointmentStatus.CANCELLED_BY_CLIENT ||
-      appointment.status ===
-        AppointmentStatus.CANCELLED_BY_ADMIN ||
-      appointment.status ===
-        AppointmentStatus.REFUSED ||
-      appointment.status ===
-        AppointmentStatus.EXPIRED ||
-      appointment.status ===
-        AppointmentStatus.NO_SHOW
+      appointment.status === AppointmentStatus.CANCELLED_BY_CLIENT ||
+      appointment.status === AppointmentStatus.CANCELLED_BY_ADMIN ||
+      appointment.status === AppointmentStatus.REFUSED ||
+      appointment.status === AppointmentStatus.EXPIRED ||
+      appointment.status === AppointmentStatus.NO_SHOW
     ) {
       return jsonResponse(
         {
           success: false,
-          error:
-            "Ce rendez-vous n’est plus éligible au paiement.",
+          error: "Ce rendez-vous n’est plus éligible au paiement.",
         },
         410,
       );
     }
 
-    if (
-      appointment.status !==
-      AppointmentStatus.PENDING
-    ) {
+    if (appointment.status !== AppointmentStatus.PENDING) {
       return jsonResponse(
         {
           success: false,
-          error:
-            "Ce rendez-vous ne peut plus être payé dans son état actuel.",
+          error: "Ce rendez-vous ne peut plus être payé dans son état actuel.",
         },
         409,
       );
     }
 
-    if (
-      appointment.paymentStatus !==
-      PaymentStatus.PENDING
-    ) {
+    if (appointment.paymentStatus !== PaymentStatus.PENDING) {
       const error =
-        appointment.paymentStatus ===
-        PaymentStatus.REFUNDED
+        appointment.paymentStatus === PaymentStatus.REFUNDED
           ? "Ce paiement a déjà été remboursé."
-          : appointment.paymentStatus ===
-              PaymentStatus.NOT_REQUIRED
+          : appointment.paymentStatus === PaymentStatus.NOT_REQUIRED
             ? "Aucun paiement n’est requis pour ce rendez-vous."
             : "Ce paiement ne peut plus être finalisé.";
 
@@ -334,27 +261,19 @@ export async function POST(
     }
 
     if (
-      !Number.isSafeInteger(
-        appointment.depositCents,
-      ) ||
+      !Number.isSafeInteger(appointment.depositCents) ||
       appointment.depositCents <= 0
     ) {
-      console.error(
-        "Montant d’acompte PayPal invalide :",
-        {
-          appointmentId:
-            appointment.id,
+      console.error("Montant d’acompte PayPal invalide :", {
+        appointmentId: appointment.id,
 
-          depositCents:
-            appointment.depositCents,
-        },
-      );
+        depositCents: appointment.depositCents,
+      });
 
       return jsonResponse(
         {
           success: false,
-          error:
-            "Le montant du paiement est invalide.",
+          error: "Le montant du paiement est invalide.",
         },
         500,
       );
@@ -367,67 +286,52 @@ export async function POST(
      * Toute la logique suivante doit donc
      * rester idempotente et concurrent-safe.
      */
-    const response =
-      await paypalOrdersController.captureOrder({
-        id:
-          cleanOrderId,
+    const response = await paypalOrdersController.captureOrder({
+      id: cleanOrderId,
 
-        prefer:
-          "return=representation",
-      });
+      prefer: "return=representation",
+    });
 
-    const paypalOrder =
-      parseCaptureResponse(
-        response.body,
-      );
+    const paypalOrder = parseCaptureResponse(response.body);
 
-    const purchaseUnit =
-      paypalOrder.purchaseUnits?.[0];
+    const purchaseUnits =
+      paypalOrder.purchaseUnits ?? paypalOrder.purchase_units ?? [];
 
-    const capture =
-      purchaseUnit
-        ?.payments
-        ?.captures?.[0];
+    const purchaseUnit = purchaseUnits[0];
 
-    const captureId =
-      capture?.id?.trim();
+    const purchaseUnitCustomId =
+      purchaseUnit?.customId ?? purchaseUnit?.custom_id;
+
+    const purchaseUnitInvoiceId =
+      purchaseUnit?.invoiceId ?? purchaseUnit?.invoice_id;
+
+    const capture = purchaseUnit?.payments?.captures?.[0];
+
+    const captureId = capture?.id?.trim();
 
     if (
-      paypalOrder.status !==
-        "COMPLETED" ||
-      capture?.status !==
-        "COMPLETED" ||
+      paypalOrder.status !== "COMPLETED" ||
+      capture?.status !== "COMPLETED" ||
       !captureId
     ) {
-      console.error(
-        "Capture PayPal incomplète :",
-        {
-          orderId:
-            cleanOrderId,
+      console.error("Capture PayPal incomplète :", {
+        orderId: cleanOrderId,
 
-          orderStatus:
-            paypalOrder.status,
+        orderStatus: paypalOrder.status,
 
-          captureStatus:
-            capture?.status,
+        captureStatus: capture?.status,
 
-          captureId,
-        },
-      );
+        captureId,
+      });
 
       return jsonResponse(
         {
           success: false,
-          error:
-            "Le paiement PayPal n’a pas été finalisé.",
+          error: "Le paiement PayPal n’a pas été finalisé.",
 
-          paypalStatus:
-            paypalOrder.status ??
-            null,
+          paypalStatus: paypalOrder.status ?? null,
 
-          captureStatus:
-            capture?.status ??
-            null,
+          captureStatus: capture?.status ?? null,
         },
         422,
       );
@@ -437,174 +341,117 @@ export async function POST(
      * Vérification supplémentaire des identifiants
      * métier envoyés lors de la création.
      */
-    if (
-      purchaseUnit?.customId &&
-      purchaseUnit.customId !==
-        appointment.id
-    ) {
-      console.error(
-        "customId PayPal incohérent :",
-        {
-          appointmentId:
-            appointment.id,
+    if (purchaseUnitCustomId && purchaseUnitCustomId !== appointment.id) {
+      console.error("customId PayPal incohérent :", {
+        appointmentId: appointment.id,
 
-          customId:
-            purchaseUnit.customId,
+        customId: purchaseUnitCustomId,
 
-          orderId:
-            cleanOrderId,
-        },
-      );
+        orderId: cleanOrderId,
+      });
 
       return jsonResponse(
         {
           success: false,
-          error:
-            "La commande PayPal ne correspond pas au rendez-vous.",
+          error: "La commande PayPal ne correspond pas au rendez-vous.",
         },
         422,
       );
     }
 
     if (
-      purchaseUnit?.invoiceId &&
-      purchaseUnit.invoiceId !==
-        appointment.reference
+      purchaseUnitInvoiceId &&
+      purchaseUnitInvoiceId !== appointment.reference
     ) {
-      console.error(
-        "invoiceId PayPal incohérent :",
-        {
-          appointmentId:
-            appointment.id,
+      console.error("invoiceId PayPal incohérent :", {
+        appointmentId: appointment.id,
 
-          appointmentReference:
-            appointment.reference,
+        appointmentReference: appointment.reference,
 
-          invoiceId:
-            purchaseUnit.invoiceId,
+        invoiceId: purchaseUnitInvoiceId,
 
-          orderId:
-            cleanOrderId,
-        },
-      );
+        orderId: cleanOrderId,
+      });
 
       return jsonResponse(
         {
           success: false,
-          error:
-            "La référence PayPal ne correspond pas au rendez-vous.",
+          error: "La référence PayPal ne correspond pas au rendez-vous.",
         },
         422,
       );
     }
 
-    const expectedAmount =
-      (
-        appointment.depositCents /
-        100
-      ).toFixed(
-        2,
-      );
+    const expectedAmount = (appointment.depositCents / 100).toFixed(2);
 
-    const capturedAmount =
-      capture.amount?.value ??
-      null;
+    const capturedAmount = capture.amount?.value ?? null;
 
     const capturedCurrency =
-      capture.amount?.currencyCode ??
-      null;
+      capture.amount?.currencyCode ?? capture.amount?.currency_code ?? null;
 
-    if (
-      capturedAmount !==
-        expectedAmount ||
-      capturedCurrency !==
-        "EUR"
-    ) {
-      console.error(
-        "Montant PayPal incorrect :",
-        {
-          appointmentId:
-            appointment.id,
+    if (capturedAmount !== expectedAmount || capturedCurrency !== "EUR") {
+      console.error("Montant PayPal incorrect :", {
+        appointmentId: appointment.id,
 
-          captureId,
+        captureId,
 
-          expectedAmount,
+        expectedAmount,
 
-          capturedAmount,
+        capturedAmount,
 
-          capturedCurrency,
-        },
-      );
+        capturedCurrency,
+      });
 
       return jsonResponse(
         {
           success: false,
-          error:
-            "Le montant capturé ne correspond pas à l’acompte.",
+          error: "Le montant capturé ne correspond pas à l’acompte.",
         },
         422,
       );
     }
 
-    const paidAt =
-      new Date();
+    const paidAt = new Date();
 
     /*
      * Première tentative :
      * le rendez-vous est encore PENDING,
      * il peut donc être payé et confirmé.
      */
-    const confirmationResult =
-      await prisma.appointment.updateMany({
-        where: {
-          id:
-            appointment.id,
+    const confirmationResult = await prisma.appointment.updateMany({
+      where: {
+        id: appointment.id,
 
-          clientId:
-            user.id,
+        clientId: user.id,
 
-          paypalOrderId:
-            cleanOrderId,
+        paypalOrderId: cleanOrderId,
 
-          status:
-            AppointmentStatus.PENDING,
+        status: AppointmentStatus.PENDING,
 
-          paymentStatus:
-            PaymentStatus.PENDING,
+        paymentStatus: PaymentStatus.PENDING,
 
-          paypalCaptureId:
-            null,
-        },
+        paypalCaptureId: null,
+      },
 
-        data: {
-          status:
-            AppointmentStatus.CONFIRMED,
+      data: {
+        status: AppointmentStatus.CONFIRMED,
 
-          paymentStatus:
-            PaymentStatus.PAID,
+        paymentStatus: PaymentStatus.PAID,
 
-          paymentMethod:
-            PaymentMethod.PAYPAL,
+        paymentMethod: PaymentMethod.PAYPAL,
 
-          paypalCaptureId:
-            captureId,
+        paypalCaptureId: captureId,
 
-          paypalPayerId:
-            paypalOrder.payer
-              ?.payerId ??
-            null,
+        paypalPayerId:
+          paypalOrder.payer?.payerId ?? paypalOrder.payer?.payer_id ?? null,
 
-          paidAt,
+        paidAt,
 
-          confirmedAt:
-            appointment.confirmedAt ??
-            paidAt,
-        },
-      });
+        confirmedAt: appointment.confirmedAt ?? paidAt,
+      },
+    });
 
-    let transitionedToConfirmed =
-      confirmationResult.count ===
-      1;
+    let transitionedToConfirmed = confirmationResult.count === 1;
 
     /*
      * Le rendez-vous peut avoir été annulé
@@ -615,100 +462,108 @@ export async function POST(
      * rendez-vous annulé à CONFIRMED.
      */
     if (!transitionedToConfirmed) {
-      const paymentOnlyResult =
-        await prisma.appointment.updateMany({
-          where: {
-            id:
-              appointment.id,
-
-            clientId:
-              user.id,
-
-            paypalOrderId:
-              cleanOrderId,
-
-            paymentStatus:
-              PaymentStatus.PENDING,
-
-            paypalCaptureId:
-              null,
-          },
-
-          data: {
-            paymentStatus:
-              PaymentStatus.PAID,
-
-            paymentMethod:
-              PaymentMethod.PAYPAL,
-
-            paypalCaptureId:
-              captureId,
-
-            paypalPayerId:
-              paypalOrder.payer
-                ?.payerId ??
-              null,
-
-            paidAt,
-          },
-        });
-
-      if (
-        paymentOnlyResult.count ===
-        1
-      ) {
-        transitionedToConfirmed =
-          false;
-      }
-    }
-
-    const currentAppointment =
-      await prisma.appointment.findFirst({
+      const paymentOnlyResult = await prisma.appointment.updateMany({
         where: {
-          id:
-            appointment.id,
+          id: appointment.id,
 
-          clientId:
-            user.id,
+          clientId: user.id,
+
+          paypalOrderId: cleanOrderId,
+
+          paymentStatus: PaymentStatus.PENDING,
+
+          paypalCaptureId: null,
         },
 
-        select: {
-          id:
-            true,
+        data: {
+          paymentStatus: PaymentStatus.PAID,
 
-          reference:
-            true,
+          paymentMethod: PaymentMethod.PAYPAL,
 
-          status:
-            true,
+          paypalCaptureId: captureId,
 
-          paymentStatus:
-            true,
+          paypalPayerId:
+            paypalOrder.payer?.payerId ?? paypalOrder.payer?.payer_id ?? null,
 
-          depositCents:
-            true,
-
-          paypalOrderId:
-            true,
-
-          paypalCaptureId:
-            true,
-
-          paidAt:
-            true,
+          paidAt,
         },
       });
 
-    if (!currentAppointment) {
-      console.error(
-        "Rendez-vous introuvable après capture PayPal :",
-        {
-          appointmentId:
-            appointment.id,
+      if (paymentOnlyResult.count === 1) {
+        transitionedToConfirmed = false;
+      }
+    }
 
-          captureId,
+    const currentAppointment = await prisma.appointment.findFirst({
+      where: {
+        id: appointment.id,
+
+        clientId: user.id,
+      },
+
+      select: {
+        id: true,
+
+        reference: true,
+
+        status: true,
+
+        paymentStatus: true,
+
+        depositCents: true,
+
+        paypalOrderId: true,
+
+        paypalCaptureId: true,
+
+        paidAt: true,
+
+        startsAt: true,
+
+        client: {
+          select: {
+            email: true,
+
+            firstName: true,
+
+            lastName: true,
+          },
         },
-      );
+
+        staff: {
+          select: {
+            displayName: true,
+
+            user: {
+              select: {
+                firstName: true,
+
+                lastName: true,
+              },
+            },
+          },
+        },
+
+        services: {
+          orderBy: {
+            sortOrder: "asc",
+          },
+
+          select: {
+            serviceName: true,
+
+            quantity: true,
+          },
+        },
+      },
+    });
+
+    if (!currentAppointment) {
+      console.error("Rendez-vous introuvable après capture PayPal :", {
+        appointmentId: appointment.id,
+
+        captureId,
+      });
 
       return jsonResponse(
         {
@@ -725,33 +580,20 @@ export async function POST(
      * la même capture avant cette route.
      */
     if (
-      currentAppointment.paymentStatus !==
-        PaymentStatus.PAID ||
-      currentAppointment.paypalCaptureId !==
-        captureId
+      currentAppointment.paymentStatus !== PaymentStatus.PAID ||
+      currentAppointment.paypalCaptureId !== captureId
     ) {
-      console.error(
-        "Conflit après capture PayPal :",
-        {
-          appointmentId:
-            appointment.id,
+      console.error("Conflit après capture PayPal :", {
+        appointmentId: appointment.id,
 
-          receivedCaptureId:
-            captureId,
+        receivedCaptureId: captureId,
 
-          currentPaymentStatus:
-            currentAppointment
-              .paymentStatus,
+        currentPaymentStatus: currentAppointment.paymentStatus,
 
-          currentCaptureId:
-            currentAppointment
-              .paypalCaptureId,
+        currentCaptureId: currentAppointment.paypalCaptureId,
 
-          currentStatus:
-            currentAppointment
-              .status,
-        },
-      );
+        currentStatus: currentAppointment.status,
+      });
 
       return jsonResponse(
         {
@@ -763,76 +605,115 @@ export async function POST(
       );
     }
 
-    if (
-      transitionedToConfirmed
-    ) {
+    if (transitionedToConfirmed) {
       try {
         await notifyAppointmentStatusChange(
           currentAppointment.id,
           AppointmentStatus.CONFIRMED,
         );
       } catch (reason: unknown) {
-        console.error(
-          "[PAYPAL_CONFIRMATION_NOTIFICATION]",
-          reason,
+        console.error("[PAYPAL_CONFIRMATION_NOTIFICATION]", reason);
+      }
+
+      try {
+        const siteUrl = (
+          process.env.NEXT_PUBLIC_APP_URL?.trim() ||
+          process.env.NEXTAUTH_URL?.trim() ||
+          "https://lepalaisdesongles.fr"
+        ).replace(/\/+$/, "");
+
+        const recipientName = [
+          currentAppointment.client.firstName,
+          currentAppointment.client.lastName,
+        ]
+          .filter(Boolean)
+          .join(" ")
+          .trim();
+
+        const staffName =
+          currentAppointment.staff?.displayName?.trim() ||
+          [
+            currentAppointment.staff?.user.firstName,
+            currentAppointment.staff?.user.lastName,
+          ]
+            .filter(Boolean)
+            .join(" ")
+            .trim() ||
+          null;
+
+        const serviceNames = currentAppointment.services.flatMap((service) =>
+          Array.from(
+            {
+              length: Math.max(service.quantity, 1),
+            },
+            () => service.serviceName,
+          ),
         );
+
+        await sendAppointmentEmail({
+          kind: "BOOKING_CONFIRMED",
+
+          recipientEmail: currentAppointment.client.email,
+
+          recipientName,
+
+          appointmentReference: currentAppointment.reference,
+
+          startsAt: currentAppointment.startsAt.toISOString(),
+
+          serviceNames,
+
+          staffName,
+
+          manageUrl: `${siteUrl}/espace-client/rendez-vous/${encodeURIComponent(
+            currentAppointment.reference,
+          )}`,
+        });
+      } catch (reason: unknown) {
+        /*
+         * La capture PayPal est déjà finalisée.
+         * Une panne Resend ne doit jamais transformer
+         * le paiement réussi en erreur côté cliente.
+         */
+        console.error("[PAYPAL_BOOKING_CONFIRMED_EMAIL]", reason);
       }
     }
 
     return jsonResponse({
-      success:
-        true,
+      success: true,
 
-      alreadyCaptured:
-        !transitionedToConfirmed,
+      alreadyCaptured: !transitionedToConfirmed,
 
-      appointment:
-        currentAppointment,
+      appointment: currentAppointment,
 
-      confirmationUrl:
-        `/reservation/confirmation/${encodeURIComponent(
-          currentAppointment.reference,
-        )}`,
+      confirmationUrl: `/reservation/confirmation/${encodeURIComponent(
+        currentAppointment.reference,
+      )}`,
     });
   } catch (error) {
-    if (
-      error instanceof ApiError
-    ) {
-      console.error(
-        "Erreur API capture PayPal :",
-        {
-          statusCode:
-            error.statusCode,
+    if (error instanceof ApiError) {
+      console.error("Erreur API capture PayPal :", {
+        statusCode: error.statusCode,
 
-          message:
-            error.message,
+        message: error.message,
 
-          body:
-            error.body,
-        },
-      );
+        body: error.body,
+      });
 
       return jsonResponse(
         {
           success: false,
 
-          error:
-            "PayPal n’a pas pu finaliser le paiement.",
+          error: "PayPal n’a pas pu finaliser le paiement.",
 
           details:
-            process.env.NODE_ENV ===
-            "development"
-              ? error.message
-              : undefined,
+            process.env.NODE_ENV === "development" ? error.message : undefined,
         },
         error.statusCode || 502,
       );
     }
 
-    console.error(
-      "Erreur capture PayPal :",
-      error,
-    );
+    console.error("Erreur capture PayPal :", error);
 
     return jsonResponse(
       {

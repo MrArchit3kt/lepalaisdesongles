@@ -2,6 +2,7 @@ export type AppointmentEmailKind =
   | "BOOKING_CONFIRMED"
   | "APPOINTMENT_UPDATED"
   | "APPOINTMENT_CANCELLED"
+  | "APPOINTMENT_REFUSED"
   | "REMINDER_24H"
   | "REMINDER_2H";
 
@@ -30,7 +31,5 @@ export type EmailDeliveryResult =
     }
   | {
       status: "skipped";
-      reason:
-        | "EMAIL_DISABLED"
-        | "MISSING_CONFIGURATION";
+      reason: "EMAIL_DISABLED" | "MISSING_CONFIGURATION";
     };

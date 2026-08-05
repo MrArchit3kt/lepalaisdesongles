@@ -1,6 +1,4 @@
-import type {
-  Prisma,
-} from "@/generated/prisma/client";
+import type { Prisma } from "@/generated/prisma/client";
 
 import type {
   AdminDashboardData,
@@ -10,9 +8,7 @@ import type {
   DashboardRecentClient,
   DashboardTrend,
 } from "@/features/admin/dashboard/types/admin-dashboard.types";
-import {
-  getDashboardAnalytics,
-} from "@/features/admin/dashboard/services/admin-dashboard-analytics.service";
+import { getDashboardAnalytics } from "@/features/admin/dashboard/services/admin-dashboard-analytics.service";
 import { prisma } from "@/lib/prisma";
 
 /* -------------------------------------------------------------------------- */
@@ -161,15 +157,13 @@ const recentClientSelect = {
   },
 } satisfies Prisma.UserSelect;
 
-type DashboardAppointmentRow =
-  Prisma.AppointmentGetPayload<{
-    select: typeof dashboardAppointmentSelect;
-  }>;
+type DashboardAppointmentRow = Prisma.AppointmentGetPayload<{
+  select: typeof dashboardAppointmentSelect;
+}>;
 
-type RecentClientRow =
-  Prisma.UserGetPayload<{
-    select: typeof recentClientSelect;
-  }>;
+type RecentClientRow = Prisma.UserGetPayload<{
+  select: typeof recentClientSelect;
+}>;
 
 /* -------------------------------------------------------------------------- */
 /*                               OUTILS DE DATES                              */
@@ -193,127 +187,62 @@ type DashboardPeriod = {
   previousMonthEnd: Date;
 };
 
-function getDashboardPeriod(
-  now: Date,
-): DashboardPeriod {
+function getDashboardPeriod(now: Date): DashboardPeriod {
   const todayStart = new Date(now);
 
-  todayStart.setHours(
+  todayStart.setHours(0, 0, 0, 0);
+
+  const tomorrowStart = new Date(todayStart);
+
+  tomorrowStart.setDate(tomorrowStart.getDate() + 1);
+
+  const todayEnd = new Date(tomorrowStart.getTime() - 1);
+
+  const currentDay = todayStart.getDay();
+
+  const daysSinceMonday = currentDay === 0 ? 6 : currentDay - 1;
+
+  const weekStart = new Date(todayStart);
+
+  weekStart.setDate(weekStart.getDate() - daysSinceMonday);
+
+  const nextWeekStart = new Date(weekStart);
+
+  nextWeekStart.setDate(nextWeekStart.getDate() + 7);
+
+  const weekEnd = new Date(nextWeekStart.getTime() - 1);
+
+  const monthStart = new Date(now.getFullYear(), now.getMonth(), 1, 0, 0, 0, 0);
+
+  const nextMonthStart = new Date(
+    now.getFullYear(),
+    now.getMonth() + 1,
+    1,
     0,
     0,
     0,
     0,
   );
 
-  const tomorrowStart =
-    new Date(todayStart);
+  const monthEnd = new Date(nextMonthStart.getTime() - 1);
 
-  tomorrowStart.setDate(
-    tomorrowStart.getDate() + 1,
+  const yearStart = new Date(now.getFullYear(), 0, 1, 0, 0, 0, 0);
+
+  const nextYearStart = new Date(now.getFullYear() + 1, 0, 1, 0, 0, 0, 0);
+
+  const yearEnd = new Date(nextYearStart.getTime() - 1);
+
+  const previousMonthStart = new Date(
+    now.getFullYear(),
+    now.getMonth() - 1,
+    1,
+    0,
+    0,
+    0,
+    0,
   );
 
-  const todayEnd =
-    new Date(
-      tomorrowStart.getTime() - 1,
-    );
-
-  const currentDay =
-    todayStart.getDay();
-
-  const daysSinceMonday =
-    currentDay === 0
-      ? 6
-      : currentDay - 1;
-
-  const weekStart =
-    new Date(todayStart);
-
-  weekStart.setDate(
-    weekStart.getDate() -
-      daysSinceMonday,
-  );
-
-  const nextWeekStart =
-    new Date(weekStart);
-
-  nextWeekStart.setDate(
-    nextWeekStart.getDate() + 7,
-  );
-
-  const weekEnd =
-    new Date(
-      nextWeekStart.getTime() - 1,
-    );
-
-  const monthStart =
-    new Date(
-      now.getFullYear(),
-      now.getMonth(),
-      1,
-      0,
-      0,
-      0,
-      0,
-    );
-
-  const nextMonthStart =
-    new Date(
-      now.getFullYear(),
-      now.getMonth() + 1,
-      1,
-      0,
-      0,
-      0,
-      0,
-    );
-
-  const monthEnd =
-    new Date(
-      nextMonthStart.getTime() - 1,
-    );
-
-  const yearStart =
-    new Date(
-      now.getFullYear(),
-      0,
-      1,
-      0,
-      0,
-      0,
-      0,
-    );
-
-  const nextYearStart =
-    new Date(
-      now.getFullYear() + 1,
-      0,
-      1,
-      0,
-      0,
-      0,
-      0,
-    );
-
-  const yearEnd =
-    new Date(
-      nextYearStart.getTime() - 1,
-    );
-
-  const previousMonthStart =
-    new Date(
-      now.getFullYear(),
-      now.getMonth() - 1,
-      1,
-      0,
-      0,
-      0,
-      0,
-    );
-
-  const previousMonthEnd =
-    new Date(
-      monthStart.getTime() - 1,
-    );
+  const previousMonthEnd = new Date(monthStart.getTime() - 1);
 
   return {
     todayStart,
@@ -342,10 +271,7 @@ function createTrend(
   currentValue: number,
   previousValue: number,
 ): DashboardTrend {
-  if (
-    currentValue === 0 &&
-    previousValue === 0
-  ) {
+  if (currentValue === 0 && previousValue === 0) {
     return {
       currentValue,
       previousValue,
@@ -358,38 +284,24 @@ function createTrend(
     return {
       currentValue,
       previousValue,
-      percentageChange:
-        currentValue > 0
-          ? 100
-          : 0,
-      direction:
-        currentValue > 0
-          ? "UP"
-          : "STABLE",
+      percentageChange: currentValue > 0 ? 100 : 0,
+      direction: currentValue > 0 ? "UP" : "STABLE",
     };
   }
 
   const rawPercentage =
-    ((currentValue -
-      previousValue) /
-      Math.abs(previousValue)) *
-    100;
+    ((currentValue - previousValue) / Math.abs(previousValue)) * 100;
 
-  const percentageChange =
-    Math.round(
-      rawPercentage * 10,
-    ) / 10;
+  const percentageChange = Math.round(rawPercentage * 10) / 10;
 
   return {
     currentValue,
     previousValue,
     percentageChange,
     direction:
-      currentValue >
-      previousValue
+      currentValue > previousValue
         ? "UP"
-        : currentValue <
-            previousValue
+        : currentValue < previousValue
           ? "DOWN"
           : "STABLE",
   };
@@ -400,27 +312,19 @@ function createTrend(
 /* -------------------------------------------------------------------------- */
 
 function getStaffDisplayName(
-  staff:
-    | DashboardAppointmentRow["staff"]
-    | null,
+  staff: DashboardAppointmentRow["staff"] | null,
 ): string {
   if (!staff) {
     return "";
   }
 
-  const customName =
-    staff.displayName?.trim();
+  const customName = staff.displayName?.trim();
 
   if (customName) {
     return customName;
   }
 
-  return [
-    staff.user.firstName,
-    staff.user.lastName,
-  ]
-    .filter(Boolean)
-    .join(" ");
+  return [staff.user.firstName, staff.user.lastName].filter(Boolean).join(" ");
 }
 
 function serializeAppointment(
@@ -428,152 +332,102 @@ function serializeAppointment(
 ): DashboardAppointment {
   return {
     id: appointment.id,
-    reference:
-      appointment.reference,
+    reference: appointment.reference,
 
-    status:
-      appointment.status,
+    status: appointment.status,
 
-    paymentStatus:
-      appointment.paymentStatus,
+    paymentStatus: appointment.paymentStatus,
 
-    startsAt:
-      appointment.startsAt.toISOString(),
+    startsAt: appointment.startsAt.toISOString(),
 
-    endsAt:
-      appointment.endsAt.toISOString(),
+    endsAt: appointment.endsAt.toISOString(),
 
-    totalDurationMinutes:
-      appointment.totalDurationMinutes,
+    totalDurationMinutes: appointment.totalDurationMinutes,
 
-    totalPriceCents:
-      appointment.totalPriceCents,
+    totalPriceCents: appointment.totalPriceCents,
 
-    depositCents:
-      appointment.depositCents,
+    depositCents: appointment.depositCents,
 
     client: {
       id: appointment.client.id,
 
-      firstName:
-        appointment.client.firstName,
+      firstName: appointment.client.firstName,
 
-      lastName:
-        appointment.client.lastName,
+      lastName: appointment.client.lastName,
 
-      email:
-        appointment.client.email,
+      email: appointment.client.email,
 
-      phone:
-        appointment.client.phone,
+      phone: appointment.client.phone,
 
-      image:
-        appointment.client.image,
+      image: appointment.client.image,
     },
 
     staff: appointment.staff
       ? {
           id: appointment.staff.id,
 
-          displayName:
-            getStaffDisplayName(
-              appointment.staff,
-            ),
+          displayName: getStaffDisplayName(appointment.staff),
 
-          color:
-            appointment.staff.color,
+          color: appointment.staff.color,
         }
       : null,
 
-    workstation:
-      appointment.workstation
-        ? {
-            id:
-              appointment
-                .workstation.id,
+    workstation: appointment.workstation
+      ? {
+          id: appointment.workstation.id,
 
-            name:
-              appointment
-                .workstation.name,
+          name: appointment.workstation.name,
 
-            color:
-              appointment
-                .workstation.color,
-          }
-        : null,
+          color: appointment.workstation.color,
+        }
+      : null,
 
-    services:
-      appointment.services.map(
-        (service) => ({
-          id: service.id,
+    services: appointment.services.map((service) => ({
+      id: service.id,
 
-          name:
-            service.serviceName,
+      name: service.serviceName,
 
-          quantity:
-            service.quantity,
+      quantity: service.quantity,
 
-          durationMinutes:
-            service.durationMinutes,
+      durationMinutes: service.durationMinutes,
 
-          unitPriceCents:
-            service.unitPriceCents,
-        }),
-      ),
+      unitPriceCents: service.unitPriceCents,
+    })),
   };
 }
 
-function serializeRecentClient(
-  client: RecentClientRow,
-): DashboardRecentClient {
-  const nextAppointment =
-    client.appointments[0] ??
-    null;
+function serializeRecentClient(client: RecentClientRow): DashboardRecentClient {
+  const nextAppointment = client.appointments[0] ?? null;
 
   return {
     id: client.id,
 
-    firstName:
-      client.firstName,
+    firstName: client.firstName,
 
-    lastName:
-      client.lastName,
+    lastName: client.lastName,
 
-    email:
-      client.email,
+    email: client.email,
 
-    phone:
-      client.phone,
+    phone: client.phone,
 
-    image:
-      client.image,
+    image: client.image,
 
-    createdAt:
-      client.createdAt.toISOString(),
+    createdAt: client.createdAt.toISOString(),
 
     loyaltyPoints:
-      client.loyaltyAccount
-        ?.points ??
-      client.clientProfile
-        ?.loyaltyPoints ??
-      0,
+      client.loyaltyAccount?.points ?? client.clientProfile?.loyaltyPoints ?? 0,
 
-    appointmentCount:
-      client._count.appointments,
+    appointmentCount: client._count.appointments,
 
-    nextAppointment:
-      nextAppointment
-        ? {
-            reference:
-              nextAppointment.reference,
+    nextAppointment: nextAppointment
+      ? {
+          reference: nextAppointment.reference,
 
-            startsAt:
-              nextAppointment.startsAt.toISOString(),
+          startsAt: nextAppointment.startsAt.toISOString(),
 
-            status:
-              nextAppointment.status,
-          }
-        : null,
+          status: nextAppointment.status,
+        }
+      : null,
   };
 }
 
@@ -581,173 +435,127 @@ function serializeRecentClient(
 /*                                  ALERTES                                   */
 /* -------------------------------------------------------------------------- */
 
-function buildAlerts(
-  input: {
-    pendingAppointments: number;
-    unassignedAppointments: number;
-    unpaidDeposits: number;
-    pendingReviews: number;
-    unreadMessages: number;
-    contestsAwaitingDraw: number;
-  },
-): DashboardAlert[] {
-  const alerts: DashboardAlert[] =
-    [];
+function buildAlerts(input: {
+  pendingAppointments: number;
+  unassignedAppointments: number;
+  unpaidDeposits: number;
+  pendingReviews: number;
+  unreadMessages: number;
+  contestsAwaitingDraw: number;
+}): DashboardAlert[] {
+  const alerts: DashboardAlert[] = [];
 
-  if (
-    input.pendingAppointments > 0
-  ) {
+  if (input.pendingAppointments > 0) {
     alerts.push({
-      id:
-        "PENDING_APPOINTMENTS",
+      id: "PENDING_APPOINTMENTS",
 
-      title:
-        "Rendez-vous en attente",
+      title: "Rendez-vous en attente",
 
       description:
         input.pendingAppointments === 1
           ? "Une demande doit être confirmée ou refusée."
           : `${input.pendingAppointments} demandes doivent être traitées.`,
 
-      count:
-        input.pendingAppointments,
+      count: input.pendingAppointments,
 
-      href:
-        "/admin/rendez-vous?status=PENDING",
+      href: "/admin/rendez-vous?status=PENDING",
 
-      tone:
-        "AMBER",
+      tone: "AMBER",
     });
   }
 
-  if (
-    input.unassignedAppointments > 0
-  ) {
+  if (input.unassignedAppointments > 0) {
     alerts.push({
-      id:
-        "UNASSIGNED_APPOINTMENTS",
+      id: "UNASSIGNED_APPOINTMENTS",
 
-      title:
-        "Rendez-vous non attribués",
+      title: "Rendez-vous non attribués",
 
       description:
-        input.unassignedAppointments ===
-        1
+        input.unassignedAppointments === 1
           ? "Un rendez-vous doit être affecté à une professionnelle ou un poste."
           : `${input.unassignedAppointments} rendez-vous doivent être affectés.`,
 
-      count:
-        input.unassignedAppointments,
+      count: input.unassignedAppointments,
 
-      href:
-        "/admin/agenda",
+      href: "/admin/agenda",
 
-      tone:
-        "ROSE",
+      tone: "ROSE",
     });
   }
 
-  if (
-    input.unpaidDeposits > 0
-  ) {
+  if (input.unpaidDeposits > 0) {
     alerts.push({
-      id:
-        "UNPAID_DEPOSITS",
+      id: "UNPAID_DEPOSITS",
 
-      title:
-        "Acomptes en attente",
+      title: "Acomptes en attente",
 
       description:
         input.unpaidDeposits === 1
           ? "Un acompte PayPal reste à régler."
           : `${input.unpaidDeposits} acomptes PayPal restent à régler.`,
 
-      count:
-        input.unpaidDeposits,
+      count: input.unpaidDeposits,
 
-      href:
-        "/admin/rendez-vous?payment=PENDING",
+      href: "/admin/rendez-vous?payment=PENDING",
 
-      tone:
-        "BLUE",
+      tone: "BLUE",
     });
   }
 
-  if (
-    input.pendingReviews > 0
-  ) {
+  if (input.pendingReviews > 0) {
     alerts.push({
-      id:
-        "PENDING_REVIEWS",
+      id: "PENDING_REVIEWS",
 
-      title:
-        "Avis à modérer",
+      title: "Avis à modérer",
 
       description:
         input.pendingReviews === 1
           ? "Un avis client attend votre validation."
           : `${input.pendingReviews} avis clients attendent votre validation.`,
 
-      count:
-        input.pendingReviews,
+      count: input.pendingReviews,
 
-      href:
-        "/admin/dashboard#avis-en-attente",
+      href: "/admin/dashboard#avis-en-attente",
 
-      tone:
-        "VIOLET",
+      tone: "VIOLET",
     });
   }
 
-  if (
-    input.contestsAwaitingDraw > 0
-  ) {
+  if (input.contestsAwaitingDraw > 0) {
     alerts.push({
-      id:
-        "CONTESTS_AWAITING_DRAW",
+      id: "CONTESTS_AWAITING_DRAW",
 
-      title:
-        "Tirages au sort en attente",
+      title: "Tirages au sort en attente",
 
       description:
         input.contestsAwaitingDraw === 1
           ? "Un concours terminé attend la désignation d’une gagnante."
           : `${input.contestsAwaitingDraw} concours terminés attendent leur tirage au sort.`,
 
-      count:
-        input.contestsAwaitingDraw,
+      count: input.contestsAwaitingDraw,
 
-      href:
-        "/admin/concours?status=CLOSED",
+      href: "/admin/concours?status=CLOSED",
 
-      tone:
-        "VIOLET",
+      tone: "VIOLET",
     });
   }
 
-  if (
-    input.unreadMessages > 0
-  ) {
+  if (input.unreadMessages > 0) {
     alerts.push({
-      id:
-        "UNREAD_MESSAGES",
+      id: "UNREAD_MESSAGES",
 
-      title:
-        "Messages non lus",
+      title: "Messages non lus",
 
       description:
         input.unreadMessages === 1
           ? "Une nouvelle notification de message est disponible."
           : `${input.unreadMessages} notifications de messages sont disponibles.`,
 
-      count:
-        input.unreadMessages,
+      count: input.unreadMessages,
 
-      href:
-        "/admin/dashboard#notifications",
+      href: "/admin/dashboard#notifications",
 
-      tone:
-        "EMERALD",
+      tone: "EMERALD",
     });
   }
 
@@ -763,8 +571,7 @@ export async function getAdminDashboardData(
 ): Promise<AdminDashboardData> {
   const now = new Date();
 
-  const period =
-    getDashboardPeriod(now);
+  const period = getDashboardPeriod(now);
 
   /*
    * La requête des clientes récentes utilise une date dynamique.
@@ -783,8 +590,7 @@ export async function getAdminDashboardData(
         },
 
         status: {
-          in:
-            UPCOMING_APPOINTMENT_STATUSES,
+          in: UPCOMING_APPOINTMENT_STATUSES,
         },
       },
     },
@@ -824,7 +630,7 @@ export async function getAdminDashboardData(
     pendingReviewItems,
 
     statusGroups,
-  ] = await prisma.$transaction([
+  ] = await Promise.all([
     prisma.appointment.count({
       where: {
         startsAt: {
@@ -833,8 +639,7 @@ export async function getAdminDashboardData(
         },
 
         status: {
-          in:
-            REPORTABLE_APPOINTMENT_STATUSES,
+          in: REPORTABLE_APPOINTMENT_STATUSES,
         },
       },
     }),
@@ -847,8 +652,7 @@ export async function getAdminDashboardData(
         },
 
         status: {
-          in:
-            REPORTABLE_APPOINTMENT_STATUSES,
+          in: REPORTABLE_APPOINTMENT_STATUSES,
         },
       },
     }),
@@ -856,24 +660,20 @@ export async function getAdminDashboardData(
     prisma.appointment.count({
       where: {
         startsAt: {
-          gte:
-            period.previousMonthStart,
+          gte: period.previousMonthStart,
 
-          lte:
-            period.previousMonthEnd,
+          lte: period.previousMonthEnd,
         },
 
         status: {
-          in:
-            REPORTABLE_APPOINTMENT_STATUSES,
+          in: REPORTABLE_APPOINTMENT_STATUSES,
         },
       },
     }),
 
     prisma.appointment.count({
       where: {
-        status:
-          "PENDING",
+        status: "PENDING",
 
         startsAt: {
           gte: now,
@@ -888,8 +688,7 @@ export async function getAdminDashboardData(
         },
 
         status: {
-          in:
-            UPCOMING_APPOINTMENT_STATUSES,
+          in: UPCOMING_APPOINTMENT_STATUSES,
         },
 
         OR: [
@@ -910,23 +709,20 @@ export async function getAdminDashboardData(
         },
 
         status: {
-          in:
-            UPCOMING_APPOINTMENT_STATUSES,
+          in: UPCOMING_APPOINTMENT_STATUSES,
         },
 
         depositCents: {
           gt: 0,
         },
 
-        paymentStatus:
-          "PENDING",
+        paymentStatus: "PENDING",
       },
     }),
 
     prisma.appointment.aggregate({
       where: {
-        status:
-          "COMPLETED",
+        status: "COMPLETED",
 
         startsAt: {
           gte: period.monthStart,
@@ -941,15 +737,12 @@ export async function getAdminDashboardData(
 
     prisma.appointment.aggregate({
       where: {
-        status:
-          "COMPLETED",
+        status: "COMPLETED",
 
         startsAt: {
-          gte:
-            period.previousMonthStart,
+          gte: period.previousMonthStart,
 
-          lte:
-            period.previousMonthEnd,
+          lte: period.previousMonthEnd,
         },
       },
 
@@ -960,14 +753,10 @@ export async function getAdminDashboardData(
 
     prisma.appointment.aggregate({
       where: {
-        paymentMethod:
-          "PAYPAL",
+        paymentMethod: "PAYPAL",
 
         paymentStatus: {
-          in: [
-            "PARTIALLY_PAID",
-            "PAID",
-          ],
+          in: ["PARTIALLY_PAID", "PAID"],
         },
 
         paidAt: {
@@ -983,18 +772,15 @@ export async function getAdminDashboardData(
 
     prisma.user.count({
       where: {
-        role:
-          "CLIENT",
+        role: "CLIENT",
 
-        status:
-          "ACTIVE",
+        status: "ACTIVE",
       },
     }),
 
     prisma.user.count({
       where: {
-        role:
-          "CLIENT",
+        role: "CLIENT",
 
         createdAt: {
           gte: period.monthStart,
@@ -1005,43 +791,35 @@ export async function getAdminDashboardData(
 
     prisma.user.count({
       where: {
-        role:
-          "CLIENT",
+        role: "CLIENT",
 
         createdAt: {
-          gte:
-            period.previousMonthStart,
+          gte: period.previousMonthStart,
 
-          lte:
-            period.previousMonthEnd,
+          lte: period.previousMonthEnd,
         },
       },
     }),
 
     prisma.notification.count({
       where: {
-        userId:
-          adminUserId,
+        userId: adminUserId,
 
-        type:
-          "MESSAGE_RECEIVED",
+        type: "MESSAGE_RECEIVED",
 
-        readAt:
-          null,
+        readAt: null,
       },
     }),
 
     prisma.review.count({
       where: {
-        status:
-          "PENDING",
+        status: "PENDING",
       },
     }),
 
     prisma.review.aggregate({
       where: {
-        status:
-          "APPROVED",
+        status: "APPROVED",
       },
 
       _avg: {
@@ -1051,8 +829,7 @@ export async function getAdminDashboardData(
 
     prisma.galleryItem.count({
       where: {
-        isPublished:
-          true,
+        isPublished: true,
       },
     }),
 
@@ -1060,18 +837,15 @@ export async function getAdminDashboardData(
 
     prisma.loyaltyAccount.count({
       where: {
-        isActive:
-          true,
+        isActive: true,
 
-        isSuspended:
-          false,
+        isSuspended: false,
       },
     }),
 
     prisma.contest.count({
       where: {
-        status:
-          "ACTIVE",
+        status: "ACTIVE",
       },
     }),
 
@@ -1079,21 +853,17 @@ export async function getAdminDashboardData(
 
     prisma.contest.count({
       where: {
-        winnerId:
-          null,
+        winnerId: null,
 
         OR: [
           {
-            status:
-              "CLOSED",
+            status: "CLOSED",
           },
           {
-            status:
-              "ACTIVE",
+            status: "ACTIVE",
 
             endsAt: {
-              lte:
-                now,
+              lte: now,
             },
           },
         ],
@@ -1119,20 +889,17 @@ export async function getAdminDashboardData(
 
       take: 20,
 
-      select:
-        dashboardAppointmentSelect,
+      select: dashboardAppointmentSelect,
     }),
 
     prisma.appointment.findMany({
       where: {
         startsAt: {
-          gte:
-            period.tomorrowStart,
+          gte: period.tomorrowStart,
         },
 
         status: {
-          in:
-            UPCOMING_APPOINTMENT_STATUSES,
+          in: UPCOMING_APPOINTMENT_STATUSES,
         },
       },
 
@@ -1147,39 +914,32 @@ export async function getAdminDashboardData(
 
       take: 8,
 
-      select:
-        dashboardAppointmentSelect,
+      select: dashboardAppointmentSelect,
     }),
 
     prisma.user.findMany({
       where: {
-        role:
-          "CLIENT",
+        role: "CLIENT",
 
-        status:
-          "ACTIVE",
+        status: "ACTIVE",
       },
 
       orderBy: {
-        createdAt:
-          "desc",
+        createdAt: "desc",
       },
 
       take: 6,
 
-      select:
-        dynamicRecentClientSelect,
+      select: dynamicRecentClientSelect,
     }),
 
     prisma.review.findMany({
       where: {
-        status:
-          "PENDING",
+        status: "PENDING",
       },
 
       orderBy: {
-        createdAt:
-          "desc",
+        createdAt: "desc",
       },
 
       take: 5,
@@ -1197,9 +957,7 @@ export async function getAdminDashboardData(
     }),
 
     prisma.appointment.groupBy({
-      by: [
-        "status",
-      ],
+      by: ["status"],
 
       orderBy: {
         status: "asc",
@@ -1218,135 +976,74 @@ export async function getAdminDashboardData(
     }),
   ]);
 
-  const dashboardAnalytics =
-    await getDashboardAnalytics(
-      {
-        todayStart:
-          period.todayStart,
+  const dashboardAnalytics = await getDashboardAnalytics(
+    {
+      todayStart: period.todayStart,
 
-        todayEnd:
-          period.todayEnd,
+      todayEnd: period.todayEnd,
 
-        weekStart:
-          period.weekStart,
+      weekStart: period.weekStart,
 
-        weekEnd:
-          period.weekEnd,
+      weekEnd: period.weekEnd,
 
-        monthStart:
-          period.monthStart,
+      monthStart: period.monthStart,
 
-        monthEnd:
-          period.monthEnd,
+      monthEnd: period.monthEnd,
 
-        yearStart:
-          period.yearStart,
+      yearStart: period.yearStart,
 
-        yearEnd:
-          period.yearEnd,
-      },
-      now,
-    );
+      yearEnd: period.yearEnd,
+    },
+    now,
+  );
 
-  const revenueThisMonthCents =
-    revenueThisMonth._sum
-      .totalPriceCents ??
-    0;
+  const revenueThisMonthCents = revenueThisMonth._sum.totalPriceCents ?? 0;
 
   const revenuePreviousMonthCents =
-    revenuePreviousMonth._sum
-      .totalPriceCents ??
-    0;
+    revenuePreviousMonth._sum.totalPriceCents ?? 0;
 
   const paypalCollectedThisMonthCents =
-    paypalCollectedThisMonth._sum
-      .depositCents ??
-    0;
+    paypalCollectedThisMonth._sum.depositCents ?? 0;
 
-  const statusCountMap =
-    new Map<
-      DashboardAppointmentStatus,
-      number
-    >();
+  const statusCountMap = new Map<DashboardAppointmentStatus, number>();
 
-  for (
-    const status
-    of ALL_APPOINTMENT_STATUSES
-  ) {
-    statusCountMap.set(
-      status,
-      0,
-    );
+  for (const status of ALL_APPOINTMENT_STATUSES) {
+    statusCountMap.set(status, 0);
   }
 
-  for (
-    const group
-    of statusGroups
-  ) {
+  for (const group of statusGroups) {
     const count =
-      typeof group._count === "object" &&
-      group._count !== null
-        ? group._count.status ?? 0
+      typeof group._count === "object" && group._count !== null
+        ? (group._count.status ?? 0)
         : 0;
 
-    statusCountMap.set(
-      group.status,
-      count,
-    );
+    statusCountMap.set(group.status, count);
   }
 
-  const statusTotal =
-    Array.from(
-      statusCountMap.values(),
-    ).reduce(
-      (
-        total,
-        count,
-      ) => total + count,
-      0,
-    );
+  const statusTotal = Array.from(statusCountMap.values()).reduce(
+    (total, count) => total + count,
+    0,
+  );
 
-  const appointmentStatusBreakdown =
-    ALL_APPOINTMENT_STATUSES.map(
-      (status) => {
-        const count =
-          statusCountMap.get(
-            status,
-          ) ?? 0;
+  const appointmentStatusBreakdown = ALL_APPOINTMENT_STATUSES.map((status) => {
+    const count = statusCountMap.get(status) ?? 0;
 
-        return {
-          status,
-          count,
+    return {
+      status,
+      count,
 
-          percentage:
-            statusTotal > 0
-              ? Math.round(
-                  (count /
-                    statusTotal) *
-                    1000,
-                ) / 10
-              : 0,
-        };
-      },
-    );
+      percentage:
+        statusTotal > 0 ? Math.round((count / statusTotal) * 1000) / 10 : 0,
+    };
+  });
 
-  const completedAppointmentsThisMonth =
-    statusCountMap.get(
-      "COMPLETED",
-    ) ?? 0;
+  const completedAppointmentsThisMonth = statusCountMap.get("COMPLETED") ?? 0;
 
   const cancelledAppointmentsThisMonth =
-    (statusCountMap.get(
-      "CANCELLED_BY_CLIENT",
-    ) ?? 0) +
-    (statusCountMap.get(
-      "CANCELLED_BY_ADMIN",
-    ) ?? 0);
+    (statusCountMap.get("CANCELLED_BY_CLIENT") ?? 0) +
+    (statusCountMap.get("CANCELLED_BY_ADMIN") ?? 0);
 
-  const noShowAppointmentsThisMonth =
-    statusCountMap.get(
-      "NO_SHOW",
-    ) ?? 0;
+  const noShowAppointmentsThisMonth = statusCountMap.get("NO_SHOW") ?? 0;
 
   const decidedAppointmentsThisMonth =
     completedAppointmentsThisMonth +
@@ -1356,10 +1053,7 @@ export async function getAdminDashboardData(
   const cancellationRateThisMonth =
     decidedAppointmentsThisMonth > 0
       ? Math.round(
-          (
-            cancelledAppointmentsThisMonth /
-            decidedAppointmentsThisMonth
-          ) *
+          (cancelledAppointmentsThisMonth / decidedAppointmentsThisMonth) *
             1000,
         ) / 10
       : 0;
@@ -1367,59 +1061,41 @@ export async function getAdminDashboardData(
   const noShowRateThisMonth =
     decidedAppointmentsThisMonth > 0
       ? Math.round(
-          (
-            noShowAppointmentsThisMonth /
-            decidedAppointmentsThisMonth
-          ) *
-            1000,
+          (noShowAppointmentsThisMonth / decidedAppointmentsThisMonth) * 1000,
         ) / 10
       : 0;
 
   const completionRateThisMonth =
     decidedAppointmentsThisMonth > 0
       ? Math.round(
-          (
-            completedAppointmentsThisMonth /
-            decidedAppointmentsThisMonth
-          ) *
+          (completedAppointmentsThisMonth / decidedAppointmentsThisMonth) *
             1000,
         ) / 10
       : 0;
 
   return {
-    generatedAt:
-      now.toISOString(),
+    generatedAt: now.toISOString(),
 
     period: {
-      todayStart:
-        period.todayStart.toISOString(),
+      todayStart: period.todayStart.toISOString(),
 
-      todayEnd:
-        period.todayEnd.toISOString(),
+      todayEnd: period.todayEnd.toISOString(),
 
-      weekStart:
-        period.weekStart.toISOString(),
+      weekStart: period.weekStart.toISOString(),
 
-      weekEnd:
-        period.weekEnd.toISOString(),
+      weekEnd: period.weekEnd.toISOString(),
 
-      monthStart:
-        period.monthStart.toISOString(),
+      monthStart: period.monthStart.toISOString(),
 
-      monthEnd:
-        period.monthEnd.toISOString(),
+      monthEnd: period.monthEnd.toISOString(),
 
-      yearStart:
-        period.yearStart.toISOString(),
+      yearStart: period.yearStart.toISOString(),
 
-      yearEnd:
-        period.yearEnd.toISOString(),
+      yearEnd: period.yearEnd.toISOString(),
 
-      previousMonthStart:
-        period.previousMonthStart.toISOString(),
+      previousMonthStart: period.previousMonthStart.toISOString(),
 
-      previousMonthEnd:
-        period.previousMonthEnd.toISOString(),
+      previousMonthEnd: period.previousMonthEnd.toISOString(),
     },
 
     metrics: {
@@ -1437,10 +1113,7 @@ export async function getAdminDashboardData(
 
       pendingReviews,
 
-      averageRating:
-        reviewRatingAggregate
-          ._avg.rating ??
-        null,
+      averageRating: reviewRatingAggregate._avg.rating ?? null,
 
       publishedGalleryItems,
 
@@ -1452,8 +1125,7 @@ export async function getAdminDashboardData(
       contestsAwaitingDraw,
     },
 
-    finance:
-      dashboardAnalytics.finance,
+    finance: dashboardAnalytics.finance,
 
     occupancy: {
       /*
@@ -1476,57 +1148,42 @@ export async function getAdminDashboardData(
     },
 
     businessHealth: {
-      cancellationCountThisMonth:
-        cancelledAppointmentsThisMonth,
+      cancellationCountThisMonth: cancelledAppointmentsThisMonth,
 
       cancellationRateThisMonth,
 
-      noShowCountThisMonth:
-        noShowAppointmentsThisMonth,
+      noShowCountThisMonth: noShowAppointmentsThisMonth,
 
       noShowRateThisMonth,
 
       completionRateThisMonth,
 
-      pendingAppointmentCount:
-        pendingAppointments,
+      pendingAppointmentCount: pendingAppointments,
 
-      unpaidDepositCount:
-        unpaidDeposits,
+      unpaidDepositCount: unpaidDeposits,
 
-      unassignedAppointmentCount:
-        unassignedAppointments,
+      unassignedAppointmentCount: unassignedAppointments,
     },
 
     trends: {
-      appointments:
-        createTrend(
-          appointmentsThisMonth,
-          appointmentsPreviousMonth,
-        ),
+      appointments: createTrend(
+        appointmentsThisMonth,
+        appointmentsPreviousMonth,
+      ),
 
-      revenue:
-        createTrend(
-          revenueThisMonthCents,
-          revenuePreviousMonthCents,
-        ),
+      revenue: createTrend(revenueThisMonthCents, revenuePreviousMonthCents),
 
-      newClients:
-        createTrend(
-          newClientsThisMonth,
-          newClientsPreviousMonth,
-        ),
+      newClients: createTrend(newClientsThisMonth, newClientsPreviousMonth),
     },
 
-    alerts:
-      buildAlerts({
-        pendingAppointments,
-        unassignedAppointments,
-        unpaidDeposits,
-        pendingReviews,
-        unreadMessages,
-        contestsAwaitingDraw,
-      }),
+    alerts: buildAlerts({
+      pendingAppointments,
+      unassignedAppointments,
+      unpaidDeposits,
+      pendingReviews,
+      unreadMessages,
+      contestsAwaitingDraw,
+    }),
 
     /*
      * Les recommandations seront construites à partir des métriques
@@ -1534,20 +1191,11 @@ export async function getAdminDashboardData(
      */
     insights: [],
 
-    todayAppointments:
-      todayAppointmentItems.map(
-        serializeAppointment,
-      ),
+    todayAppointments: todayAppointmentItems.map(serializeAppointment),
 
-    upcomingAppointments:
-      upcomingAppointmentItems.map(
-        serializeAppointment,
-      ),
+    upcomingAppointments: upcomingAppointmentItems.map(serializeAppointment),
 
-    recentClients:
-      recentClientItems.map(
-        serializeRecentClient,
-      ),
+    recentClients: recentClientItems.map(serializeRecentClient),
 
     /*
      * Ces listes seront alimentées par les agrégations clientes V2.
@@ -1555,34 +1203,23 @@ export async function getAdminDashboardData(
     inactiveClients: [],
     topClients: [],
 
-    pendingReviewItems:
-      pendingReviewItems.map(
-        (review) => ({
-          id:
-            review.id,
+    pendingReviewItems: pendingReviewItems.map((review) => ({
+      id: review.id,
 
-          authorName:
-            review.authorName,
+      authorName: review.authorName,
 
-          authorAvatar:
-            review.authorAvatar,
+      authorAvatar: review.authorAvatar,
 
-          rating:
-            review.rating,
+      rating: review.rating,
 
-          title:
-            review.title,
+      title: review.title,
 
-          content:
-            review.content,
+      content: review.content,
 
-          isVerified:
-            review.isVerified,
+      isVerified: review.isVerified,
 
-          createdAt:
-            review.createdAt.toISOString(),
-        }),
-      ),
+      createdAt: review.createdAt.toISOString(),
+    })),
 
     appointmentStatusBreakdown,
 
@@ -1590,22 +1227,16 @@ export async function getAdminDashboardData(
      * Séries statistiques Premium.
      * Elles sont volontairement initialisées sans données fictives.
      */
-    dailyActivity:
-      dashboardAnalytics.dailyActivity,
+    dailyActivity: dashboardAnalytics.dailyActivity,
 
-    monthlyActivity:
-      dashboardAnalytics.monthlyActivity,
+    monthlyActivity: dashboardAnalytics.monthlyActivity,
 
-    hourlyActivity:
-      dashboardAnalytics.hourlyActivity,
+    hourlyActivity: dashboardAnalytics.hourlyActivity,
 
-    weekdayActivity:
-      dashboardAnalytics.weekdayActivity,
+    weekdayActivity: dashboardAnalytics.weekdayActivity,
 
-    topServices:
-      dashboardAnalytics.topServices,
+    topServices: dashboardAnalytics.topServices,
 
-    staffPerformance:
-      dashboardAnalytics.staffPerformance,
+    staffPerformance: dashboardAnalytics.staffPerformance,
   };
 }

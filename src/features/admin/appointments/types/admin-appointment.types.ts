@@ -16,6 +16,25 @@ export type AdminAppointmentListItem = {
   reference: string;
   status: AdminAppointmentStatus;
   paymentStatus: string;
+  paymentMethod: string | null;
+
+  paypalCaptureId: string | null;
+
+  paypalRefundId: string | null;
+  paypalRefundRequestId: string | null;
+  paypalRefundStatus: string | null;
+
+  refundRequestedAt: string | null;
+  refundedAmountCents: number;
+  refundedAt: string | null;
+  refundReason: string | null;
+
+  isRefunded: boolean;
+  isRefundPending: boolean;
+
+  canRefund: boolean;
+  canSyncRefund: boolean;
+
   startsAt: string;
   endsAt: string;
   totalPriceCents: number;

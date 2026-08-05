@@ -9,6 +9,7 @@ import {
 import { prisma } from "@/lib/prisma";
 import { createNotification } from "@/features/notifications/services/notification.service";
 import { appointmentCreatedNotification } from "@/features/notifications/utils/notification-helper";
+import { sendAppointmentEmail } from "@/features/notifications/services/appointment-email.service";
 
 import type {
   CreateAppointmentInput,
@@ -269,6 +270,9 @@ export async function createAppointment(
 
           select: {
             id: true,
+            email: true,
+            firstName: true,
+            lastName: true,
           },
         });
 
@@ -288,6 +292,13 @@ export async function createAppointment(
           },
 
           include: {
+            user: {
+              select: {
+                firstName: true,
+                lastName: true,
+              },
+            },
+
             services: {
               where: {
                 serviceId: {
@@ -654,6 +665,32 @@ export async function createAppointment(
           confirmationUrl: requiresPayment
             ? `/reservation/paiement/${appointment.reference}`
             : `/reservation/confirmation/${appointment.reference}`,
+
+          emailContext: {
+            recipientEmail: client.email,
+
+            recipientName: [client.firstName, client.lastName]
+              .filter(Boolean)
+              .join(" ")
+              .trim(),
+
+            serviceNames: resolvedServices.flatMap((service) =>
+              Array.from(
+                {
+                  length: service.quantity,
+                },
+                () => service.serviceName,
+              ),
+            ),
+
+            staffName:
+              staff.displayName?.trim() ||
+              [staff.user.firstName, staff.user.lastName]
+                .filter(Boolean)
+                .join(" ")
+                .trim() ||
+              null,
+          },
         };
       },
 
@@ -675,5 +712,60 @@ export async function createAppointment(
     console.error("[APPOINTMENT_CREATED_NOTIFICATION]", reason);
   }
 
-  return result;
+  /*
+   * Une réservation nécessitant un paiement PayPal
+   * reste PENDING à ce stade.
+   *
+   * L'e-mail BOOKING_CONFIRMED ne doit donc partir
+   * ici que pour les rendez-vous immédiatement
+   * confirmés sans paiement.
+   *
+   * Pour les rendez-vous PayPal, l'envoi sera
+   * déclenché après la capture effective.
+   */
+  if (!result.requiresPayment) {
+    try {
+      const siteUrl = (
+        process.env.NEXT_PUBLIC_APP_URL?.trim() ||
+        process.env.NEXTAUTH_URL?.trim() ||
+        "https://lepalaisdesongles.fr"
+      ).replace(/\/+$/, "");
+
+      await sendAppointmentEmail({
+        kind: "BOOKING_CONFIRMED",
+
+        recipientEmail: result.emailContext.recipientEmail,
+
+        recipientName: result.emailContext.recipientName,
+
+        appointmentReference: result.reference,
+
+        startsAt: startsAt.toISOString(),
+
+        serviceNames: result.emailContext.serviceNames,
+
+        staffName: result.emailContext.staffName,
+
+        manageUrl: `${siteUrl}/espace-client/rendez-vous/${encodeURIComponent(
+          result.reference,
+        )}`,
+      });
+    } catch (reason: unknown) {
+      /*
+       * Un problème Resend ne doit jamais annuler
+       * un rendez-vous déjà créé en base.
+       */
+      console.error("[APPOINTMENT_BOOKING_CONFIRMED_EMAIL]", reason);
+    }
+  }
+
+  return {
+    reference: result.reference,
+    appointmentId: result.appointmentId,
+    status: result.status,
+    paymentStatus: result.paymentStatus,
+    depositCents: result.depositCents,
+    requiresPayment: result.requiresPayment,
+    confirmationUrl: result.confirmationUrl,
+  };
 }
