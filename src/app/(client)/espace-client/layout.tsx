@@ -1,26 +1,17 @@
-import type {
-  ReactNode,
-} from "react";
+import type { ReactNode } from "react";
 
 import {
   ClientSpaceNavigation,
+  type ClientNavigationItem,
 } from "@/features/client/navigation/client-space-navigation";
 
-import type {
-  ClientNavigationItem,
-} from "@/features/client/navigation/client-space-navigation";
+import { getUnreadConversationCount } from "@/features/messages/services/conversation.service";
 
-import {
-  getClientVipAccessState,
-} from "@/features/vip/services/client-vip-access.service";
+import { getClientVipAccessState } from "@/features/vip/services/client-vip-access.service";
 
-import {
-  prisma,
-} from "@/lib/prisma";
+import { prisma } from "@/lib/prisma";
 
-import {
-  requireClientUser,
-} from "@/lib/session";
+import { requireClientUser } from "@/lib/session";
 
 /* -------------------------------------------------------------------------- */
 /*                                   TYPES                                    */
@@ -34,8 +25,7 @@ type ClientSpaceLayoutProps = {
 /*                                CONFIGURATION                               */
 /* -------------------------------------------------------------------------- */
 
-export const dynamic =
-  "force-dynamic";
+export const dynamic = "force-dynamic";
 
 /* -------------------------------------------------------------------------- */
 /*                                   LAYOUT                                   */
@@ -44,103 +34,67 @@ export const dynamic =
 export default async function ClientSpaceLayout({
   children,
 }: ClientSpaceLayoutProps) {
-  const user =
-    await requireClientUser();
+  const user = await requireClientUser();
 
-  const [
-    vipAccess,
-    unreadCount,
-  ] =
+  const [vipAccess, unreadNotificationCount, unreadMessageCount] =
     await Promise.all([
-      getClientVipAccessState(
-        user.id,
-      ),
+      getClientVipAccessState(user.id),
 
       prisma.notification.count({
         where: {
-          userId:
-            user.id,
-
-          readAt:
-            null,
+          userId: user.id,
+          readAt: null,
         },
       }),
+
+      getUnreadConversationCount(user.id),
     ]);
 
-  const navigation:
-    ClientNavigationItem[] = [
-      {
-        label:
-          "Accueil",
+  const navigation: ClientNavigationItem[] = [
+    {
+      label: "Accueil",
+      href: "/espace-client",
+      icon: "HOME",
+      exact: true,
+    },
+    {
+      label: "Rendez-vous",
+      href: "/espace-client/rendez-vous",
+      icon: "APPOINTMENTS",
+    },
+    {
+      label: "Messages",
+      href: "/espace-client/messages",
+      icon: "MESSAGES",
+      badge: unreadMessageCount,
+    },
 
-        href:
-          "/espace-client",
+    ...(vipAccess.shouldShowNavigation
+      ? [
+          {
+            label: "Club VIP",
+            href: "/espace-client/fidelite",
+            icon: "VIP" as const,
+          },
+        ]
+      : []),
 
-        icon:
-          "HOME",
-
-        exact:
-          true,
-      },
-      {
-        label:
-          "Rendez-vous",
-
-        href:
-          "/espace-client/rendez-vous",
-
-        icon:
-          "APPOINTMENTS",
-      },
-
-      ...(vipAccess.shouldShowNavigation
-        ? [
-            {
-              label:
-                "Club VIP",
-
-              href:
-                "/espace-client/fidelite",
-
-              icon:
-                "VIP" as const,
-            },
-          ]
-        : []),
-
-      {
-        label:
-          "Notifications",
-
-        href:
-          "/espace-client/notifications",
-
-        icon:
-          "NOTIFICATIONS",
-
-        badge:
-          unreadCount,
-      },
-    ];
+    {
+      label: "Notifications",
+      href: "/espace-client/notifications",
+      icon: "NOTIFICATIONS",
+      badge: unreadNotificationCount,
+    },
+  ];
 
   return (
     <ClientSpaceNavigation
       user={{
-        firstName:
-          user.firstName?.trim() ||
-          "Cliente",
-
-        lastName:
-          user.lastName?.trim() ||
-          "",
-
-        email:
-          user.email?.trim() ||
-          "",
+        firstName: user.firstName?.trim() || "Cliente",
+        lastName: user.lastName?.trim() || "",
+        email: user.email?.trim() || "",
       }}
-      navigation={
-        navigation
-      }
+      navigation={navigation}
     >
       {children}
     </ClientSpaceNavigation>

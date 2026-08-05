@@ -16,7 +16,9 @@ import {
   Gift,
   Home,
   ImageIcon,
+  Mail,
   Menu,
+  MessageCircle,
   Settings,
   Settings2,
   Sparkles,
@@ -46,6 +48,8 @@ type AdminNavigationProps = {
     image?: string | null;
   };
 
+  unreadMessageCount?: number;
+
   children: ReactNode;
 };
 
@@ -54,6 +58,7 @@ type NavigationItem = {
   href: string;
   icon: LucideIcon;
   exact?: boolean;
+  badge?: number;
 };
 
 /* -------------------------------------------------------------------------- */
@@ -88,6 +93,20 @@ const MAIN_NAVIGATION: NavigationItem[] = [
     href: "/admin/rendez-vous",
 
     icon: CalendarClock,
+  },
+  {
+    label: "Messages",
+
+    href: "/admin/messages",
+
+    icon: MessageCircle,
+  },
+  {
+    label: "Studio e-mails",
+
+    href: "/admin/emails",
+
+    icon: Mail,
   },
   {
     label: "Prestations",
@@ -247,8 +266,21 @@ function SalonLogo({ compact = false }: { compact?: boolean }) {
 /*                              COMPOSANT                                     */
 /* -------------------------------------------------------------------------- */
 
-export function AdminNavigation({ user, children }: AdminNavigationProps) {
+export function AdminNavigation({
+  user,
+  unreadMessageCount = 0,
+  children,
+}: AdminNavigationProps) {
   const pathname = usePathname();
+
+  const mainNavigation = MAIN_NAVIGATION.map((item) =>
+    item.href === "/admin/messages"
+      ? {
+          ...item,
+          badge: unreadMessageCount,
+        }
+      : item,
+  );
 
   const [mobileOpen, setMobileOpen] = useState(false);
 
@@ -341,7 +373,7 @@ export function AdminNavigation({ user, children }: AdminNavigationProps) {
         <nav className="flex-1 overflow-y-auto px-3 py-5 [scrollbar-color:#E8B4C0_transparent] [scrollbar-width:thin]">
           <NavigationSection
             title="Gestion du salon"
-            items={MAIN_NAVIGATION}
+            items={mainNavigation}
             pathname={pathname}
             collapsed={collapsed}
             onNavigate={closeMobileMenu}
@@ -571,6 +603,16 @@ function NavigationLink({
       <span className={`relative truncate ${collapsed ? "lg:hidden" : ""}`}>
         {item.label}
       </span>
+
+      {item.badge && item.badge > 0 ? (
+        <span
+          className={`relative ml-auto flex min-w-6 items-center justify-center rounded-full px-1.5 py-0.5 text-[10px] font-black ${
+            active ? "bg-white text-[#843F59]" : "bg-[#B45F7A] text-white"
+          } ${collapsed ? "lg:absolute lg:right-1 lg:top-1" : ""}`}
+        >
+          {item.badge > 99 ? "99+" : item.badge}
+        </span>
+      ) : null}
 
       {active ? (
         <span

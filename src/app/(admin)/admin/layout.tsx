@@ -1,14 +1,10 @@
-import type {
-  ReactNode,
-} from "react";
+import type { ReactNode } from "react";
 
-import {
-  AdminNavigation,
-} from "@/features/admin/navigation/admin-navigation";
+import { AdminNavigation } from "@/features/admin/navigation/admin-navigation";
 
-import {
-  requireAdminUser,
-} from "@/lib/session";
+import { getUnreadConversationCount } from "@/features/messages/services/conversation.service";
+
+import { requireAdminUser } from "@/lib/session";
 
 /* -------------------------------------------------------------------------- */
 /*                                   TYPES                                    */
@@ -22,8 +18,7 @@ type AdminGroupLayoutProps = {
 /*                                CONFIGURATION                               */
 /* -------------------------------------------------------------------------- */
 
-export const dynamic =
-  "force-dynamic";
+export const dynamic = "force-dynamic";
 
 /* -------------------------------------------------------------------------- */
 /*                                   LAYOUT                                   */
@@ -32,27 +27,19 @@ export const dynamic =
 export default async function AdminGroupLayout({
   children,
 }: AdminGroupLayoutProps) {
-  const user =
-    await requireAdminUser();
+  const user = await requireAdminUser();
+
+  const unreadMessageCount = await getUnreadConversationCount(user.id);
 
   return (
     <AdminNavigation
       user={{
-        firstName:
-          user.firstName?.trim() ||
-          "Administrateur",
-
-        lastName:
-          user.lastName?.trim() ||
-          "",
-
-        email:
-          user.email?.trim() ||
-          "",
-
-        image:
-          user.image ?? null,
+        firstName: user.firstName?.trim() || "Administrateur",
+        lastName: user.lastName?.trim() || "",
+        email: user.email?.trim() || "",
+        image: user.image ?? null,
       }}
+      unreadMessageCount={unreadMessageCount}
     >
       {children}
     </AdminNavigation>
