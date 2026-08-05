@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 
 import { Gift } from "lucide-react";
 
+import { AdminCreateGiftCardDialog } from "@/features/admin/gift-cards/components/admin-create-gift-card-dialog";
 import { AdminGiftCardsClient } from "@/features/admin/gift-cards/components/admin-gift-cards-client";
 
 import {
@@ -35,20 +36,24 @@ export default async function AdminGiftCardsPage({
   return (
     <main className="min-h-screen bg-gradient-to-br from-zinc-50 via-white to-pink-50 px-4 py-8 sm:px-6 lg:px-8">
       <div className="mx-auto max-w-[1600px]">
-        <header className="mb-8">
-          <span className="inline-flex items-center gap-2 rounded-full border border-rose-200 bg-white px-3 py-1.5 text-xs font-black uppercase tracking-[0.18em] text-rose-600 shadow-sm">
-            <Gift className="size-4" />
-            Administration
-          </span>
+        <header className="mb-8 flex flex-col justify-between gap-5 lg:flex-row lg:items-end">
+          <div>
+            <span className="inline-flex items-center gap-2 rounded-full border border-rose-200 bg-white px-3 py-1.5 text-xs font-black uppercase tracking-[0.18em] text-rose-600 shadow-sm">
+              <Gift className="size-4" />
+              Administration
+            </span>
 
-          <h1 className="mt-4 text-3xl font-black tracking-tight text-zinc-950 sm:text-5xl">
-            Cartes cadeaux
-          </h1>
+            <h1 className="mt-4 text-3xl font-black tracking-tight text-zinc-950 sm:text-5xl">
+              Cartes cadeaux
+            </h1>
 
-          <p className="mt-3 max-w-3xl text-zinc-600">
-            Consultez les ventes, les soldes disponibles et l’état de toutes les
-            cartes cadeaux du salon.
-          </p>
+            <p className="mt-3 max-w-3xl text-zinc-600">
+              Consultez les ventes, les soldes disponibles et l’état de toutes
+              les cartes cadeaux du salon.
+            </p>
+          </div>
+
+          <AdminCreateGiftCardDialog />
         </header>
 
         <AdminGiftCardsClient
