@@ -17,7 +17,7 @@ export default function LoginPage() {
           Espace personnel
         </p>
 
-        <h1 className="font-serif text-4xl text-[#35242B] sm:text-5xl">
+        <h1 className="font-serif text-3xl font-semibold tracking-tight text-[#35242B] sm:text-4xl lg:text-5xl">
           Bon retour parmi nous
         </h1>
 

@@ -130,7 +130,7 @@ export default async function GiftCardConfirmationPage({
               {getStatusLabel(giftCard.status)}
             </span>
 
-            <h1 className="mt-5 font-serif text-3xl font-semibold tracking-tight text-[#2F2027] sm:text-4xl lg:text-5xl">
+            <h1 className="mt-5 font-serif text-3xl font-semibold tracking-tight text-[#35242B] sm:text-4xl lg:text-5xl">
               Votre carte cadeau est prête
             </h1>
 

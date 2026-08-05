@@ -218,7 +218,7 @@ export default async function PaymentPage({
             Paiement sécurisé
           </p>
 
-          <h1 className="mt-3 font-serif text-3xl font-semibold tracking-tight text-[#2F2027] sm:text-4xl lg:text-5xl">
+          <h1 className="mt-3 font-serif text-3xl font-semibold tracking-tight text-[#35242B] sm:text-4xl lg:text-5xl">
             Finalisez votre réservation
           </h1>
 

@@ -81,10 +81,10 @@ export function GiftCardHero() {
               Une attention unique
             </p>
 
-            <h1 className="mt-2 font-serif text-[3.75rem] font-semibold leading-[0.88] tracking-[-0.055em] text-[#35242b] sm:text-[5.25rem] lg:text-[5.75rem] xl:text-[6.65rem]">
+            <h1 className="mt-3 max-w-[10ch] font-serif text-[3.25rem] font-semibold leading-[0.98] tracking-[-0.045em] text-[#35242b] sm:text-[4.4rem] sm:leading-[0.96] lg:text-[4.8rem] xl:text-[5.3rem]">
               Carte
 
-              <span className="block bg-gradient-to-r from-[#a64d69] via-[#c47890] to-[#8b3e59] bg-clip-text italic text-transparent">
+              <span className="mt-1 block bg-gradient-to-r from-[#a64d69] via-[#c47890] to-[#8b3e59] bg-clip-text pb-2 italic text-transparent">
                 cadeau
               </span>
             </h1>

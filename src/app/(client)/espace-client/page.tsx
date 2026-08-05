@@ -304,7 +304,7 @@ export default async function ClientSpacePage() {
                 Espace cliente
               </p>
 
-              <h1 className="mt-5 font-serif text-4xl font-semibold tracking-tight sm:text-5xl">
+              <h1 className="mt-5 font-serif text-3xl font-semibold tracking-tight sm:text-4xl lg:text-5xl">
                 Bonjour {user.firstName}
               </h1>
 

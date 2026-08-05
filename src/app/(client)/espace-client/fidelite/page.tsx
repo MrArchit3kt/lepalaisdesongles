@@ -82,7 +82,7 @@ function VipPreLaunchPage({
                 {clubName}
               </p>
 
-              <h1 className="mt-2 font-serif text-3xl font-semibold italic sm:text-5xl">
+              <h1 className="mt-2 font-serif text-3xl font-semibold italic sm:text-4xl lg:text-5xl">
                 {title ??
                   "Le Club VIP arrive bientôt"}
               </h1>

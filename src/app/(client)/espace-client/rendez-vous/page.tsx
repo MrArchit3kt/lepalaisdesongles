@@ -281,7 +281,7 @@ export default async function AppointmentsPage({
               Mon espace
             </p>
 
-            <h1 className="mt-2 font-serif text-4xl font-semibold tracking-tight text-[#2F2027] sm:text-5xl">
+            <h1 className="mt-2 font-serif text-3xl font-semibold tracking-tight text-[#35242B] sm:text-4xl lg:text-5xl">
               Mes rendez-vous
             </h1>
 

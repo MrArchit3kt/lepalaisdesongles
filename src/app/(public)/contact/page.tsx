@@ -106,10 +106,13 @@ export default function ContactPage() {
               Contact et accès
             </div>
 
-            <h1 className="mt-7 font-serif text-5xl leading-tight text-[#35242B] sm:text-6xl lg:text-7xl">
+            <p className="mt-8 font-serif text-xl italic tracking-wide text-[#A65A73] sm:text-2xl">
+              Nous sommes à votre écoute
+            </p>
+
+            <h1 className="mx-auto mt-3 max-w-[15ch] font-serif text-[3.25rem] font-semibold leading-[0.98] tracking-[-0.045em] text-[#35242B] sm:text-[4.4rem] sm:leading-[0.96] lg:text-[4.8rem] xl:text-[5.3rem]">
               Une question avant
-              <span className="bg-gradient-to-r from-[#A64D69] via-[#C47890] to-[#8B3E59] bg-clip-text italic text-transparent">
-                {" "}
+              <span className="mt-1 block bg-gradient-to-r from-[#A64D69] via-[#C47890] to-[#8B3E59] bg-clip-text pb-2 italic text-transparent">
                 votre rendez-vous ?
               </span>
             </h1>

@@ -439,7 +439,7 @@ export default async function AppointmentDetailPage({
               {statusPresentation.label}
             </div>
 
-            <h1 className="mt-6 max-w-4xl font-serif text-4xl font-semibold leading-tight tracking-tight sm:text-5xl">
+            <h1 className="mt-6 max-w-4xl font-serif text-3xl font-semibold leading-tight tracking-tight sm:text-4xl lg:text-5xl">
               {appointment.services.length > 0
                 ? appointment.services
                     .map(

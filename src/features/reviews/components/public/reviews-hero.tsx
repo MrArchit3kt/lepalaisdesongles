@@ -60,7 +60,7 @@ export function ReviewsHero({
               Elles nous font confiance
             </p>
 
-            <h1 className="mt-3 max-w-[13ch] font-serif text-[3.25rem] font-semibold leading-[0.98] tracking-[-0.045em] text-[#35242B] sm:text-[4.35rem] sm:leading-[0.96] lg:text-[4.75rem] xl:text-[5.2rem]">
+            <h1 className="mt-3 max-w-[13ch] font-serif text-[3.25rem] font-semibold leading-[0.98] tracking-[-0.045em] text-[#35242B] sm:text-[4.4rem] sm:leading-[0.96] lg:text-[4.8rem] xl:text-[5.3rem]">
               Vos avis sont notre plus belle
               <span className="mt-1 block bg-gradient-to-r from-[#A64D69] via-[#C47890] to-[#8B3E59] bg-clip-text pb-2 italic text-transparent">
                 récompense
