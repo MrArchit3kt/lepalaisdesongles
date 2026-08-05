@@ -769,6 +769,54 @@ export async function getPublicWebsiteSettings():
   );
 }
 
+export async function getPublicSalonSettings():
+  Promise<SalonSettings> {
+  const row =
+    await prisma.setting.findUnique({
+      where: {
+        key:
+          ADMIN_SETTING_KEYS.salon,
+      },
+
+      select: {
+        id: true,
+        key: true,
+        value: true,
+        updatedAt: true,
+      },
+    });
+
+  return readStoredSection(
+    row ?? undefined,
+    DEFAULT_SALON_SETTINGS,
+    salonSettingsSchema,
+  );
+}
+
+export async function getPublicSocialSettings():
+  Promise<SocialSettings> {
+  const row =
+    await prisma.setting.findUnique({
+      where: {
+        key:
+          ADMIN_SETTING_KEYS.social,
+      },
+
+      select: {
+        id: true,
+        key: true,
+        value: true,
+        updatedAt: true,
+      },
+    });
+
+  return readStoredSection(
+    row ?? undefined,
+    DEFAULT_SOCIAL_SETTINGS,
+    socialSettingsSchema,
+  );
+} 
+
 /* -------------------------------------------------------------------------- */
 /*                              ENREGISTREMENT                                */
 /* -------------------------------------------------------------------------- */
