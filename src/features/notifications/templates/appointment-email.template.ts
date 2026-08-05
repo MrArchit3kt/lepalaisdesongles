@@ -31,7 +31,15 @@ type EmailPresentation = {
   accentSoftColor: string;
   icon: string;
   closingMessage: string;
+  ctaLabel: string;
 };
+
+function formatEuros(amountCents: number): string {
+  return new Intl.NumberFormat("fr-FR", {
+    style: "currency",
+    currency: "EUR",
+  }).format(amountCents / 100);
+}
 
 function escapeHtml(value: string): string {
   return value
@@ -96,6 +104,8 @@ function getPresentation(kind: AppointmentEmailKind): EmailPresentation {
         icon: "✓",
 
         closingMessage: "Votre créneau vous est maintenant réservé.",
+
+        ctaLabel: "Gérer mon rendez-vous",
       };
 
     case "APPOINTMENT_UPDATED":
@@ -117,6 +127,8 @@ function getPresentation(kind: AppointmentEmailKind): EmailPresentation {
 
         closingMessage:
           "Pensez à noter ces nouvelles informations dans votre agenda.",
+
+        ctaLabel: "Gérer mon rendez-vous",
       };
 
     case "APPOINTMENT_CANCELLED":
@@ -137,6 +149,8 @@ function getPresentation(kind: AppointmentEmailKind): EmailPresentation {
         icon: "×",
 
         closingMessage: "Nous espérons pouvoir vous accueillir prochainement.",
+
+        ctaLabel: "Gérer mon rendez-vous",
       };
 
     case "APPOINTMENT_REFUSED":
@@ -158,6 +172,8 @@ function getPresentation(kind: AppointmentEmailKind): EmailPresentation {
 
         closingMessage:
           "Nous restons disponibles pour vous aider à trouver un autre créneau.",
+
+        ctaLabel: "Gérer mon rendez-vous",
       };
 
     case "REMINDER_24H":
@@ -178,6 +194,8 @@ function getPresentation(kind: AppointmentEmailKind): EmailPresentation {
         icon: "◷",
 
         closingMessage: "Nous avons hâte de vous retrouver demain.",
+
+        ctaLabel: "Gérer mon rendez-vous",
       };
 
     case "REMINDER_2H":
@@ -198,6 +216,31 @@ function getPresentation(kind: AppointmentEmailKind): EmailPresentation {
         icon: "◷",
 
         closingMessage: "À tout à l’heure au salon.",
+
+        ctaLabel: "Gérer mon rendez-vous",
+      };
+
+    case "DEPOSIT_PAYMENT_REQUESTED":
+      return {
+        eyebrow: "Demande de paiement",
+
+        title: "Votre rendez-vous vous attend",
+
+        intro:
+          "Votre rendez-vous a été réservé pour vous par le salon. Pour le confirmer définitivement, merci de régler l’acompte demandé en ligne.",
+
+        badgeLabel: "Acompte à régler",
+
+        accentColor: "#9E536B",
+
+        accentSoftColor: "#FBEAF0",
+
+        icon: "€",
+
+        closingMessage:
+          "Votre rendez-vous sera confirmé dès réception du paiement.",
+
+        ctaLabel: "Payer l’acompte en ligne",
       };
   }
 }
@@ -286,6 +329,11 @@ export function renderAppointmentEmail(
 
   const manageUrl = normalizeText(data.manageUrl);
 
+  const depositAmountLabel =
+    typeof data.depositAmountCents === "number" && data.depositAmountCents > 0
+      ? formatEuros(data.depositAmountCents)
+      : null;
+
   const detailRows = [
     {
       label: "Référence",
@@ -307,6 +355,13 @@ export function renderAppointmentEmail(
           label: "Professionnelle",
 
           value: staffName,
+        }
+      : null,
+    depositAmountLabel
+      ? {
+          label: "Acompte à régler",
+
+          value: depositAmountLabel,
         }
       : null,
   ].filter(
@@ -369,7 +424,7 @@ export function renderAppointmentEmail(
                   box-shadow: 0 12px 28px rgba(91, 50, 65, 0.18);
                 "
               >
-                Gérer mon rendez-vous
+                ${escapeHtml(presentation.ctaLabel)}
               </a>
             </td>
           </tr>
@@ -388,9 +443,10 @@ export function renderAppointmentEmail(
     `Date et heure : ${appointmentDate}`,
     `${services.length > 1 ? "Prestations" : "Prestation"} : ${serviceLabel}`,
     staffName ? `Professionnelle : ${staffName}` : null,
+    depositAmountLabel ? `Acompte à régler : ${depositAmountLabel}` : null,
     "",
     presentation.closingMessage,
-    manageUrl ? `Gérer mon rendez-vous : ${manageUrl}` : null,
+    manageUrl ? `${presentation.ctaLabel} : ${manageUrl}` : null,
     SALON_ADDRESS ? `Adresse : ${SALON_ADDRESS}` : null,
     SALON_PHONE ? `Téléphone : ${SALON_PHONE}` : null,
     CONTACT_EMAIL ? `Email : ${CONTACT_EMAIL}` : null,

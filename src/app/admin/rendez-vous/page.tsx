@@ -1,66 +1,80 @@
 import { AdminAppointmentsClient } from "@/features/admin/appointments/components/admin-appointments-client";
+import { AdminCreateAppointmentDialog } from "@/features/admin/appointments/components/admin-create-appointment-dialog";
+import { getPublicServices } from "@/features/services/services/public-services.service";
 import { prisma } from "@/lib/prisma";
 
 export const dynamic = "force-dynamic";
 
 export default async function AdminAppointmentsPage() {
-  const appointments = await prisma.appointment.findMany({
-    orderBy: [
-      {
-        startsAt: "asc",
-      },
-      {
-        createdAt: "desc",
-      },
-    ],
-
-    take: 500,
-
-    include: {
-      client: {
-        select: {
-          firstName: true,
-          lastName: true,
-          email: true,
-          phone: true,
+  const [appointments, allServices] = await Promise.all([
+    prisma.appointment.findMany({
+      orderBy: [
+        {
+          startsAt: "asc",
         },
-      },
+        {
+          createdAt: "desc",
+        },
+      ],
 
-      staff: {
-        select: {
-          id: true,
-          displayName: true,
+      take: 500,
 
-          user: {
-            select: {
-              firstName: true,
-              lastName: true,
+      include: {
+        client: {
+          select: {
+            firstName: true,
+            lastName: true,
+            email: true,
+            phone: true,
+          },
+        },
+
+        staff: {
+          select: {
+            id: true,
+            displayName: true,
+
+            user: {
+              select: {
+                firstName: true,
+                lastName: true,
+              },
             },
           },
         },
-      },
 
-      workstation: {
-        select: {
-          id: true,
-          name: true,
-        },
-      },
-
-      services: {
-        orderBy: {
-          sortOrder: "asc",
+        workstation: {
+          select: {
+            id: true,
+            name: true,
+          },
         },
 
-        select: {
-          id: true,
-          serviceName: true,
-          quantity: true,
-          durationMinutes: true,
+        services: {
+          orderBy: {
+            sortOrder: "asc",
+          },
+
+          select: {
+            id: true,
+            serviceName: true,
+            quantity: true,
+            durationMinutes: true,
+          },
         },
       },
-    },
-  });
+    }),
+
+    getPublicServices(),
+  ]);
+
+  const services = allServices.map((service) => ({
+    id: service.id,
+    name: service.name,
+    categoryName: service.category.name,
+    priceCents: service.priceCents,
+    durationMinutes: service.durationMinutes,
+  }));
 
   const serialized = appointments.map((appointment) => ({
     id: appointment.id,
@@ -141,19 +155,23 @@ export default async function AdminAppointmentsPage() {
   return (
     <main className="min-h-screen bg-gradient-to-br from-zinc-50 via-white to-pink-50 px-4 py-8 sm:px-6 lg:px-8">
       <div className="mx-auto max-w-7xl">
-        <header className="mb-8">
-          <p className="text-sm font-semibold uppercase tracking-[0.22em] text-rose-600">
-            Administration
-          </p>
+        <header className="mb-8 flex flex-col gap-4 sm:flex-row sm:items-end sm:justify-between">
+          <div>
+            <p className="text-sm font-semibold uppercase tracking-[0.22em] text-rose-600">
+              Administration
+            </p>
 
-          <h1 className="mt-2 text-3xl font-semibold sm:text-5xl">
-            Gestion des rendez-vous
-          </h1>
+            <h1 className="mt-2 text-3xl font-semibold sm:text-5xl">
+              Gestion des rendez-vous
+            </h1>
 
-          <p className="mt-3 text-zinc-600">
-            Confirmez, refusez, annulez, reprogrammez et suivez chaque
-            rendez-vous.
-          </p>
+            <p className="mt-3 text-zinc-600">
+              Confirmez, refusez, annulez, reprogrammez et suivez chaque
+              rendez-vous.
+            </p>
+          </div>
+
+          <AdminCreateAppointmentDialog services={services} />
         </header>
 
         <AdminAppointmentsClient appointments={serialized} />
