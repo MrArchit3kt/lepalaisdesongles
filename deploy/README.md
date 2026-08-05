@@ -64,9 +64,21 @@ correspondra ainsi automatiquement à cet environnement (Ubuntu 24.04
 ```bash
 pnpm install
 pnpm db:generate
-pnpm db:deploy      # applique les migrations (jamais db:push en prod)
+pnpm db:deploy         # applique les migrations (jamais db:push en prod)
+pnpm db:seed           # compte admin, catégories, prestations, horaires...
+pnpm seed:workstations # ⚠️ étape séparée et indispensable, voir ci-dessous
 pnpm build
 ```
+
+> **`pnpm seed:workstations` est indispensable, pas optionnel.**
+> `db:seed` crée les prestations, le personnel et les postes de
+> travail comme des enregistrements séparés, mais ne les relie pas
+> entre eux. Sans `seed:workstations` (qui assigne le personnel aux
+> postes et les postes aux prestations), le moteur de disponibilité
+> ne trouve aucune combinaison valide : **aucun créneau ne
+> s'affichera jamais côté réservation**, même si tout paraît actif
+> dans l'admin. Toujours lancer `db:seed` avant `seed:workstations`
+> (le second dépend des données créées par le premier).
 
 ## 4. Lancer l'app avec PM2
 
@@ -115,6 +127,16 @@ Teste chaque route manuellement avant de faire confiance au cron :
 ## 7. Vérifications post-déploiement
 
 - [ ] `https://lepalaisdesongles.fr` répond avec un cadenas valide
+- [ ] `NEXT_PUBLIC_APP_URL` et `NEXTAUTH_URL` valent bien
+      `https://lepalaisdesongles.fr` dans le `.env` du VPS (sinon
+      l'inscription, l'envoi de messages, la création de rendez-vous
+      et l'upload d'images échouent tous avec une erreur "origine non
+      autorisée", silencieusement pour l'upload)
+- [ ] Un compte cliente peut être créé depuis le site
+- [ ] Une image peut être importée dans la galerie ou une prestation
+      depuis l'admin
+- [ ] Des créneaux s'affichent bien en réservant une prestation
+      (sinon : `pnpm seed:workstations` n'a probablement pas été lancé)
 - [ ] Connexion admin fonctionnelle, cookies bien envoyés en `Secure`
 - [ ] Un rendez-vous test peut être créé et payé (webhook PayPal
       configuré sur `https://lepalaisdesongles.fr/api/paypal/webhook`
