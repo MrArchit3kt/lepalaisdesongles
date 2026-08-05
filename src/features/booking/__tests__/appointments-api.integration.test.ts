@@ -9,6 +9,7 @@ import {
 const mocks = vi.hoisted(() => ({
   getServerSession: vi.fn(),
   createAppointment: vi.fn(),
+  consumeSecurityRateLimit: vi.fn(),
 }));
 
 vi.mock("@/lib/auth", () => ({
@@ -30,6 +31,19 @@ vi.mock(
   }),
 );
 
+/*
+ * La route importe @/lib/security/rate-limit, qui importe
+ * @/lib/prisma au chargement du module. Sans ce mock, le test
+ * échoue avant même de s'exécuter faute de DATABASE_URL.
+ */
+vi.mock("@/lib/security/rate-limit", () => ({
+  consumeSecurityRateLimit:
+    mocks.consumeSecurityRateLimit,
+
+  getClientIpAddress:
+    () => "127.0.0.1",
+}));
+
 import { POST } from "@/app/api/appointments/route";
 
 function makeRequest(
@@ -41,6 +55,13 @@ function makeRequest(
       method: "POST",
       headers: {
         "content-type": "application/json",
+
+        /*
+         * Hors production, isTrustedRequestOrigin() accepte
+         * l'origine de la requête elle-même — il faut donc la
+         * déclarer explicitement, comme le ferait un navigateur.
+         */
+        origin: "http://localhost",
       },
       body: JSON.stringify(body),
     },
@@ -55,7 +76,17 @@ describe("POST /api/appointments — intégration", () => {
       user: {
         id: "user-1",
         email: "cliente@example.com",
+        role: "CLIENT",
+        status: "ACTIVE",
       },
+    });
+
+    mocks.consumeSecurityRateLimit.mockResolvedValue({
+      allowed: true,
+      attempts: 1,
+      remaining: 5,
+      blockedUntil: null,
+      retryAfterSeconds: 0,
     });
   });
 
@@ -68,10 +99,15 @@ describe("POST /api/appointments — intégration", () => {
 
     expect(response.status).toBe(401);
 
+    /*
+     * Ce 401 vient de requireApiUser() (@/lib/api-session), qui
+     * répond { success, error } — un format distinct des erreurs
+     * de la route elle-même ({ message, code }).
+     */
     await expect(
       response.json(),
     ).resolves.toMatchObject({
-      message: expect.any(String),
+      error: expect.any(String),
     });
 
     expect(
@@ -160,10 +196,15 @@ describe("POST /api/appointments — intégration", () => {
 
     expect(response.status).toBe(400);
 
+    /*
+     * Ce message figure dans la liste des erreurs métier
+     * publiques de la route : il est renvoyé tel quel avec
+     * le code INVALID_APPOINTMENT, pas le code générique.
+     */
     await expect(
       response.json(),
     ).resolves.toMatchObject({
-      code: "APPOINTMENT_CREATION_FAILED",
+      code: "INVALID_APPOINTMENT",
       message: expect.any(String),
     });
   });
@@ -185,7 +226,12 @@ describe("POST /api/appointments — intégration", () => {
       }),
     );
 
-    expect(response.status).toBe(400);
+    /*
+     * Ce message ne figure dans aucune liste d'erreurs
+     * publiques : la route retombe sur le code générique
+     * et un statut 500, sans jamais exposer le détail interne.
+     */
+    expect(response.status).toBe(500);
 
     const data = await response.json();
 
