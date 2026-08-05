@@ -42,8 +42,8 @@ export function GalleryCategoryFilter({
               className={[
                 "inline-flex items-center gap-2 rounded-full border px-5 py-3 text-sm font-semibold transition-all",
                 active
-                  ? "border-pink-600 bg-pink-600 text-white shadow-lg shadow-pink-300/40"
-                  : "border-zinc-200 bg-white text-zinc-700 hover:border-pink-300 hover:bg-pink-50",
+                  ? "border-[#A64D69] bg-gradient-to-r from-[#AA526E] via-[#BD7088] to-[#8B405A] text-white shadow-lg shadow-[#D89CB0]/40"
+                  : "border-[#ECD9DF] bg-white text-[#4A3540] hover:border-[#D89CB0] hover:bg-[#FFF0F4]",
               ].join(" ")}
             >
               <span>
@@ -55,7 +55,7 @@ export function GalleryCategoryFilter({
                   "rounded-full px-2 py-0.5 text-xs",
                   active
                     ? "bg-white/20"
-                    : "bg-zinc-100",
+                    : "bg-[#F6E7EB]",
                 ].join(" ")}
               >
                 {category.count}

@@ -364,10 +364,13 @@ export function PublicGallery({
 
   return (
     <>
-      <section className="relative py-16 sm:py-20 lg:py-24">
+      <section
+        id="gallery-grid"
+        className="relative py-16 sm:py-20 lg:py-24"
+      >
         <div
           aria-hidden="true"
-          className="pointer-events-none absolute inset-x-0 top-0 -z-10 h-72 bg-gradient-to-b from-pink-50/70 to-transparent"
+          className="pointer-events-none absolute inset-x-0 top-0 -z-10 h-72 bg-gradient-to-b from-[#FDF1F5]/70 to-transparent"
         />
 
         <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
@@ -459,19 +462,19 @@ export function PublicGallery({
                     exit={{
                       opacity: 0,
                     }}
-                    className="rounded-[2.5rem] border border-dashed border-pink-200 bg-white px-6 py-20 text-center shadow-sm"
+                    className="rounded-[2.5rem] border border-dashed border-[#DCA8B8] bg-white px-6 py-20 text-center shadow-sm"
                   >
-                    <div className="mx-auto flex h-20 w-20 items-center justify-center rounded-full bg-pink-50">
-                      <SearchX className="h-9 w-9 text-pink-500" />
+                    <div className="mx-auto flex h-20 w-20 items-center justify-center rounded-full bg-[#FFF0F4]">
+                      <SearchX className="h-9 w-9 text-[#A64D69]" />
                     </div>
 
-                    <h2 className="mt-6 text-2xl font-black tracking-tight text-zinc-950">
+                    <h2 className="mt-6 font-serif text-2xl font-semibold tracking-tight text-[#35242B]">
                       Aucune
                       réalisation
                       trouvée
                     </h2>
 
-                    <p className="mx-auto mt-3 max-w-lg text-sm leading-6 text-zinc-600 sm:text-base">
+                    <p className="mx-auto mt-3 max-w-lg text-sm leading-6 text-[#79636C] sm:text-base">
                       Essayez une
                       autre recherche
                       ou sélectionnez
@@ -485,7 +488,7 @@ export function PublicGallery({
                         onClick={
                           resetFilters
                         }
-                        className="mt-7 inline-flex items-center gap-2 rounded-full bg-pink-600 px-6 py-3 text-sm font-bold text-white shadow-lg shadow-pink-200 transition hover:-translate-y-0.5 hover:bg-pink-700 focus:outline-none focus:ring-4 focus:ring-pink-200"
+                        className="mt-7 inline-flex items-center gap-2 rounded-full bg-gradient-to-r from-[#AA526E] via-[#BD7088] to-[#8B405A] px-6 py-3 text-sm font-black text-white shadow-[0_14px_35px_rgba(139,64,90,0.3)] transition hover:-translate-y-0.5 hover:shadow-[0_18px_45px_rgba(139,64,90,0.4)] focus:outline-none focus:ring-4 focus:ring-[#F0DCE3]"
                       >
                         <RotateCcw className="h-4 w-4" />
 
@@ -498,17 +501,17 @@ export function PublicGallery({
               </AnimatePresence>
             </>
           ) : (
-            <div className="rounded-[2.5rem] border border-dashed border-pink-200 bg-white px-6 py-20 text-center shadow-sm">
-              <div className="mx-auto flex h-20 w-20 items-center justify-center rounded-full bg-pink-50">
-                <ImageOff className="h-9 w-9 text-pink-500" />
+            <div className="rounded-[2.5rem] border border-dashed border-[#DCA8B8] bg-white px-6 py-20 text-center shadow-sm">
+              <div className="mx-auto flex h-20 w-20 items-center justify-center rounded-full bg-[#FFF0F4]">
+                <ImageOff className="h-9 w-9 text-[#A64D69]" />
               </div>
 
-              <h2 className="mt-6 text-2xl font-black tracking-tight text-zinc-950">
+              <h2 className="mt-6 font-serif text-2xl font-semibold tracking-tight text-[#35242B]">
                 La galerie sera
                 bientôt disponible
               </h2>
 
-              <p className="mx-auto mt-3 max-w-lg text-sm leading-6 text-zinc-600 sm:text-base">
+              <p className="mx-auto mt-3 max-w-lg text-sm leading-6 text-[#79636C] sm:text-base">
                 Les premières
                 créations du salon
                 seront publiées ici

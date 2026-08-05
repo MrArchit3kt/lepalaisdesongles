@@ -1,282 +1,255 @@
-"use client";
-
-import Link from "next/link";
 import {
-  ArrowRight,
+  ArrowDown,
   BadgeCheck,
+  HeartHandshake,
   MessageSquareHeart,
+  ShieldCheck,
   Sparkles,
   Star,
 } from "lucide-react";
-import { motion } from "framer-motion";
 
 type ReviewsHeroProps = {
   averageRating: number;
   totalReviews: number;
 };
 
-const STARS = Array.from({
-  length: 5,
-});
+const formatNumber = (value: number): string =>
+  new Intl.NumberFormat("fr-FR").format(value);
 
-function formatRating(
-  rating: number,
-) {
-  return new Intl.NumberFormat(
-    "fr-FR",
-    {
-      minimumFractionDigits: 1,
-      maximumFractionDigits: 1,
-    },
-  ).format(rating);
-}
+const formatRating = (value: number): string =>
+  new Intl.NumberFormat("fr-FR", {
+    minimumFractionDigits: 1,
+    maximumFractionDigits: 1,
+  }).format(value);
 
 export function ReviewsHero({
   averageRating,
   totalReviews,
 }: ReviewsHeroProps) {
-  const safeAverageRating =
-    Number.isFinite(
-      averageRating,
-    )
-      ? Math.min(
-          Math.max(
-            averageRating,
-            0,
-          ),
-          5,
-        )
-      : 0;
+  const safeAverageRating = Number.isFinite(averageRating)
+    ? Math.min(Math.max(averageRating, 0), 5)
+    : 0;
 
   return (
-    <section className="relative isolate overflow-hidden border-b border-pink-100 bg-white">
-      <div
-        aria-hidden="true"
-        className="absolute inset-0 -z-20 bg-[linear-gradient(135deg,#fff_0%,#fff5f8_45%,#fdf2f8_100%)]"
-      />
+    <section className="relative isolate overflow-hidden border-b border-[#ECD9DF] bg-[#FBF3F5]">
+      <div className="pointer-events-none absolute inset-0 -z-30 bg-[linear-gradient(118deg,#F8E8ED_0%,#FFF9FA_42%,#F1DCE3_100%)]" />
 
-      <div
-        aria-hidden="true"
-        className="absolute -left-32 top-8 -z-10 h-[30rem] w-[30rem] rounded-full bg-pink-200/45 blur-3xl"
-      />
+      <div className="pointer-events-none absolute inset-0 -z-20 opacity-90 [background-image:radial-gradient(circle_at_10%_16%,rgba(255,255,255,0.98)_0,rgba(255,255,255,0)_29%),radial-gradient(circle_at_86%_16%,rgba(202,124,148,0.20)_0,rgba(202,124,148,0)_32%),radial-gradient(circle_at_53%_88%,rgba(221,183,194,0.30)_0,rgba(221,183,194,0)_36%)]" />
 
-      <div
-        aria-hidden="true"
-        className="absolute -right-40 bottom-0 -z-10 h-[32rem] w-[32rem] rounded-full bg-fuchsia-200/35 blur-3xl"
-      />
+      <div className="pointer-events-none absolute -left-28 top-20 -z-10 size-[24rem] rounded-full bg-[#E8B3C3]/25 blur-[100px]" />
 
-      <div
-        aria-hidden="true"
-        className="absolute inset-0 -z-10 bg-[radial-gradient(circle_at_top_right,rgba(255,255,255,0.95),transparent_38%)]"
-      />
+      <div className="pointer-events-none absolute -right-24 top-[-5rem] -z-10 size-[30rem] rounded-full bg-[#D89CB0]/25 blur-[120px]" />
 
-      <div className="mx-auto grid max-w-7xl items-center gap-12 px-4 py-20 sm:px-6 sm:py-24 lg:grid-cols-[minmax(0,1fr)_430px] lg:gap-16 lg:px-8 lg:py-28">
-        <motion.div
-          initial={{
-            opacity: 0,
-            y: 24,
-          }}
-          animate={{
-            opacity: 1,
-            y: 0,
-          }}
-          transition={{
-            duration: 0.55,
-          }}
-        >
-          <div className="inline-flex items-center gap-2 rounded-full border border-pink-200 bg-white/80 px-4 py-2 text-sm font-bold text-pink-700 shadow-sm backdrop-blur">
-            <MessageSquareHeart className="h-4 w-4" />
+      <div className="pointer-events-none absolute bottom-[-13rem] left-1/3 -z-10 size-[35rem] rounded-full bg-white/80 blur-[110px]" />
 
-            Elles parlent de leur expérience
-          </div>
+      <div className="pointer-events-none absolute left-[7%] top-[16%] hidden size-3 rounded-full bg-white shadow-[0_0_28px_10px_rgba(255,255,255,0.9)] lg:block" />
 
-          <h1 className="mt-6 max-w-4xl text-4xl font-black tracking-tight text-zinc-950 sm:text-5xl lg:text-6xl">
-            Vos avis sont notre plus
-            belle récompense
-          </h1>
+      <div className="pointer-events-none absolute left-[44%] top-[22%] hidden size-2 rounded-full bg-[#DCA8B8]/60 shadow-[0_0_24px_7px_rgba(220,168,184,0.45)] lg:block" />
 
-          <p className="mt-6 max-w-2xl text-base leading-7 text-zinc-600 sm:text-lg">
-            Découvrez les expériences
-            partagées par les clientes du
-            Palais des Ongles et
-            choisissez votre prochaine
-            prestation en toute confiance.
-          </p>
+      <div className="pointer-events-none absolute right-[8%] top-[12%] hidden size-4 rounded-full bg-white/80 shadow-[0_0_30px_10px_rgba(255,255,255,0.8)] lg:block" />
 
-          <div className="mt-8 flex flex-col gap-3 sm:flex-row">
-            <Link
-              href="/reservation"
-              className="inline-flex items-center justify-center gap-2 rounded-2xl bg-pink-600 px-6 py-4 text-sm font-bold text-white shadow-lg shadow-pink-200 transition duration-300 hover:-translate-y-0.5 hover:bg-pink-700 hover:shadow-xl focus:outline-none focus:ring-4 focus:ring-pink-200"
-            >
-              Prendre rendez-vous
+      <div className="mx-auto max-w-[1440px] px-4 pb-10 pt-10 sm:px-6 sm:pb-12 sm:pt-14 lg:px-8 lg:pb-14 lg:pt-16">
+        <div className="grid min-h-[650px] items-center gap-14 lg:grid-cols-[0.94fr_1.06fr] lg:gap-10 xl:min-h-[700px]">
+          <div className="relative z-20 mx-auto w-full max-w-2xl text-center lg:mx-0 lg:text-left">
+            <div className="inline-flex items-center gap-2 rounded-full border border-white/90 bg-white/60 px-4 py-2 text-[10px] font-black uppercase tracking-[0.24em] text-[#A44E69] shadow-[0_12px_35px_rgba(91,45,61,0.08)] backdrop-blur-xl">
+              <MessageSquareHeart className="size-4" />
+              Avis clientes
+            </div>
 
-              <ArrowRight className="h-4 w-4" />
-            </Link>
+            <p className="mt-8 font-serif text-xl italic tracking-wide text-[#A65A73] sm:text-2xl">
+              Elles nous font confiance
+            </p>
 
-            <a
-              href="#avis-clients"
-              className="inline-flex items-center justify-center gap-2 rounded-2xl border border-zinc-200 bg-white px-6 py-4 text-sm font-bold text-zinc-800 shadow-sm transition duration-300 hover:-translate-y-0.5 hover:border-pink-200 hover:text-pink-700 focus:outline-none focus:ring-4 focus:ring-pink-100"
-            >
-              Lire les avis
+            <h1 className="mt-3 max-w-[13ch] font-serif text-[3.25rem] font-semibold leading-[0.98] tracking-[-0.045em] text-[#35242B] sm:text-[4.35rem] sm:leading-[0.96] lg:text-[4.75rem] xl:text-[5.2rem]">
+              Vos avis sont notre plus belle
+              <span className="mt-1 block bg-gradient-to-r from-[#A64D69] via-[#C47890] to-[#8B3E59] bg-clip-text pb-2 italic text-transparent">
+                récompense
+              </span>
+            </h1>
 
-              <MessageSquareHeart className="h-4 w-4" />
-            </a>
-          </div>
+            <p className="mx-auto mt-7 max-w-xl text-sm leading-7 text-[#79636C] sm:text-base sm:leading-8 lg:mx-0">
+              Découvrez les expériences partagées par les clientes du Palais
+              des Ongles et choisissez votre prochaine prestation en toute
+              confiance.
+            </p>
 
-          <div className="mt-8 flex flex-wrap gap-3 text-sm font-semibold text-zinc-600">
-            <span className="inline-flex items-center gap-2 rounded-full border border-white/80 bg-white/70 px-4 py-2 shadow-sm backdrop-blur">
-              <BadgeCheck className="h-4 w-4 text-pink-600" />
+            <div className="mt-7 flex flex-wrap justify-center gap-3 lg:justify-start">
+              <span className="inline-flex items-center gap-2 rounded-full border border-white/90 bg-white/65 px-4 py-2 text-xs font-bold text-[#6F5962] shadow-sm backdrop-blur">
+                <BadgeCheck className="size-4 text-[#A64D69]" />
+                Avis vérifiés
+              </span>
 
-              Avis vérifiés
-            </span>
+              <span className="inline-flex items-center gap-2 rounded-full border border-white/90 bg-white/65 px-4 py-2 text-xs font-bold text-[#6F5962] shadow-sm backdrop-blur">
+                <Sparkles className="size-4 text-[#A64D69]" />
+                Expérience personnalisée
+              </span>
+            </div>
 
-            <span className="inline-flex items-center gap-2 rounded-full border border-white/80 bg-white/70 px-4 py-2 shadow-sm backdrop-blur">
-              <Sparkles className="h-4 w-4 text-pink-600" />
-
-              Expérience personnalisée
-            </span>
-          </div>
-        </motion.div>
-
-        <motion.div
-          initial={{
-            opacity: 0,
-            x: 28,
-            scale: 0.97,
-          }}
-          animate={{
-            opacity: 1,
-            x: 0,
-            scale: 1,
-          }}
-          transition={{
-            delay: 0.12,
-            duration: 0.6,
-          }}
-          className="relative"
-        >
-          <div
-            aria-hidden="true"
-            className="absolute inset-6 rounded-[2.5rem] bg-pink-500/20 blur-3xl"
-          />
-
-          <div className="relative overflow-hidden rounded-[2.25rem] border border-white/80 bg-zinc-950 p-6 text-white shadow-[0_35px_100px_-40px_rgba(190,24,93,0.55)] sm:p-8">
-            <div
-              aria-hidden="true"
-              className="absolute -right-20 -top-20 h-64 w-64 rounded-full bg-pink-500/25 blur-3xl"
-            />
-
-            <div
-              aria-hidden="true"
-              className="absolute -bottom-24 -left-20 h-72 w-72 rounded-full bg-fuchsia-500/15 blur-3xl"
-            />
-
-            <div className="relative">
-              <div className="flex items-start justify-between gap-5">
-                <div>
-                  <p className="text-sm font-bold uppercase tracking-[0.2em] text-pink-300">
-                    Note moyenne
-                  </p>
-
-                  <div className="mt-3 flex items-end gap-3">
-                    <span className="text-6xl font-black tracking-tight sm:text-7xl">
-                      {formatRating(
-                        safeAverageRating,
-                      )}
-                    </span>
-
-                    <span className="pb-2 text-lg font-bold text-zinc-400">
-                      / 5
-                    </span>
-                  </div>
-                </div>
-
-                <div className="flex h-14 w-14 shrink-0 items-center justify-center rounded-2xl border border-white/10 bg-white/10 text-pink-300 backdrop-blur">
-                  <Sparkles className="h-6 w-6" />
-                </div>
-              </div>
-
-              <div
-                className="mt-6 flex gap-1.5"
-                aria-label={`${formatRating(
-                  safeAverageRating,
-                )} étoiles sur 5`}
+            <div className="mt-9 flex flex-col items-center gap-4 sm:flex-row sm:justify-center lg:justify-start">
+              <a
+                href="#avis-clients"
+                className="group inline-flex min-h-14 w-full items-center justify-center gap-3 rounded-full bg-gradient-to-r from-[#AA526E] via-[#BD7088] to-[#8B405A] px-7 py-4 text-sm font-black text-white shadow-[0_18px_45px_rgba(139,64,90,0.28)] transition duration-300 hover:-translate-y-1 hover:shadow-[0_24px_55px_rgba(139,64,90,0.35)] sm:w-auto"
               >
-                {STARS.map(
-                  (
-                    _,
-                    index,
-                  ) => {
-                    const starNumber =
-                      index + 1;
+                <MessageSquareHeart className="size-5 transition-transform duration-300 group-hover:-rotate-6 group-hover:scale-110" />
+                Lire les avis
+                <ArrowDown className="size-4 transition-transform duration-300 group-hover:translate-y-1" />
+              </a>
 
-                    const isFilled =
-                      safeAverageRating >=
-                      starNumber -
-                        0.25;
-
-                    return (
-                      <motion.span
-                        key={
-                          starNumber
-                        }
-                        initial={{
-                          opacity: 0,
-                          scale: 0.65,
-                        }}
-                        animate={{
-                          opacity: 1,
-                          scale: 1,
-                        }}
-                        transition={{
-                          delay:
-                            0.32 +
-                            index *
-                              0.07,
-                          duration: 0.25,
-                        }}
-                      >
-                        <Star
-                          className={`h-7 w-7 ${
-                            isFilled
-                              ? "fill-pink-500 text-pink-500"
-                              : "fill-zinc-800 text-zinc-700"
-                          }`}
-                        />
-                      </motion.span>
-                    );
-                  },
-                )}
-              </div>
-
-              <div className="mt-8 rounded-[1.5rem] border border-white/10 bg-white/[0.07] p-5 backdrop-blur">
-                <div className="flex items-center gap-4">
-                  <div className="flex h-12 w-12 items-center justify-center rounded-full bg-pink-500/15 text-pink-300">
-                    <MessageSquareHeart className="h-5 w-5" />
-                  </div>
-
-                  <div>
-                    <p className="text-2xl font-black">
-                      {totalReviews}
-                    </p>
-
-                    <p className="text-sm text-zinc-400">
-                      {totalReviews > 1
-                        ? "avis publiés"
-                        : "avis publié"}
-                    </p>
-                  </div>
-                </div>
-              </div>
-
-              <p className="mt-6 text-sm leading-6 text-zinc-400">
-                Chaque retour nous aide à
-                améliorer continuellement
-                votre expérience au salon.
+              <p className="text-xs font-semibold leading-5 text-[#8B747D]">
+                Chaque retour nous aide à progresser
+                <span className="block">et à mieux vous accueillir</span>
               </p>
             </div>
+
+            <div className="mt-9 grid gap-3 sm:grid-cols-2 lg:max-w-lg">
+              <div className="rounded-[1.35rem] border border-white/80 bg-white/50 p-4 text-left shadow-[0_14px_35px_rgba(93,47,63,0.06)] backdrop-blur-xl">
+                <span className="grid size-9 place-items-center rounded-xl bg-[#FFF0F4] text-[#A64D69]">
+                  <Star className="size-4" />
+                </span>
+
+                <p className="mt-3 text-2xl font-black text-[#3B2930]">
+                  {formatRating(safeAverageRating)}/5
+                </p>
+
+                <p className="mt-1 text-[10px] font-semibold uppercase tracking-[0.12em] text-[#8C747D]">
+                  Note moyenne
+                </p>
+              </div>
+
+              <div className="rounded-[1.35rem] border border-white/80 bg-white/50 p-4 text-left shadow-[0_14px_35px_rgba(93,47,63,0.06)] backdrop-blur-xl">
+                <span className="grid size-9 place-items-center rounded-xl bg-[#FFF0F4] text-[#A64D69]">
+                  <MessageSquareHeart className="size-4" />
+                </span>
+
+                <p className="mt-3 text-2xl font-black text-[#3B2930]">
+                  {formatNumber(totalReviews)}
+                </p>
+
+                <p className="mt-1 text-[10px] font-semibold uppercase tracking-[0.12em] text-[#8C747D]">
+                  Avis publiés
+                </p>
+              </div>
+            </div>
           </div>
-        </motion.div>
+
+          <div className="relative z-10 mx-auto flex min-h-[500px] w-full max-w-[720px] items-center justify-center sm:min-h-[580px] lg:min-h-[620px]">
+            <div className="pointer-events-none absolute left-1/2 top-1/2 size-[23rem] -translate-x-1/2 -translate-y-1/2 rounded-full border border-white/65 bg-white/20 shadow-[inset_0_0_80px_rgba(255,255,255,0.75),0_35px_100px_rgba(115,56,76,0.10)] backdrop-blur-sm sm:size-[31rem]" />
+
+            <div className="pointer-events-none absolute left-[6%] top-[12%] size-28 rounded-full bg-[#D99DB0]/25 blur-2xl sm:size-40" />
+
+            <div className="pointer-events-none absolute bottom-[10%] right-[2%] size-36 rounded-full bg-white/80 blur-3xl sm:size-52" />
+
+            <div className="relative flex w-full max-w-[570px] items-center justify-center">
+              <div className="absolute bottom-[2%] left-1/2 h-24 w-[70%] -translate-x-1/2 rounded-[50%] bg-[#7A3E53]/20 blur-3xl" />
+
+              <div className="relative z-10 flex size-[300px] items-center justify-center rounded-full border border-white/80 bg-[radial-gradient(circle_at_38%_30%,rgba(255,255,255,0.95),rgba(255,238,243,0.75)_42%,rgba(224,156,177,0.72)_100%)] shadow-[0_35px_90px_rgba(105,48,69,0.22),inset_0_1px_0_rgba(255,255,255,0.95)] sm:size-[390px]">
+                <div className="absolute inset-5 rounded-full border border-white/55" />
+
+                <div className="absolute inset-12 rounded-full border border-white/45" />
+
+                <div className="relative flex size-40 items-center justify-center rounded-full border border-white/80 bg-white/55 shadow-[0_22px_50px_rgba(117,56,77,0.15)] backdrop-blur-xl sm:size-52">
+                  <Star className="size-24 text-[#9B4964] drop-shadow-[0_16px_22px_rgba(125,58,82,0.25)] sm:size-32" />
+
+                  <span className="absolute -right-2 top-4 grid size-11 place-items-center rounded-full border border-white bg-white/90 text-[#B86680] shadow-lg">
+                    <Sparkles className="size-5" />
+                  </span>
+                </div>
+              </div>
+
+              <div className="absolute left-[2%] top-[12%] z-20 rotate-[-8deg] rounded-[1.5rem] border border-white/85 bg-white/70 px-5 py-4 shadow-[0_20px_45px_rgba(98,47,65,0.13)] backdrop-blur-xl sm:left-[4%]">
+                <ShieldCheck className="size-6 text-[#B4863B]" />
+
+                <p className="mt-2 text-[10px] font-black uppercase tracking-[0.16em] text-[#7E6670]">
+                  Avis vérifiés
+                </p>
+              </div>
+
+              <div className="absolute right-[0%] top-[20%] z-20 rotate-[7deg] rounded-[1.5rem] border border-white/85 bg-white/70 px-5 py-4 shadow-[0_20px_45px_rgba(98,47,65,0.13)] backdrop-blur-xl sm:right-[2%]">
+                <HeartHandshake className="size-6 text-[#A64D69]" />
+
+                <p className="mt-2 text-[10px] font-black uppercase tracking-[0.16em] text-[#7E6670]">
+                  Confiance durable
+                </p>
+              </div>
+
+              <div className="absolute bottom-[6%] left-[7%] z-20 rotate-[5deg] rounded-[1.5rem] border border-white/85 bg-white/70 px-5 py-4 shadow-[0_20px_45px_rgba(98,47,65,0.13)] backdrop-blur-xl sm:left-[10%]">
+                <BadgeCheck className="size-6 text-[#A64D69]" />
+
+                <p className="mt-2 text-[10px] font-black uppercase tracking-[0.16em] text-[#7E6670]">
+                  Clientes réelles
+                </p>
+              </div>
+
+              <div className="absolute bottom-[4%] right-[4%] z-20 rotate-[-6deg] rounded-[1.5rem] border border-white/85 bg-white/70 px-5 py-4 shadow-[0_20px_45px_rgba(98,47,65,0.13)] backdrop-blur-xl sm:right-[7%]">
+                <Sparkles className="size-6 text-[#A64D69]" />
+
+                <p className="mt-2 text-[10px] font-black uppercase tracking-[0.16em] text-[#7E6670]">
+                  Expérience notée
+                </p>
+              </div>
+
+              <div className="pointer-events-none absolute left-[16%] top-[46%] size-2 rounded-full bg-white shadow-[0_0_20px_8px_rgba(255,255,255,0.9)]" />
+
+              <div className="pointer-events-none absolute right-[15%] top-[42%] size-2 rounded-full bg-white shadow-[0_0_20px_8px_rgba(255,255,255,0.9)]" />
+            </div>
+          </div>
+        </div>
+
+        <div className="relative z-20 mt-8 overflow-hidden rounded-[2rem] border border-white/80 bg-white/55 shadow-[0_24px_65px_rgba(96,48,65,0.08)] backdrop-blur-2xl lg:mt-4">
+          <div className="grid sm:grid-cols-3">
+            <div className="flex items-center gap-4 px-5 py-5 sm:px-6 lg:py-6">
+              <span className="grid size-11 shrink-0 place-items-center rounded-2xl border border-[#F0DCE3] bg-[#FFF7F9] text-[#A64D69] shadow-sm">
+                <BadgeCheck className="size-5" />
+              </span>
+
+              <div>
+                <p className="text-xs font-black text-[#3D2A32]">
+                  Avis vérifiés
+                </p>
+
+                <p className="mt-1 text-[10px] leading-5 text-[#8A737C]">
+                  Uniquement des clientes ayant réservé au salon
+                </p>
+              </div>
+            </div>
+
+            <div className="relative flex items-center gap-4 px-5 py-5 sm:px-6 lg:py-6">
+              <div className="absolute left-0 top-1/2 hidden h-10 w-px -translate-y-1/2 bg-[#EAD4DC] sm:block" />
+
+              <span className="grid size-11 shrink-0 place-items-center rounded-2xl border border-[#F0DCE3] bg-[#FFF7F9] text-[#A64D69] shadow-sm">
+                <Star className="size-5" />
+              </span>
+
+              <div>
+                <p className="text-xs font-black text-[#3D2A32]">
+                  Transparence totale
+                </p>
+
+                <p className="mt-1 text-[10px] leading-5 text-[#8A737C]">
+                  Notes et réponses du salon affichées sans filtre
+                </p>
+              </div>
+            </div>
+
+            <div className="relative flex items-center gap-4 px-5 py-5 sm:px-6 lg:py-6">
+              <div className="absolute left-0 top-1/2 hidden h-10 w-px -translate-y-1/2 bg-[#EAD4DC] sm:block" />
+
+              <span className="grid size-11 shrink-0 place-items-center rounded-2xl border border-[#F0DCE3] bg-[#FFF7F9] text-[#A64D69] shadow-sm">
+                <HeartHandshake className="size-5" />
+              </span>
+
+              <div>
+                <p className="text-xs font-black text-[#3D2A32]">
+                  Expérience partagée
+                </p>
+
+                <p className="mt-1 text-[10px] leading-5 text-[#8A737C]">
+                  Chaque retour nourrit nos futures prestations
+                </p>
+              </div>
+            </div>
+          </div>
+        </div>
       </div>
     </section>
   );

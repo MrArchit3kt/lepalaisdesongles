@@ -84,7 +84,7 @@ export default async function GalleryPage() {
       );
 
   return (
-    <main className="min-h-screen overflow-hidden bg-gradient-to-b from-white via-pink-50/30 to-white">
+    <main className="min-h-screen overflow-hidden bg-[linear-gradient(180deg,#ffffff_0%,#FFF9FA_45%,#ffffff_100%)]">
       <GalleryHero
         totalImages={
           items.length

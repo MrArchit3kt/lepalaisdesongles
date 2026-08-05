@@ -1,5 +1,3 @@
-"use client";
-
 import Link from "next/link";
 import {
   ArrowRight,
@@ -9,9 +7,6 @@ import {
   ShieldCheck,
   Sparkles,
 } from "lucide-react";
-import {
-  motion,
-} from "framer-motion";
 
 const REASSURANCE_ITEMS = [
   {
@@ -35,32 +30,15 @@ export function GalleryFinalCta() {
   return (
     <section className="relative overflow-hidden px-4 pb-20 pt-4 sm:px-6 sm:pb-24 lg:px-8 lg:pb-32">
       <div className="mx-auto max-w-7xl">
-        <motion.div
-          initial={{
-            opacity: 0,
-            y: 30,
-          }}
-          whileInView={{
-            opacity: 1,
-            y: 0,
-          }}
-          viewport={{
-            once: true,
-            margin: "-80px",
-          }}
-          transition={{
-            duration: 0.6,
-          }}
-          className="relative overflow-hidden rounded-[2.5rem] border border-pink-200/70 bg-zinc-950 px-6 py-12 shadow-[0_40px_120px_-45px_rgba(190,24,93,0.55)] sm:px-10 sm:py-16 lg:px-16 lg:py-20"
-        >
+        <div className="relative overflow-hidden rounded-[2.5rem] border border-[#DCA8B8]/40 bg-gradient-to-br from-[#3B2430] via-[#4A2A3A] to-[#2E1E28] px-6 py-12 shadow-[0_40px_120px_-45px_rgba(139,64,90,0.55)] sm:px-10 sm:py-16 lg:px-16 lg:py-20">
           <div
             aria-hidden="true"
-            className="absolute -left-32 -top-32 h-96 w-96 rounded-full bg-pink-600/30 blur-3xl"
+            className="absolute -left-32 -top-32 h-96 w-96 rounded-full bg-[#C47890]/30 blur-3xl"
           />
 
           <div
             aria-hidden="true"
-            className="absolute -bottom-40 -right-24 h-[28rem] w-[28rem] rounded-full bg-fuchsia-500/20 blur-3xl"
+            className="absolute -bottom-40 -right-24 h-[28rem] w-[28rem] rounded-full bg-[#D6B778]/20 blur-3xl"
           />
 
           <div
@@ -70,35 +48,18 @@ export function GalleryFinalCta() {
 
           <div className="relative grid items-center gap-12 lg:grid-cols-[minmax(0,1fr)_390px] lg:gap-16">
             <div>
-              <motion.div
-                initial={{
-                  opacity: 0,
-                  scale: 0.95,
-                }}
-                whileInView={{
-                  opacity: 1,
-                  scale: 1,
-                }}
-                viewport={{
-                  once: true,
-                }}
-                transition={{
-                  delay: 0.15,
-                  duration: 0.45,
-                }}
-                className="inline-flex items-center gap-2 rounded-full border border-pink-300/20 bg-pink-500/10 px-4 py-2 text-sm font-bold text-pink-200 backdrop-blur"
-              >
+              <div className="inline-flex items-center gap-2 rounded-full border border-white/10 bg-white/10 px-4 py-2 text-[10px] font-black uppercase tracking-[0.24em] text-[#F0C4D3] backdrop-blur">
                 <Sparkles className="h-4 w-4" />
 
                 Votre prochaine pose commence ici
-              </motion.div>
+              </div>
 
-              <h2 className="mt-6 max-w-3xl text-3xl font-black tracking-tight text-white sm:text-4xl lg:text-5xl">
+              <h2 className="mt-6 max-w-3xl font-serif text-3xl font-semibold italic tracking-tight text-white sm:text-4xl lg:text-5xl">
                 Une création vous a
                 inspirée ?
               </h2>
 
-              <p className="mt-5 max-w-2xl text-base leading-7 text-zinc-300 sm:text-lg">
+              <p className="mt-5 max-w-2xl text-base leading-7 text-white/70 sm:text-lg">
                 Réservez votre
                 rendez-vous en
                 quelques instants et
@@ -120,7 +81,7 @@ export function GalleryFinalCta() {
                       key={label}
                       className="flex items-center gap-3 rounded-2xl border border-white/10 bg-white/[0.06] px-4 py-3 backdrop-blur-sm"
                     >
-                      <span className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full bg-pink-500/15 text-pink-300">
+                      <span className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full bg-white/10 text-[#E8B3C3]">
                         <Icon className="h-4 w-4" />
                       </span>
 
@@ -133,30 +94,13 @@ export function GalleryFinalCta() {
               </div>
             </div>
 
-            <motion.div
-              initial={{
-                opacity: 0,
-                x: 24,
-              }}
-              whileInView={{
-                opacity: 1,
-                x: 0,
-              }}
-              viewport={{
-                once: true,
-              }}
-              transition={{
-                delay: 0.2,
-                duration: 0.5,
-              }}
-              className="rounded-[2rem] border border-white/10 bg-white/[0.07] p-5 shadow-2xl backdrop-blur-xl sm:p-6"
-            >
+            <div className="rounded-[2rem] border border-white/10 bg-white/[0.07] p-5 shadow-2xl backdrop-blur-xl sm:p-6">
               <div className="rounded-[1.5rem] bg-white p-6 sm:p-7">
-                <p className="text-sm font-bold uppercase tracking-[0.18em] text-pink-600">
+                <p className="text-[10px] font-black uppercase tracking-[0.24em] text-[#A64D69]">
                   Réserver maintenant
                 </p>
 
-                <h3 className="mt-3 text-2xl font-black tracking-tight text-zinc-950">
+                <h3 className="mt-3 font-serif text-2xl font-semibold tracking-tight text-[#35242B]">
                   Choisissez votre
                   prestation et votre
                   créneau
@@ -164,11 +108,11 @@ export function GalleryFinalCta() {
 
                 <div className="mt-6 space-y-4">
                   <div className="flex items-start gap-3">
-                    <span className="mt-0.5 flex h-6 w-6 shrink-0 items-center justify-center rounded-full bg-pink-100 text-pink-700">
+                    <span className="mt-0.5 flex h-6 w-6 shrink-0 items-center justify-center rounded-full bg-[#FFF0F4] text-[#A64D69]">
                       <Check className="h-3.5 w-3.5" />
                     </span>
 
-                    <p className="text-sm leading-6 text-zinc-600">
+                    <p className="text-sm leading-6 text-[#6F5962]">
                       Durée et tarif
                       calculés
                       automatiquement.
@@ -176,11 +120,11 @@ export function GalleryFinalCta() {
                   </div>
 
                   <div className="flex items-start gap-3">
-                    <span className="mt-0.5 flex h-6 w-6 shrink-0 items-center justify-center rounded-full bg-pink-100 text-pink-700">
+                    <span className="mt-0.5 flex h-6 w-6 shrink-0 items-center justify-center rounded-full bg-[#FFF0F4] text-[#A64D69]">
                       <Check className="h-3.5 w-3.5" />
                     </span>
 
-                    <p className="text-sm leading-6 text-zinc-600">
+                    <p className="text-sm leading-6 text-[#6F5962]">
                       Disponibilités
                       affichées en
                       temps réel.
@@ -188,11 +132,11 @@ export function GalleryFinalCta() {
                   </div>
 
                   <div className="flex items-start gap-3">
-                    <span className="mt-0.5 flex h-6 w-6 shrink-0 items-center justify-center rounded-full bg-pink-100 text-pink-700">
+                    <span className="mt-0.5 flex h-6 w-6 shrink-0 items-center justify-center rounded-full bg-[#FFF0F4] text-[#A64D69]">
                       <Check className="h-3.5 w-3.5" />
                     </span>
 
-                    <p className="text-sm leading-6 text-zinc-600">
+                    <p className="text-sm leading-6 text-[#6F5962]">
                       Photos
                       d’inspiration
                       ajoutables à la
@@ -203,22 +147,22 @@ export function GalleryFinalCta() {
 
                 <Link
                   href="/reservation"
-                  className="mt-7 inline-flex w-full items-center justify-center gap-2 rounded-2xl bg-pink-600 px-6 py-4 text-sm font-bold text-white shadow-lg shadow-pink-200 transition duration-300 hover:-translate-y-0.5 hover:bg-pink-700 hover:shadow-xl focus:outline-none focus:ring-4 focus:ring-pink-200"
+                  className="group mt-7 inline-flex w-full items-center justify-center gap-2 rounded-2xl bg-gradient-to-r from-[#AA526E] via-[#BD7088] to-[#8B405A] px-6 py-4 text-sm font-black text-white shadow-[0_18px_45px_rgba(139,64,90,0.28)] transition duration-300 hover:-translate-y-0.5 hover:shadow-[0_24px_55px_rgba(139,64,90,0.35)]"
                 >
                   Prendre rendez-vous
 
-                  <ArrowRight className="h-4 w-4" />
+                  <ArrowRight className="h-4 w-4 transition-transform duration-300 group-hover:translate-x-1" />
                 </Link>
 
-                <p className="mt-4 text-center text-xs leading-5 text-zinc-500">
+                <p className="mt-4 text-center text-xs leading-5 text-[#8C747D]">
                   Réservation simple,
                   rapide et
                   sécurisée.
                 </p>
               </div>
-            </motion.div>
+            </div>
           </div>
-        </motion.div>
+        </div>
       </div>
     </section>
   );

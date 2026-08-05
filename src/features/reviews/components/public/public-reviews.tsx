@@ -186,12 +186,12 @@ export function PublicReviews({
 
         {filteredReviews.length ===
         0 ? (
-          <div className="rounded-[2rem] border border-dashed border-pink-200 bg-white py-20 text-center shadow-sm">
-            <h2 className="text-2xl font-black text-zinc-900">
+          <div className="rounded-[2rem] border border-dashed border-[#DCA8B8] bg-white py-20 text-center shadow-sm">
+            <h2 className="font-serif text-2xl font-semibold text-[#35242B]">
               Aucun avis trouvé
             </h2>
 
-            <p className="mt-4 text-zinc-500">
+            <p className="mt-4 text-[#8C747D]">
               Essayez un autre
               filtre ou une
               autre recherche.

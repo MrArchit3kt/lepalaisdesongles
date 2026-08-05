@@ -73,10 +73,10 @@ export function ReviewsToolbar({
     search.trim().length > 0;
 
   return (
-    <div className="mb-8 rounded-[2rem] border border-pink-100 bg-white p-4 shadow-[0_20px_60px_-35px_rgba(236,72,153,0.3)] sm:p-5">
+    <div className="mb-8 rounded-[2rem] border border-[#F0DCE3] bg-white p-4 shadow-[0_20px_60px_-35px_rgba(139,64,90,0.3)] sm:p-5">
       <div className="flex flex-col gap-4 xl:flex-row xl:items-center xl:justify-between">
         <div className="relative w-full xl:max-w-xl">
-          <Search className="pointer-events-none absolute left-4 top-1/2 h-5 w-5 -translate-y-1/2 text-zinc-400" />
+          <Search className="pointer-events-none absolute left-4 top-1/2 h-5 w-5 -translate-y-1/2 text-[#8C747D]" />
 
           <input
             type="search"
@@ -88,7 +88,7 @@ export function ReviewsToolbar({
             }
             placeholder="Rechercher dans les avis..."
             aria-label="Rechercher dans les avis"
-            className="h-14 w-full rounded-2xl border border-zinc-200 bg-zinc-50 pl-12 pr-12 text-sm font-medium text-zinc-950 outline-none transition placeholder:text-zinc-400 focus:border-pink-300 focus:bg-white focus:ring-4 focus:ring-pink-100"
+            className="h-14 w-full rounded-2xl border border-[#ECD9DF] bg-[#FFFAFB] pl-12 pr-12 text-sm font-medium text-[#35242B] outline-none transition placeholder:text-[#A6949B] focus:border-[#D89CB0] focus:bg-white focus:ring-4 focus:ring-[#F0DCE3]"
           />
 
           {hasSearch ? (
@@ -98,7 +98,7 @@ export function ReviewsToolbar({
                 onSearchChange("")
               }
               aria-label="Effacer la recherche"
-              className="absolute right-3 top-1/2 inline-flex h-9 w-9 -translate-y-1/2 items-center justify-center rounded-full text-zinc-500 transition hover:bg-zinc-200 hover:text-zinc-950"
+              className="absolute right-3 top-1/2 inline-flex h-9 w-9 -translate-y-1/2 items-center justify-center rounded-full text-[#8C747D] transition hover:bg-[#F6E7EB] hover:text-[#35242B]"
             >
               <X className="h-4 w-4" />
             </button>
@@ -111,7 +111,7 @@ export function ReviewsToolbar({
               Filtrer par note
             </span>
 
-            <Star className="pointer-events-none absolute left-4 top-1/2 h-4 w-4 -translate-y-1/2 fill-pink-500 text-pink-500" />
+            <Star className="pointer-events-none absolute left-4 top-1/2 h-4 w-4 -translate-y-1/2 fill-[#A64D69] text-[#A64D69]" />
 
             <select
               value={ratingFilter}
@@ -121,7 +121,7 @@ export function ReviewsToolbar({
                     .value as ReviewRatingFilter,
                 )
               }
-              className="h-14 min-w-44 appearance-none rounded-2xl border border-zinc-200 bg-white pl-11 pr-10 text-sm font-bold text-zinc-800 outline-none transition focus:border-pink-300 focus:ring-4 focus:ring-pink-100"
+              className="h-14 min-w-44 appearance-none rounded-2xl border border-[#ECD9DF] bg-white pl-11 pr-10 text-sm font-bold text-[#3D2A32] outline-none transition focus:border-[#D89CB0] focus:ring-4 focus:ring-[#F0DCE3]"
             >
               {RATING_FILTERS.map(
                 (filter) => (
@@ -147,7 +147,7 @@ export function ReviewsToolbar({
               Trier les avis
             </span>
 
-            <SlidersHorizontal className="pointer-events-none absolute left-4 top-1/2 h-4 w-4 -translate-y-1/2 text-zinc-500" />
+            <SlidersHorizontal className="pointer-events-none absolute left-4 top-1/2 h-4 w-4 -translate-y-1/2 text-[#8C747D]" />
 
             <select
               value={sort}
@@ -157,7 +157,7 @@ export function ReviewsToolbar({
                     .value as ReviewSortOption,
                 )
               }
-              className="h-14 min-w-48 appearance-none rounded-2xl border border-zinc-200 bg-white pl-11 pr-10 text-sm font-bold text-zinc-800 outline-none transition focus:border-pink-300 focus:ring-4 focus:ring-pink-100"
+              className="h-14 min-w-48 appearance-none rounded-2xl border border-[#ECD9DF] bg-white pl-11 pr-10 text-sm font-bold text-[#3D2A32] outline-none transition focus:border-[#D89CB0] focus:ring-4 focus:ring-[#F0DCE3]"
             >
               <option value="recent">
                 Plus récents
@@ -179,9 +179,9 @@ export function ReviewsToolbar({
         </div>
       </div>
 
-      <div className="mt-4 flex flex-wrap items-center justify-between gap-3 border-t border-zinc-100 pt-4">
-        <p className="text-sm text-zinc-500">
-          <span className="font-black text-zinc-950">
+      <div className="mt-4 flex flex-wrap items-center justify-between gap-3 border-t border-[#F0DCE3] pt-4">
+        <p className="text-sm text-[#8C747D]">
+          <span className="font-black text-[#35242B]">
             {filteredTotal}
           </span>{" "}
           {filteredTotal > 1
@@ -190,7 +190,7 @@ export function ReviewsToolbar({
         </p>
 
         {filteredTotal !== total ? (
-          <p className="text-xs font-semibold text-pink-700">
+          <p className="text-xs font-semibold text-[#A64D69]">
             sur {total} avis publiés
           </p>
         ) : null}

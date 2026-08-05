@@ -492,7 +492,7 @@ export function GalleryLightbox({
             >
               <div
                 aria-hidden="true"
-                className="absolute inset-0 bg-[radial-gradient(circle_at_center,rgba(236,72,153,0.12),transparent_55%)]"
+                className="absolute inset-0 bg-[radial-gradient(circle_at_center,rgba(196,120,144,0.14),transparent_55%)]"
               />
 
               <motion.div
@@ -661,7 +661,7 @@ export function GalleryLightbox({
 
             <aside className="relative z-20 max-h-[42vh] w-full overflow-y-auto border-t border-white/10 bg-zinc-950 p-6 text-white lg:max-h-none lg:w-[360px] lg:border-l lg:border-t-0 lg:p-8 xl:w-[420px]">
               {selectedItem.isFeatured ? (
-                <div className="inline-flex items-center gap-2 rounded-full border border-pink-400/20 bg-pink-500/10 px-4 py-2 text-xs font-bold text-pink-300">
+                <div className="inline-flex items-center gap-2 rounded-full border border-[#E8B3C3]/20 bg-[#C47890]/10 px-4 py-2 text-xs font-bold text-[#F0C4D3]">
                   <Sparkles className="h-4 w-4" />
 
                   Création en
@@ -670,14 +670,14 @@ export function GalleryLightbox({
               ) : null}
 
               {selectedItem.category ? (
-                <p className="mt-6 text-xs font-bold uppercase tracking-[0.22em] text-pink-400">
+                <p className="mt-6 text-xs font-bold uppercase tracking-[0.22em] text-[#E8B3C3]">
                   {
                     selectedItem.category
                   }
                 </p>
               ) : null}
 
-              <h2 className="mt-3 text-3xl font-black tracking-tight sm:text-4xl">
+              <h2 className="mt-3 font-serif text-3xl font-semibold tracking-tight sm:text-4xl">
                 {
                   selectedItem.title
                 }
@@ -713,7 +713,7 @@ export function GalleryLightbox({
                 onClick={
                   handleClose
                 }
-                className="mt-8 inline-flex w-full items-center justify-center gap-2 rounded-2xl bg-pink-600 px-6 py-4 text-sm font-bold text-white shadow-lg shadow-pink-950/30 transition hover:-translate-y-0.5 hover:bg-pink-500 focus:outline-none focus:ring-4 focus:ring-pink-500/30"
+                className="mt-8 inline-flex w-full items-center justify-center gap-2 rounded-2xl bg-gradient-to-r from-[#AA526E] via-[#BD7088] to-[#8B405A] px-6 py-4 text-sm font-black text-white shadow-[0_18px_45px_rgba(139,64,90,0.35)] transition hover:-translate-y-0.5 hover:shadow-[0_24px_55px_rgba(139,64,90,0.45)] focus:outline-none focus:ring-4 focus:ring-[#D89CB0]/40"
               >
                 Réserver cette pose
 
