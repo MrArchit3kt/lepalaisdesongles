@@ -9,9 +9,9 @@ import { InstagramSection } from "@/features/home/components/instagram-section";
 import { getHomePageData } from "@/features/public/services/home.service";
 
 export const metadata: Metadata = {
-  title: "Prothésiste ongulaire à Mâcon",
+  title: "Prothésiste ongulaire à Maltat",
   description:
-    "Découvrez Le Palais des Ongles, votre prothésiste ongulaire à Mâcon : gel, semi-permanent, gainage et nail art sur mesure.",
+    "Découvrez Le Palais des Ongles, votre prothésiste ongulaire à Maltat : gel, semi-permanent, gainage et nail art sur mesure.",
 };
 
 export const dynamic = "force-dynamic";

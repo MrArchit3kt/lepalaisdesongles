@@ -180,7 +180,7 @@ export function PublicFooter() {
                 <MapPin className="mt-0.5 size-4 shrink-0 text-[#E8B4B8]" />
 
                 <span>
-                  Mâcon et alentours
+                  Maltat et alentours
                   <br />
                   Saône-et-Loire
                 </span>
