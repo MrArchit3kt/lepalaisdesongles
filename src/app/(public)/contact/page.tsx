@@ -355,18 +355,18 @@ export default function ContactPage() {
           </div>
 
           <div className="mt-12 grid gap-6 lg:grid-cols-2">
-            <article className="group relative overflow-hidden rounded-[2.25rem] border border-pink-100 bg-gradient-to-br from-pink-50 via-white to-fuchsia-50 p-8 shadow-[0_30px_80px_-50px_rgba(236,72,153,0.45)] sm:p-10">
+            <article className="group relative overflow-hidden rounded-[2.25rem] border border-[#241A1D]/7 bg-gradient-to-br from-[#FFF0F0] via-white to-[#FBF3F5] p-8 shadow-[0_30px_80px_-50px_rgba(36,26,29,0.35)] sm:p-10">
               <div
                 aria-hidden="true"
-                className="absolute -right-20 -top-20 size-64 rounded-full bg-pink-200/40 blur-3xl"
+                className="absolute -right-20 -top-20 size-64 rounded-full bg-[#E8B4B8]/35 blur-3xl"
               />
 
               <div className="relative">
-                <span className="flex size-14 items-center justify-center rounded-2xl bg-gradient-to-br from-pink-500 to-fuchsia-600 text-white shadow-lg shadow-pink-200">
+                <span className="flex size-14 items-center justify-center rounded-2xl bg-gradient-to-br from-[#C9537B] to-[#B8899A] text-white shadow-lg shadow-[#E8B4B8]/60">
                   <FaInstagram className="size-6" />
                 </span>
 
-                <p className="mt-7 text-sm font-semibold uppercase tracking-[0.16em] text-pink-600">
+                <p className="mt-7 text-sm font-semibold uppercase tracking-[0.16em] text-[#A87587]">
                   Instagram
                 </p>
 
@@ -384,7 +384,7 @@ export default function ContactPage() {
                   href={INSTAGRAM_URL}
                   target="_blank"
                   rel="noopener noreferrer"
-                  className="mt-7 inline-flex h-12 items-center justify-center gap-2 rounded-full bg-pink-600 px-6 text-sm font-semibold text-white transition hover:-translate-y-0.5 hover:bg-pink-700"
+                  className="mt-7 inline-flex h-12 items-center justify-center gap-2 rounded-full bg-[#241A1D] px-6 text-sm font-semibold text-white transition hover:-translate-y-0.5 hover:bg-[#3A292F]"
                 >
                   <FaInstagram className="size-4" />
                   Suivre sur Instagram
@@ -393,7 +393,7 @@ export default function ContactPage() {
               </div>
             </article>
 
-            <article className="group relative overflow-hidden rounded-[2.25rem] border border-blue-100 bg-gradient-to-br from-blue-50 via-white to-indigo-50 p-8 shadow-[0_30px_80px_-50px_rgba(59,130,246,0.4)] sm:p-10">
+            <article className="group relative overflow-hidden rounded-[2.25rem] border border-[#241A1D]/7 bg-gradient-to-br from-blue-50 via-white to-[#FBF3F5] p-8 shadow-[0_30px_80px_-50px_rgba(36,26,29,0.35)] sm:p-10">
               <div
                 aria-hidden="true"
                 className="absolute -right-20 -top-20 size-64 rounded-full bg-blue-200/40 blur-3xl"
