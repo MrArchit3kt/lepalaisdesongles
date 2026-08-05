@@ -2,6 +2,9 @@
   "name": "nailstudio-pro",
   "version": "0.1.0",
   "private": true,
+  "engines": {
+    "node": ">=22.0.0"
+  },
   "scripts": {
     "dev": "next dev",
     "build": "next build",
@@ -62,8 +65,6 @@
     "resend": "^6.17.2",
     "server-only": "^0.0.1",
     "sharp": "^0.35.3",
-    "socket.io": "^4.8.3",
-    "socket.io-client": "^4.8.3",
     "sonner": "^2.0.7",
     "swiper": "^14.0.5",
     "tailwind-merge": "^3.6.0",

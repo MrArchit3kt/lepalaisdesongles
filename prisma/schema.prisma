@@ -2,6 +2,13 @@ generator client {
   provider     = "prisma-client"
   output       = "../src/generated/prisma"
   moduleFormat = "esm"
+
+  // "native" couvre le poste de développement (macOS/Windows/Linux
+  // local) ; "debian-openssl-3.0.x" couvre le VPS de production
+  // (Ubuntu 24.04, OpenSSL 3.0). Génère toujours `pnpm db:generate`
+  // sur la machine qui exécutera l'app pour que "native" corresponde
+  // réellement à sa cible.
+  binaryTargets = ["native", "debian-openssl-3.0.x"]
 }
 
 datasource db {

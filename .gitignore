@@ -34,6 +34,10 @@ yarn-debug.log*
 yarn-error.log*
 .pnpm-debug.log*
 
+# logs runtime du déploiement (PM2, crons) — pas les scripts eux-mêmes
+deploy/logs/*
+!deploy/logs/.gitkeep
+
 # env files (can opt-in for committing if needed)
 .env*
 # ... sauf le gabarit destiné à être partagé/versionné.

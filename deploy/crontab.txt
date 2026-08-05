@@ -1,0 +1,19 @@
+# Tâches planifiées de NailStudio Pro sur le VPS.
+#
+# vercel.json déclarait ces tâches au format "cron" de Vercel, qui
+# ne fonctionne que sur la plateforme Vercel. Sur le VPS, il faut
+# les enregistrer dans la crontab du système à la place.
+#
+# Installation :
+#   crontab -e
+# puis coller les deux lignes ci-dessous en adaptant le chemin
+# /chemin/vers/nailstudio-pro à l'emplacement réel du projet sur
+# le serveur.
+
+# Rappels de rendez-vous, confirmations et relances — toutes les
+# heures (même fréquence que sur Vercel).
+0 * * * * /chemin/vers/nailstudio-pro/deploy/run-cron.sh notifications >> /chemin/vers/nailstudio-pro/deploy/logs/cron.log 2>&1
+
+# Nettoyage des fichiers uploadés jamais rattachés à un rendez-vous
+# ou une prestation — une fois par jour, à 3h du matin (heure creuse).
+0 3 * * * /chemin/vers/nailstudio-pro/deploy/run-cron.sh uploads >> /chemin/vers/nailstudio-pro/deploy/logs/cron.log 2>&1
