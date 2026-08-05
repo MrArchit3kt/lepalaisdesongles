@@ -278,7 +278,7 @@ export function RegisterForm({
           onClick={() =>
             setShowPassword((current) => !current)
           }
-          className="absolute right-4 top-[42px] text-[#7B6970] transition hover:text-[#241A1D]"
+          className="absolute right-4 top-[42px] text-[#6F5962] transition hover:text-[#35242B]"
           aria-label={
             showPassword
               ? "Masquer le mot de passe"
@@ -313,7 +313,7 @@ export function RegisterForm({
           onClick={() =>
             setShowConfirmation((current) => !current)
           }
-          className="absolute right-4 top-[42px] text-[#7B6970] transition hover:text-[#241A1D]"
+          className="absolute right-4 top-[42px] text-[#6F5962] transition hover:text-[#35242B]"
           aria-label={
             showConfirmation
               ? "Masquer la confirmation"
@@ -328,20 +328,20 @@ export function RegisterForm({
         </button>
       </div>
 
-      <div className="space-y-4 rounded-2xl bg-[#FFF6F5] p-4">
+      <div className="space-y-4 rounded-2xl bg-[#FFFAFB] p-4">
         <label className="flex cursor-pointer items-start gap-3">
           <input
             type="checkbox"
-            className="mt-1 size-4 rounded border-[#B8899A] accent-[#B8899A]"
+            className="mt-1 size-4 rounded border-[#A64D69] accent-[#A64D69]"
             {...register("acceptTerms")}
           />
 
-          <span className="text-sm leading-6 text-[#62535A]">
+          <span className="text-sm leading-6 text-[#4A3540]">
             J’accepte les{" "}
 
             <Link
               href="/conditions-generales"
-              className="font-medium text-[#916777] underline underline-offset-2"
+              className="font-medium text-[#A44E69] underline underline-offset-2"
             >
               conditions générales
             </Link>{" "}
@@ -350,7 +350,7 @@ export function RegisterForm({
 
             <Link
               href="/politique-de-confidentialite"
-              className="font-medium text-[#916777] underline underline-offset-2"
+              className="font-medium text-[#A44E69] underline underline-offset-2"
             >
               politique de confidentialité
             </Link>
@@ -367,11 +367,11 @@ export function RegisterForm({
         <label className="flex cursor-pointer items-start gap-3">
           <input
             type="checkbox"
-            className="mt-1 size-4 rounded border-[#B8899A] accent-[#B8899A]"
+            className="mt-1 size-4 rounded border-[#A64D69] accent-[#A64D69]"
             {...register("marketingConsent")}
           />
 
-          <span className="text-sm leading-6 text-[#62535A]">
+          <span className="text-sm leading-6 text-[#4A3540]">
             Je souhaite recevoir les nouveautés,
             promotions et jeux concours par e-mail.
           </span>
@@ -387,12 +387,12 @@ export function RegisterForm({
         Créer mon compte
       </Button>
 
-      <p className="text-center text-sm text-[#716168]">
+      <p className="text-center text-sm text-[#4A3540]">
         Vous possédez déjà un compte ?{" "}
 
         <Link
           href="/connexion"
-          className="font-semibold text-[#9D6F80] hover:text-[#241A1D]"
+          className="font-semibold text-[#A64D69] hover:text-[#35242B]"
         >
           Se connecter
         </Link>

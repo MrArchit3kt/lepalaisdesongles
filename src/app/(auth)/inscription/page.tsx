@@ -60,15 +60,15 @@ export default async function RegisterPage({
   return (
     <div>
       <div className="mb-8">
-        <p className="mb-3 text-xs font-semibold uppercase tracking-[0.25em] text-[#A06F81]">
+        <p className="mb-3 text-xs font-semibold uppercase tracking-[0.25em] text-[#A44E69]">
           Nouvelle cliente
         </p>
 
-        <h1 className="font-serif text-4xl text-[#241A1D] sm:text-5xl">
+        <h1 className="font-serif text-4xl text-[#35242B] sm:text-5xl">
           Créez votre espace
         </h1>
 
-        <p className="mt-4 leading-7 text-[#75636A]">
+        <p className="mt-4 leading-7 text-[#79636C]">
           Réservez plus facilement et retrouvez toutes vos
           informations dans votre espace personnel.
         </p>

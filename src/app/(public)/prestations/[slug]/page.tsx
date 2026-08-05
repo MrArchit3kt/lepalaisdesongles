@@ -100,11 +100,11 @@ export default async function ServiceDetailsPage({
       service.priceCents;
 
   return (
-    <main className="bg-[#FFF9F8]">
+    <main className="bg-[#FFFAFB]">
       <section className="mx-auto max-w-7xl px-5 py-10 lg:px-8 lg:py-16">
         <Link
           href="/prestations"
-          className="inline-flex items-center gap-2 text-sm font-semibold text-[#8E6675] transition hover:text-[#241A1D]"
+          className="inline-flex items-center gap-2 text-sm font-semibold text-[#A64D69] transition hover:text-[#35242B]"
         >
           <ArrowLeft className="size-4" />
           Retour aux prestations
@@ -112,7 +112,7 @@ export default async function ServiceDetailsPage({
 
         <div className="mt-8 grid gap-10 lg:grid-cols-[1fr_0.9fr] lg:items-start">
           <div>
-            <div className="overflow-hidden rounded-[38px] border border-[#241A1D]/8 bg-[#F4DEE1] shadow-xl shadow-[#6D4753]/10">
+            <div className="overflow-hidden rounded-[38px] border border-[#35242B]/8 bg-[#F6E7EB] shadow-xl shadow-[#8B405A]/10">
               <div className="relative aspect-[4/3]">
                 {displayedImageUrl ? (
                   <Image
@@ -132,10 +132,10 @@ export default async function ServiceDetailsPage({
                     className="flex size-full items-center justify-center"
                     style={{
                       background: `linear-gradient(135deg, ${
-                        service.color ?? "#F2D7D9"
+                        service.color ?? "#F6E7EB"
                       }, ${
                         service.category.color ??
-                        "#B8899A"
+                        "#A64D69"
                       })`,
                     }}
                   >
@@ -156,7 +156,7 @@ export default async function ServiceDetailsPage({
                       key={
                         image.id
                       }
-                      className="relative aspect-square overflow-hidden rounded-[24px] border border-[#241A1D]/8 bg-white"
+                      className="relative aspect-square overflow-hidden rounded-[24px] border border-[#35242B]/8 bg-white"
                     >
                       <Image
                         src={
@@ -177,48 +177,48 @@ export default async function ServiceDetailsPage({
           </div>
 
           <div className="lg:sticky lg:top-28">
-            <span className="inline-flex rounded-full bg-[#FFF0F0] px-4 py-2 text-xs font-semibold uppercase tracking-[0.17em] text-[#986D7D]">
+            <span className="inline-flex rounded-full bg-[#FFF0F4] px-4 py-2 text-xs font-semibold uppercase tracking-[0.17em] text-[#A64D69]">
               {service.category.name}
             </span>
 
-            <h1 className="mt-5 font-serif text-5xl leading-[1.02] text-[#241A1D] sm:text-6xl">
+            <h1 className="mt-5 font-serif text-5xl leading-[1.02] text-[#35242B] sm:text-6xl">
               {service.name}
             </h1>
 
-            <p className="mt-6 text-base leading-8 text-[#75636A]">
+            <p className="mt-6 text-base leading-8 text-[#79636C]">
               {service.shortDescription}
             </p>
 
             <div className="mt-7 flex flex-wrap gap-3">
-              <div className="inline-flex items-center gap-2 rounded-full border border-[#241A1D]/8 bg-white px-4 py-2.5 text-sm text-[#68575E]">
-                <Clock3 className="size-4 text-[#A27384]" />
+              <div className="inline-flex items-center gap-2 rounded-full border border-[#35242B]/8 bg-white px-4 py-2.5 text-sm text-[#4A3540]">
+                <Clock3 className="size-4 text-[#A64D69]" />
                 {service.durationMinutes} minutes
               </div>
 
               {service.cleanupMinutes > 0 ? (
-                <div className="inline-flex items-center gap-2 rounded-full border border-[#241A1D]/8 bg-white px-4 py-2.5 text-sm text-[#68575E]">
-                  <Info className="size-4 text-[#A27384]" />
+                <div className="inline-flex items-center gap-2 rounded-full border border-[#35242B]/8 bg-white px-4 py-2.5 text-sm text-[#4A3540]">
+                  <Info className="size-4 text-[#A64D69]" />
                   {service.cleanupMinutes} min de finition
                 </div>
               ) : null}
 
               {service.depositRequired ? (
-                <div className="inline-flex items-center gap-2 rounded-full border border-[#241A1D]/8 bg-white px-4 py-2.5 text-sm text-[#68575E]">
-                  <CreditCard className="size-4 text-[#A27384]" />
+                <div className="inline-flex items-center gap-2 rounded-full border border-[#35242B]/8 bg-white px-4 py-2.5 text-sm text-[#4A3540]">
+                  <CreditCard className="size-4 text-[#A64D69]" />
                   Acompte requis
                 </div>
               ) : null}
             </div>
 
-            <div className="mt-8 rounded-[30px] border border-[#241A1D]/8 bg-white p-6 shadow-sm">
+            <div className="mt-8 rounded-[30px] border border-[#35242B]/8 bg-white p-6 shadow-sm">
               <div className="flex items-end justify-between gap-5">
                 <div>
-                  <p className="text-sm text-[#75636A]">
+                  <p className="text-sm text-[#79636C]">
                     Tarif de la prestation
                   </p>
 
                   <div className="mt-2 flex items-end gap-3">
-                    <p className="text-4xl font-semibold text-[#241A1D]">
+                    <p className="text-4xl font-semibold text-[#35242B]">
                       {displayedPrice !== null
                         ? formatPrice(displayedPrice)
                         : "Sur devis"}
@@ -226,7 +226,7 @@ export default async function ServiceDetailsPage({
 
                     {hasPromotion &&
                     service.priceCents !== null ? (
-                      <p className="pb-1 text-base text-[#9D8C92] line-through">
+                      <p className="pb-1 text-base text-[#A6949B] line-through">
                         {formatPrice(
                           service.priceCents,
                         )}
@@ -236,7 +236,7 @@ export default async function ServiceDetailsPage({
                 </div>
 
                 {hasPromotion ? (
-                  <span className="rounded-full bg-[#241A1D] px-4 py-2 text-xs font-semibold text-white">
+                  <span className="rounded-full bg-gradient-to-r from-[#AA526E] to-[#8B405A] px-4 py-2 text-xs font-semibold text-white">
                     Prix promotionnel
                   </span>
                 ) : null}
@@ -244,12 +244,12 @@ export default async function ServiceDetailsPage({
 
               {service.depositRequired &&
               service.depositCents ? (
-                <div className="mt-5 flex items-start gap-3 rounded-2xl bg-[#FFF5F4] p-4">
-                  <CreditCard className="mt-0.5 size-5 shrink-0 text-[#9D6F80]" />
+                <div className="mt-5 flex items-start gap-3 rounded-2xl bg-[#FFF0F4] p-4">
+                  <CreditCard className="mt-0.5 size-5 shrink-0 text-[#A64D69]" />
 
-                  <p className="text-sm leading-6 text-[#6D5A62]">
+                  <p className="text-sm leading-6 text-[#6F5962]">
                     Un acompte de{" "}
-                    <strong className="text-[#241A1D]">
+                    <strong className="text-[#35242B]">
                       {formatPrice(
                         service.depositCents,
                       )}
@@ -262,7 +262,7 @@ export default async function ServiceDetailsPage({
 
               <Link
                 href={`/reservation?service=${service.slug}`}
-                className="mt-6 inline-flex h-14 w-full items-center justify-center gap-3 rounded-full bg-[#241A1D] px-7 text-sm font-semibold text-white shadow-lg shadow-black/10 transition hover:-translate-y-0.5 hover:bg-[#3B292F]"
+                className="mt-6 inline-flex h-14 w-full items-center justify-center gap-3 rounded-full bg-gradient-to-r from-[#AA526E] via-[#BD7088] to-[#8B405A] px-7 text-sm font-black text-white shadow-[0_18px_45px_rgba(139,64,90,0.28)] transition duration-300 hover:-translate-y-0.5 hover:shadow-[0_24px_55px_rgba(139,64,90,0.35)]"
               >
                 <CalendarDays className="size-5" />
                 Réserver cette prestation
@@ -270,30 +270,30 @@ export default async function ServiceDetailsPage({
             </div>
 
             <div className="mt-5 grid gap-3 sm:grid-cols-2">
-              <div className="flex items-start gap-3 rounded-2xl border border-[#241A1D]/8 bg-white p-4">
-                <ShieldCheck className="mt-0.5 size-5 shrink-0 text-[#9D6F80]" />
+              <div className="flex items-start gap-3 rounded-2xl border border-[#35242B]/8 bg-white p-4">
+                <ShieldCheck className="mt-0.5 size-5 shrink-0 text-[#A64D69]" />
 
                 <div>
-                  <p className="text-sm font-semibold text-[#241A1D]">
+                  <p className="text-sm font-semibold text-[#35242B]">
                     Travail professionnel
                   </p>
 
-                  <p className="mt-1 text-xs leading-5 text-[#75636A]">
+                  <p className="mt-1 text-xs leading-5 text-[#79636C]">
                     Produits adaptés et protocole
                     rigoureux.
                   </p>
                 </div>
               </div>
 
-              <div className="flex items-start gap-3 rounded-2xl border border-[#241A1D]/8 bg-white p-4">
-                <Sparkles className="mt-0.5 size-5 shrink-0 text-[#9D6F80]" />
+              <div className="flex items-start gap-3 rounded-2xl border border-[#35242B]/8 bg-white p-4">
+                <Sparkles className="mt-0.5 size-5 shrink-0 text-[#A64D69]" />
 
                 <div>
-                  <p className="text-sm font-semibold text-[#241A1D]">
+                  <p className="text-sm font-semibold text-[#35242B]">
                     Résultat personnalisé
                   </p>
 
-                  <p className="mt-1 text-xs leading-5 text-[#75636A]">
+                  <p className="mt-1 text-xs leading-5 text-[#79636C]">
                     Forme, couleur et finition adaptées.
                   </p>
                 </div>
@@ -306,17 +306,17 @@ export default async function ServiceDetailsPage({
       <section className="bg-white py-20">
         <div className="mx-auto grid max-w-7xl gap-10 px-5 lg:grid-cols-[0.75fr_1.25fr] lg:px-8">
           <div>
-            <p className="text-xs font-semibold uppercase tracking-[0.25em] text-[#A06F81]">
+            <p className="text-[10px] font-black uppercase tracking-[0.24em] text-[#A44E69]">
               À propos
             </p>
 
-            <h2 className="mt-4 font-serif text-4xl text-[#241A1D]">
+            <h2 className="mt-4 font-serif text-4xl text-[#35242B]">
               Tout savoir avant votre rendez-vous.
             </h2>
           </div>
 
           <div>
-            <div className="text-base leading-8 text-[#695960]">
+            <div className="text-base leading-8 text-[#5B4A52]">
               {(
                 service.description ??
                 service.shortDescription ??
@@ -343,13 +343,13 @@ export default async function ServiceDetailsPage({
               ].map((benefit) => (
                 <div
                   key={benefit}
-                  className="flex items-center gap-3 rounded-2xl bg-[#FFF9F8] p-4"
+                  className="flex items-center gap-3 rounded-2xl bg-[#FFFAFB] p-4"
                 >
-                  <span className="flex size-7 shrink-0 items-center justify-center rounded-full bg-[#E8B4B8]/30 text-[#8D6574]">
+                  <span className="flex size-7 shrink-0 items-center justify-center rounded-full bg-[#E8B3C3]/40 text-[#A64D69]">
                     <Check className="size-4" />
                   </span>
 
-                  <span className="text-sm font-medium text-[#56474D]">
+                  <span className="text-sm font-medium text-[#4A3540]">
                     {benefit}
                   </span>
                 </div>
@@ -363,11 +363,11 @@ export default async function ServiceDetailsPage({
         <section className="py-20">
           <div className="mx-auto max-w-7xl px-5 lg:px-8">
             <div>
-              <p className="text-xs font-semibold uppercase tracking-[0.25em] text-[#A06F81]">
+              <p className="text-[10px] font-black uppercase tracking-[0.24em] text-[#A44E69]">
                 Vous aimerez aussi
               </p>
 
-              <h2 className="mt-4 font-serif text-4xl text-[#241A1D]">
+              <h2 className="mt-4 font-serif text-4xl text-[#35242B]">
                 Autres prestations de la catégorie.
               </h2>
             </div>

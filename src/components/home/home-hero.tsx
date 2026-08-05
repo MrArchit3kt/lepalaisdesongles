@@ -32,10 +32,10 @@ export function HomeHero({
     heroImageUrl;
 
   return (
-    <section className="relative overflow-hidden bg-[#FFF9F8]">
-      <div className="absolute -left-32 top-20 size-[430px] rounded-full bg-[#E8B4B8]/20 blur-3xl" />
+    <section className="relative overflow-hidden bg-[#FBF3F5]">
+      <div className="absolute -left-32 top-20 size-[430px] rounded-full bg-[#E8B3C3]/25 blur-3xl" />
 
-      <div className="absolute -right-40 bottom-0 size-[500px] rounded-full bg-[#C9A36A]/15 blur-3xl" />
+      <div className="absolute -right-40 bottom-0 size-[500px] rounded-full bg-[#D89CB0]/20 blur-3xl" />
 
       <div className="relative mx-auto grid min-h-[760px] max-w-7xl items-center gap-12 px-5 py-16 lg:grid-cols-[1.05fr_0.95fr] lg:px-8 lg:py-24">
         {/* ---------------------------------------------------------------- */}
@@ -43,21 +43,21 @@ export function HomeHero({
         {/* ---------------------------------------------------------------- */}
 
         <div>
-          <div className="inline-flex items-center gap-2 rounded-full border border-[#B8899A]/20 bg-white px-4 py-2 text-xs font-semibold uppercase tracking-[0.18em] text-[#916777] shadow-sm">
+          <div className="inline-flex items-center gap-2 rounded-full border border-white/90 bg-white/60 px-4 py-2 text-[10px] font-black uppercase tracking-[0.24em] text-[#A44E69] shadow-[0_12px_35px_rgba(91,45,61,0.08)] backdrop-blur-xl">
             <Sparkles className="size-4" />
 
             Beauté & élégance
           </div>
 
-          <h1 className="mt-7 max-w-3xl font-serif text-5xl leading-[0.98] text-[#241A1D] sm:text-6xl lg:text-7xl">
+          <h1 className="mt-7 max-w-3xl font-serif text-5xl leading-[0.98] text-[#35242B] sm:text-6xl lg:text-7xl">
             Sublimez vos ongles avec une création
-            <span className="text-[#B8899A]">
+            <span className="bg-gradient-to-r from-[#A64D69] via-[#C47890] to-[#8B3E59] bg-clip-text italic text-transparent">
               {" "}
               qui vous ressemble.
             </span>
           </h1>
 
-          <p className="mt-7 max-w-xl text-base leading-8 text-[#75636A] sm:text-lg">
+          <p className="mt-7 max-w-xl text-base leading-8 text-[#79636C] sm:text-lg">
             Poses en gel, semi-permanent, gainage et
             nail art sur mesure dans un univers
             élégant, chaleureux et entièrement pensé
@@ -67,7 +67,7 @@ export function HomeHero({
           <div className="mt-8 flex flex-col gap-3 sm:flex-row">
             <Link
               href="/reservation"
-              className="inline-flex h-14 items-center justify-center gap-3 rounded-full bg-[#241A1D] px-7 text-sm font-semibold text-white shadow-xl shadow-black/10 transition hover:-translate-y-0.5 hover:bg-[#3A292F]"
+              className="group inline-flex h-14 items-center justify-center gap-3 rounded-full bg-gradient-to-r from-[#AA526E] via-[#BD7088] to-[#8B405A] px-7 text-sm font-black text-white shadow-[0_18px_45px_rgba(139,64,90,0.28)] transition duration-300 hover:-translate-y-1 hover:shadow-[0_24px_55px_rgba(139,64,90,0.35)]"
             >
               <CalendarDays className="size-5" />
 
@@ -76,7 +76,7 @@ export function HomeHero({
 
             <Link
               href="/galerie"
-              className="inline-flex h-14 items-center justify-center gap-3 rounded-full border border-[#241A1D]/10 bg-white px-7 text-sm font-semibold text-[#241A1D] transition hover:bg-[#FFF0F0]"
+              className="inline-flex h-14 items-center justify-center gap-3 rounded-full border border-white/90 bg-white/65 px-7 text-sm font-bold text-[#35242B] shadow-sm backdrop-blur transition hover:bg-white"
             >
               Découvrir la galerie
 
@@ -84,21 +84,21 @@ export function HomeHero({
             </Link>
           </div>
 
-          <div className="mt-10 flex flex-wrap gap-x-7 gap-y-4 text-sm text-[#5F5056]">
+          <div className="mt-10 flex flex-wrap gap-x-7 gap-y-4 text-sm text-[#6F5962]">
             <span className="flex items-center gap-2">
-              <Check className="size-4 text-[#B8899A]" />
+              <Check className="size-4 text-[#A64D69]" />
 
               Prestations sur mesure
             </span>
 
             <span className="flex items-center gap-2">
-              <Check className="size-4 text-[#B8899A]" />
+              <Check className="size-4 text-[#A64D69]" />
 
               Réservation en ligne
             </span>
 
             <span className="flex items-center gap-2">
-              <Check className="size-4 text-[#B8899A]" />
+              <Check className="size-4 text-[#A64D69]" />
 
               Conseils personnalisés
             </span>
@@ -125,7 +125,7 @@ export function HomeHero({
                       key={
                         index
                       }
-                      className="size-4 fill-[#C9A36A] text-[#C9A36A]"
+                      className="size-4 fill-[#D6B778] text-[#D6B778]"
                     />
                   ),
                 )}
@@ -136,12 +136,12 @@ export function HomeHero({
               </span>
             </div>
 
-            <p className="mt-1 text-xs text-[#75636A]">
+            <p className="mt-1 text-xs text-[#79636C]">
               Clientes satisfaites
             </p>
           </div>
 
-          <div className="relative aspect-[4/5] overflow-hidden rounded-[44px] border border-[#241A1D]/7 bg-gradient-to-br from-[#F2D7D9] via-[#E7BDC4] to-[#B8899A] shadow-2xl shadow-[#6E4452]/20">
+          <div className="relative aspect-[4/5] overflow-hidden rounded-[44px] border border-[#35242B]/7 bg-gradient-to-br from-[#F6E7EB] via-[#E8C3CF] to-[#B8899A] shadow-2xl shadow-[#8B405A]/20">
             {heroImageUrl ? (
               <>
                 <Image
@@ -166,7 +166,7 @@ export function HomeHero({
                   className="hidden object-cover lg:block"
                 />
 
-                <div className="absolute inset-0 bg-gradient-to-t from-[#241A1D]/65 via-transparent to-transparent" />
+                <div className="absolute inset-0 bg-gradient-to-t from-[#35242B]/65 via-transparent to-transparent" />
               </>
             ) : (
               <>
@@ -193,7 +193,7 @@ export function HomeHero({
             </div>
           </div>
 
-          <div className="absolute -bottom-7 -right-1 z-20 rounded-3xl bg-[#241A1D] p-5 text-white shadow-2xl sm:-right-3">
+          <div className="absolute -bottom-7 -right-1 z-20 rounded-3xl bg-[#35242B] p-5 text-white shadow-2xl sm:-right-3">
             <p className="font-serif text-3xl">
               90+
             </p>

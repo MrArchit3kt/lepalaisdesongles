@@ -37,7 +37,7 @@ export default async function ServicesPage({
   ]);
 
   return (
-    <main className="bg-[#FFF9F8]">
+    <main className="bg-[#FFFAFB]">
       <ServicesHero
         categoriesCount={categories.length}
         servicesCount={services.length}
@@ -56,13 +56,13 @@ export default async function ServicesPage({
       </section>
 
       <section className="px-5 pb-20 lg:px-8 lg:pb-28">
-        <div className="mx-auto flex max-w-7xl flex-col gap-7 rounded-[36px] bg-[#241A1D] p-8 text-white sm:p-12 lg:flex-row lg:items-center lg:justify-between">
+        <div className="mx-auto flex max-w-7xl flex-col gap-7 rounded-[36px] bg-gradient-to-br from-[#3B2430] via-[#4A2A3A] to-[#2E1E28] p-8 text-white sm:p-12 lg:flex-row lg:items-center lg:justify-between">
           <div>
-            <p className="text-xs font-semibold uppercase tracking-[0.24em] text-[#E8B4B8]">
+            <p className="text-[10px] font-black uppercase tracking-[0.24em] text-[#F0C4D3]">
               Besoin d’un conseil ?
             </p>
 
-            <h2 className="mt-4 font-serif text-4xl">
+            <h2 className="mt-4 font-serif text-4xl italic">
               Vous hésitez entre plusieurs prestations ?
             </h2>
 
@@ -82,7 +82,7 @@ export default async function ServicesPage({
 
             <Link
               href="/reservation"
-              className="inline-flex h-13 items-center justify-center gap-2 rounded-full bg-white px-7 text-sm font-semibold text-[#241A1D] transition hover:bg-[#FFF0F0]"
+              className="inline-flex h-13 items-center justify-center gap-2 rounded-full bg-white px-7 text-sm font-semibold text-[#35242B] transition hover:bg-[#FFF0F4]"
             >
               <CalendarDays className="size-4" />
               Réserver

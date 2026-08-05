@@ -23,22 +23,22 @@ export function HomeOffers({
   }
 
   return (
-    <section className="bg-[#FFF4F3] py-20 lg:py-24">
+    <section className="bg-[#FFFAFB] py-20 lg:py-24">
       <div className="mx-auto grid max-w-7xl gap-6 px-5 lg:grid-cols-2 lg:px-8">
         {promotion ? (
-          <article className="relative overflow-hidden rounded-[36px] bg-[#241A1D] p-8 text-white sm:p-10">
-            <div className="absolute -right-20 -top-20 size-64 rounded-full bg-[#E8B4B8]/20 blur-3xl" />
+          <article className="relative overflow-hidden rounded-[36px] bg-gradient-to-br from-[#3B2430] via-[#4A2A3A] to-[#2E1E28] p-8 text-white sm:p-10">
+            <div className="absolute -right-20 -top-20 size-64 rounded-full bg-[#C47890]/25 blur-3xl" />
 
             <div className="relative">
-              <span className="flex size-12 items-center justify-center rounded-2xl bg-white/10 text-[#E8B4B8]">
+              <span className="flex size-12 items-center justify-center rounded-2xl bg-white/10 text-[#F0C4D3]">
                 <Percent className="size-5" />
               </span>
 
-              <p className="mt-7 text-xs font-semibold uppercase tracking-[0.25em] text-[#E8B4B8]">
+              <p className="mt-7 text-[10px] font-black uppercase tracking-[0.24em] text-[#F0C4D3]">
                 Offre du moment
               </p>
 
-              <h2 className="mt-3 font-serif text-4xl">
+              <h2 className="mt-3 font-serif text-4xl italic">
                 {promotion.name}
               </h2>
 
@@ -72,32 +72,32 @@ export function HomeOffers({
         ) : null}
 
         {contest ? (
-          <article className="relative overflow-hidden rounded-[36px] border border-[#241A1D]/7 bg-white p-8 sm:p-10">
-            <div className="absolute -bottom-20 -right-20 size-60 rounded-full bg-[#C9A36A]/15 blur-3xl" />
+          <article className="relative overflow-hidden rounded-[36px] border border-[#F0DCE3] bg-white p-8 sm:p-10">
+            <div className="absolute -bottom-20 -right-20 size-60 rounded-full bg-[#D6B778]/15 blur-3xl" />
 
             <div className="relative">
               <div className="flex items-start justify-between">
-                <span className="flex size-12 items-center justify-center rounded-2xl bg-[#FFF0F0] text-[#9D6F80]">
+                <span className="flex size-12 items-center justify-center rounded-2xl bg-[#FFF0F4] text-[#A64D69]">
                   <Trophy className="size-5" />
                 </span>
 
-                <Sparkles className="size-6 text-[#C9A36A]" />
+                <Sparkles className="size-6 text-[#D6B778]" />
               </div>
 
-              <p className="mt-7 text-xs font-semibold uppercase tracking-[0.25em] text-[#A06F81]">
+              <p className="mt-7 text-[10px] font-black uppercase tracking-[0.24em] text-[#A44E69]">
                 Jeu concours
               </p>
 
-              <h2 className="mt-3 font-serif text-4xl text-[#241A1D]">
+              <h2 className="mt-3 font-serif text-4xl text-[#35242B]">
                 {contest.title}
               </h2>
 
-              <p className="mt-4 max-w-lg leading-7 text-[#75636A]">
+              <p className="mt-4 max-w-lg leading-7 text-[#79636C]">
                 {contest.description}
               </p>
 
-              <div className="mt-6 flex items-start gap-3 rounded-2xl bg-[#FFF8EE] p-4">
-                <Gift className="mt-0.5 size-5 shrink-0 text-[#B48B51]" />
+              <div className="mt-6 flex items-start gap-3 rounded-2xl bg-[#F2E3BD]/50 p-4">
+                <Gift className="mt-0.5 size-5 shrink-0 text-[#B4863B]" />
 
                 <p className="text-sm leading-6 text-[#6C5840]">
                   <span className="font-semibold">
@@ -110,7 +110,7 @@ export function HomeOffers({
               <div className="mt-8">
                 <Link
                   href={`/concours/${contest.slug}`}
-                  className="inline-flex items-center gap-2 text-sm font-semibold text-[#8D6574]"
+                  className="inline-flex items-center gap-2 text-sm font-semibold text-[#A64D69]"
                 >
                   Participer au concours
                   <ArrowRight className="size-4" />

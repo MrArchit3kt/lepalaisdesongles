@@ -115,7 +115,7 @@ export function LoginForm() {
             onClick={() =>
               setShowPassword((current) => !current)
             }
-            className="absolute right-4 top-[42px] text-[#7B6970] transition hover:text-[#241A1D]"
+            className="absolute right-4 top-[42px] text-[#6F5962] transition hover:text-[#35242B]"
             aria-label={
               showPassword
                 ? "Masquer le mot de passe"
@@ -133,7 +133,7 @@ export function LoginForm() {
         <div className="flex justify-end">
           <Link
             href="/mot-de-passe-oublie"
-            className="text-sm text-[#8E6675] transition hover:text-[#241A1D]"
+            className="text-sm text-[#A64D69] transition hover:text-[#35242B]"
           >
             Mot de passe oublié ?
           </Link>
@@ -149,12 +149,12 @@ export function LoginForm() {
         Se connecter
       </Button>
 
-      <p className="text-center text-sm text-[#716168]">
+      <p className="text-center text-sm text-[#4A3540]">
         Vous n’avez pas encore de compte ?{" "}
 
         <Link
           href="/inscription"
-          className="font-semibold text-[#9D6F80] hover:text-[#241A1D]"
+          className="font-semibold text-[#A64D69] hover:text-[#35242B]"
         >
           Créer mon compte
         </Link>

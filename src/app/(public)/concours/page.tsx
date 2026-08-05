@@ -92,7 +92,7 @@ function getPositionClasses(position: number): string {
       return "bg-[#F7E4D7] text-[#A4643A]";
 
     default:
-      return "bg-[#FFF0F4] text-[#843F59]";
+      return "bg-[#FFF0F4] text-[#8B405A]";
   }
 }
 
@@ -104,20 +104,20 @@ function ContestLeaderboard({ contest }: { contest: PublicActiveContest }) {
   const entries = contest.leaderboard.slice(0, 10);
 
   return (
-    <section className="rounded-[2rem] border border-[#241A1D]/8 bg-[#FFF9F8] p-5 sm:p-6">
+    <section className="rounded-[2rem] border border-[#35242B]/8 bg-[#FFFAFB] p-5 sm:p-6">
       <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
         <div>
-          <p className="text-xs font-semibold uppercase tracking-[0.2em] text-[#A06F81]">
+          <p className="text-xs font-semibold uppercase tracking-[0.2em] text-[#A44E69]">
             Classement actuel
           </p>
 
-          <h3 className="mt-2 font-serif text-3xl text-[#241A1D]">
+          <h3 className="mt-2 font-serif text-3xl text-[#35242B]">
             Les participantes en tête
           </h3>
         </div>
 
-        <div className="inline-flex items-center gap-2 self-start rounded-full bg-white px-4 py-2 text-xs font-semibold text-[#6D5A62] shadow-sm">
-          <UsersRound className="size-4 text-[#A27384]" />
+        <div className="inline-flex items-center gap-2 self-start rounded-full bg-white px-4 py-2 text-xs font-semibold text-[#6F5962] shadow-sm">
+          <UsersRound className="size-4 text-[#A64D69]" />
           {contest.participantCount} participante
           {contest.participantCount !== 1 ? "s" : ""}
         </div>
@@ -132,7 +132,7 @@ function ContestLeaderboard({ contest }: { contest: PublicActiveContest }) {
                 "flex items-center gap-4 rounded-2xl border p-3.5 transition",
                 entry.position === 1
                   ? "border-[#D6B679]/55 bg-[#FFFDF4]"
-                  : "border-[#241A1D]/7 bg-white",
+                  : "border-[#35242B]/7 bg-white",
               ].join(" ")}
             >
               <span
@@ -145,7 +145,7 @@ function ContestLeaderboard({ contest }: { contest: PublicActiveContest }) {
               </span>
 
               {entry.imageUrl ? (
-                <span className="relative size-11 shrink-0 overflow-hidden rounded-full border-2 border-white bg-[#F2D7D9] shadow-sm">
+                <span className="relative size-11 shrink-0 overflow-hidden rounded-full border-2 border-white bg-[#F6E7EB] shadow-sm">
                   <Image
                     src={entry.imageUrl}
                     alt={entry.displayName}
@@ -155,17 +155,17 @@ function ContestLeaderboard({ contest }: { contest: PublicActiveContest }) {
                   />
                 </span>
               ) : (
-                <span className="grid size-11 shrink-0 place-items-center rounded-full bg-gradient-to-br from-[#E8B4C0] to-[#B45F7A] font-serif text-lg font-bold text-white">
+                <span className="grid size-11 shrink-0 place-items-center rounded-full bg-gradient-to-br from-[#E8B3C3] to-[#A64D69] font-serif text-lg font-bold text-white">
                   {entry.displayName.charAt(0).toLocaleUpperCase("fr-FR")}
                 </span>
               )}
 
               <div className="min-w-0 flex-1">
-                <p className="truncate font-semibold text-[#241A1D]">
+                <p className="truncate font-semibold text-[#35242B]">
                   {entry.displayName}
                 </p>
 
-                <div className="mt-1 flex flex-wrap gap-x-4 gap-y-1 text-xs text-[#816D75]">
+                <div className="mt-1 flex flex-wrap gap-x-4 gap-y-1 text-xs text-[#6F5962]">
                   <span>
                     {entry.points} point
                     {entry.points !== 1 ? "s" : ""}
@@ -181,11 +181,11 @@ function ContestLeaderboard({ contest }: { contest: PublicActiveContest }) {
               </div>
 
               <div className="shrink-0 text-right">
-                <p className="text-xl font-black text-[#843F59]">
+                <p className="text-xl font-black text-[#8B405A]">
                   {entry.totalScore}
                 </p>
 
-                <p className="text-[10px] font-semibold uppercase tracking-[0.12em] text-[#9B868E]">
+                <p className="text-[10px] font-semibold uppercase tracking-[0.12em] text-[#8C747D]">
                   score
                 </p>
               </div>
@@ -193,21 +193,21 @@ function ContestLeaderboard({ contest }: { contest: PublicActiveContest }) {
           ))}
         </div>
       ) : (
-        <div className="mt-6 rounded-2xl border border-dashed border-[#E8B4C0] bg-white px-5 py-10 text-center">
-          <Trophy className="mx-auto size-8 text-[#B45F7A]" />
+        <div className="mt-6 rounded-2xl border border-dashed border-[#E8B3C3] bg-white px-5 py-10 text-center">
+          <Trophy className="mx-auto size-8 text-[#A64D69]" />
 
-          <p className="mt-3 font-semibold text-[#241A1D]">
+          <p className="mt-3 font-semibold text-[#35242B]">
             Le classement est encore vide
           </p>
 
-          <p className="mt-2 text-sm text-[#816D75]">
+          <p className="mt-2 text-sm text-[#6F5962]">
             Les premières participations apparaîtront ici.
           </p>
         </div>
       )}
 
       {contest.leaderboard.length > 10 ? (
-        <p className="mt-4 text-center text-xs text-[#816D75]">
+        <p className="mt-4 text-center text-xs text-[#6F5962]">
           Les 10 premières places sont affichées.
         </p>
       ) : null}
@@ -230,9 +230,9 @@ function ActiveContestCard({
   const imageUrl = getContestImage(contest, defaultImageUrl);
 
   return (
-    <article className="overflow-hidden rounded-[2.5rem] border border-[#241A1D]/8 bg-white shadow-xl shadow-[#6B4451]/8">
+    <article className="overflow-hidden rounded-[2.5rem] border border-[#35242B]/8 bg-white shadow-xl shadow-[#8B405A]/8">
       <div className="grid lg:grid-cols-[0.9fr_1.1fr]">
-        <div className="relative min-h-[420px] overflow-hidden bg-gradient-to-br from-[#E8B4C0] to-[#843F59]">
+        <div className="relative min-h-[420px] overflow-hidden bg-gradient-to-br from-[#E8B3C3] to-[#8B405A]">
           {imageUrl ? (
             <>
               <Image
@@ -244,7 +244,7 @@ function ActiveContestCard({
                 className="object-cover"
               />
 
-              <div className="absolute inset-0 bg-gradient-to-t from-[#241A1D]/85 via-[#241A1D]/20 to-transparent" />
+              <div className="absolute inset-0 bg-gradient-to-t from-[#35242B]/85 via-[#35242B]/20 to-transparent" />
             </>
           ) : (
             <>
@@ -298,29 +298,29 @@ function ActiveContestCard({
           </div>
 
           <div className="mt-5 grid gap-3 sm:grid-cols-2">
-            <div className="flex items-start gap-3 rounded-2xl bg-[#FFF9F8] p-4">
-              <CalendarDays className="mt-0.5 size-5 shrink-0 text-[#A27384]" />
+            <div className="flex items-start gap-3 rounded-2xl bg-[#FFFAFB] p-4">
+              <CalendarDays className="mt-0.5 size-5 shrink-0 text-[#A64D69]" />
 
               <div>
-                <p className="text-xs uppercase tracking-[0.12em] text-[#9A858D]">
+                <p className="text-xs uppercase tracking-[0.12em] text-[#8C747D]">
                   Fin du concours
                 </p>
 
-                <p className="mt-1 text-sm font-bold text-[#241A1D]">
+                <p className="mt-1 text-sm font-bold text-[#35242B]">
                   {formatDate(contest.endsAt)}
                 </p>
               </div>
             </div>
 
-            <div className="flex items-start gap-3 rounded-2xl bg-[#FFF9F8] p-4">
-              <UsersRound className="mt-0.5 size-5 shrink-0 text-[#A27384]" />
+            <div className="flex items-start gap-3 rounded-2xl bg-[#FFFAFB] p-4">
+              <UsersRound className="mt-0.5 size-5 shrink-0 text-[#A64D69]" />
 
               <div>
-                <p className="text-xs uppercase tracking-[0.12em] text-[#9A858D]">
+                <p className="text-xs uppercase tracking-[0.12em] text-[#8C747D]">
                   Participantes
                 </p>
 
-                <p className="mt-1 text-sm font-bold text-[#241A1D]">
+                <p className="mt-1 text-sm font-bold text-[#35242B]">
                   {contest.participantCount}
                   {contest.maximumEntries !== null
                     ? ` / ${contest.maximumEntries}`
@@ -330,15 +330,15 @@ function ActiveContestCard({
             </div>
 
             {contest.drawAt ? (
-              <div className="flex items-start gap-3 rounded-2xl bg-[#FFF9F8] p-4">
-                <Trophy className="mt-0.5 size-5 shrink-0 text-[#A27384]" />
+              <div className="flex items-start gap-3 rounded-2xl bg-[#FFFAFB] p-4">
+                <Trophy className="mt-0.5 size-5 shrink-0 text-[#A64D69]" />
 
                 <div>
-                  <p className="text-xs uppercase tracking-[0.12em] text-[#9A858D]">
+                  <p className="text-xs uppercase tracking-[0.12em] text-[#8C747D]">
                     Résultat prévu
                   </p>
 
-                  <p className="mt-1 text-sm font-bold text-[#241A1D]">
+                  <p className="mt-1 text-sm font-bold text-[#35242B]">
                     {formatDate(contest.drawAt)}
                   </p>
                 </div>
@@ -346,15 +346,15 @@ function ActiveContestCard({
             ) : null}
 
             {contest.remainingEntries !== null ? (
-              <div className="flex items-start gap-3 rounded-2xl bg-[#FFF9F8] p-4">
-                <UserPlus className="mt-0.5 size-5 shrink-0 text-[#A27384]" />
+              <div className="flex items-start gap-3 rounded-2xl bg-[#FFFAFB] p-4">
+                <UserPlus className="mt-0.5 size-5 shrink-0 text-[#A64D69]" />
 
                 <div>
-                  <p className="text-xs uppercase tracking-[0.12em] text-[#9A858D]">
+                  <p className="text-xs uppercase tracking-[0.12em] text-[#8C747D]">
                     Places restantes
                   </p>
 
-                  <p className="mt-1 text-sm font-bold text-[#241A1D]">
+                  <p className="mt-1 text-sm font-bold text-[#35242B]">
                     {contest.remainingEntries}
                   </p>
                 </div>
@@ -365,7 +365,7 @@ function ActiveContestCard({
           <div className="mt-auto pt-6">
             <Link
               href={`/concours/${contest.slug}`}
-              className="inline-flex h-13 w-full items-center justify-center gap-2 rounded-full bg-[#241A1D] px-6 text-sm font-semibold text-white shadow-lg shadow-black/10 transition hover:-translate-y-0.5 hover:bg-[#3B292F]"
+              className="inline-flex h-13 w-full items-center justify-center gap-2 rounded-full bg-[#35242B] px-6 text-sm font-semibold text-white shadow-lg shadow-black/10 transition hover:-translate-y-0.5 hover:bg-[#4A2E38]"
             >
               Voir le concours et participer
               <ArrowRight className="size-4" />
@@ -374,7 +374,7 @@ function ActiveContestCard({
         </div>
       </div>
 
-      <div className="border-t border-[#241A1D]/7 p-6 sm:p-8">
+      <div className="border-t border-[#35242B]/7 p-6 sm:p-8">
         <ContestLeaderboard contest={contest} />
       </div>
     </article>
@@ -396,8 +396,8 @@ function UpcomingContestCard({
   const imageUrl = getContestImage(contest, defaultImageUrl);
 
   return (
-    <article className="group flex h-full flex-col overflow-hidden rounded-[2rem] border border-[#241A1D]/8 bg-white shadow-sm transition duration-300 hover:-translate-y-1 hover:shadow-xl hover:shadow-[#6B4451]/10">
-      <div className="relative aspect-[16/10] overflow-hidden bg-gradient-to-br from-[#F2D7D9] to-[#B8899A]">
+    <article className="group flex h-full flex-col overflow-hidden rounded-[2rem] border border-[#35242B]/8 bg-white shadow-sm transition duration-300 hover:-translate-y-1 hover:shadow-xl hover:shadow-[#8B405A]/10">
+      <div className="relative aspect-[16/10] overflow-hidden bg-gradient-to-br from-[#F6E7EB] to-[#A64D69]">
         {imageUrl ? (
           <>
             <Image
@@ -408,7 +408,7 @@ function UpcomingContestCard({
               className="object-cover transition duration-500 group-hover:scale-105"
             />
 
-            <div className="absolute inset-0 bg-gradient-to-t from-[#241A1D]/75 via-transparent to-[#241A1D]/10" />
+            <div className="absolute inset-0 bg-gradient-to-t from-[#35242B]/75 via-transparent to-[#35242B]/10" />
           </>
         ) : (
           <div className="grid size-full place-items-center">
@@ -416,7 +416,7 @@ function UpcomingContestCard({
           </div>
         )}
 
-        <span className="absolute left-5 top-5 inline-flex items-center gap-2 rounded-full bg-white/95 px-4 py-2 text-xs font-bold text-[#843F59] shadow-lg backdrop-blur">
+        <span className="absolute left-5 top-5 inline-flex items-center gap-2 rounded-full bg-white/95 px-4 py-2 text-xs font-bold text-[#8B405A] shadow-lg backdrop-blur">
           <Hourglass className="size-4" />À venir
         </span>
 
@@ -432,7 +432,7 @@ function UpcomingContestCard({
       </div>
 
       <div className="flex flex-1 flex-col p-6">
-        <p className="line-clamp-3 text-sm leading-7 text-[#75636A]">
+        <p className="line-clamp-3 text-sm leading-7 text-[#79636C]">
           {contest.description}
         </p>
 
@@ -449,22 +449,22 @@ function UpcomingContestCard({
         </div>
 
         <div className="mt-5 grid grid-cols-2 gap-3 text-sm">
-          <div className="rounded-2xl bg-[#FFF9F8] p-4">
-            <Clock3 className="size-4 text-[#A27384]" />
+          <div className="rounded-2xl bg-[#FFFAFB] p-4">
+            <Clock3 className="size-4 text-[#A64D69]" />
 
-            <p className="mt-2 text-xs text-[#9A858D]">Ouverture</p>
+            <p className="mt-2 text-xs text-[#8C747D]">Ouverture</p>
 
-            <p className="mt-1 font-semibold text-[#241A1D]">
+            <p className="mt-1 font-semibold text-[#35242B]">
               {formatDate(contest.startsAt)}
             </p>
           </div>
 
-          <div className="rounded-2xl bg-[#FFF9F8] p-4">
-            <CalendarDays className="size-4 text-[#A27384]" />
+          <div className="rounded-2xl bg-[#FFFAFB] p-4">
+            <CalendarDays className="size-4 text-[#A64D69]" />
 
-            <p className="mt-2 text-xs text-[#9A858D]">Clôture</p>
+            <p className="mt-2 text-xs text-[#8C747D]">Clôture</p>
 
-            <p className="mt-1 font-semibold text-[#241A1D]">
+            <p className="mt-1 font-semibold text-[#35242B]">
               {formatDate(contest.endsAt)}
             </p>
           </div>
@@ -473,7 +473,7 @@ function UpcomingContestCard({
         <div className="mt-auto pt-6">
           <Link
             href={`/concours/${contest.slug}`}
-            className="inline-flex h-12 w-full items-center justify-center gap-2 rounded-full border border-[#241A1D]/10 bg-white px-6 text-sm font-semibold text-[#241A1D] transition hover:bg-[#FFF0F0]"
+            className="inline-flex h-12 w-full items-center justify-center gap-2 rounded-full border border-[#35242B]/10 bg-white px-6 text-sm font-semibold text-[#35242B] transition hover:bg-[#FFF0F4]"
           >
             Découvrir le concours
             <ArrowRight className="size-4" />
@@ -500,7 +500,7 @@ export default async function ContestsPage() {
     websiteSettings.defaultServiceImageUrl;
 
   return (
-    <main className="bg-[#FFF9F8]">
+    <main className="bg-[#FFFAFB]">
       <ContestsHero
         activeCount={data.statistics.activeCount}
         upcomingCount={data.statistics.upcomingCount}
@@ -516,15 +516,15 @@ export default async function ContestsPage() {
         className="mx-auto max-w-7xl scroll-mt-24 px-5 py-16 lg:px-8 lg:py-24"
       >
         <div>
-          <p className="text-xs font-semibold uppercase tracking-[0.25em] text-[#A06F81]">
+          <p className="text-xs font-semibold uppercase tracking-[0.25em] text-[#A44E69]">
             En ce moment
           </p>
 
-          <h2 className="mt-4 font-serif text-4xl text-[#241A1D] sm:text-5xl">
+          <h2 className="mt-4 font-serif text-4xl text-[#35242B] sm:text-5xl">
             Concours en cours
           </h2>
 
-          <p className="mt-4 max-w-2xl leading-7 text-[#75636A]">
+          <p className="mt-4 max-w-2xl leading-7 text-[#79636C]">
             Consultez les lots, les conditions et le classement actualisé de
             chaque concours actif.
           </p>
@@ -541,16 +541,16 @@ export default async function ContestsPage() {
             ))}
           </div>
         ) : (
-          <div className="mt-10 rounded-[2rem] border border-dashed border-[#241A1D]/15 bg-white px-6 py-16 text-center">
-            <span className="mx-auto grid size-16 place-items-center rounded-full bg-[#FFF0F4] text-[#B45F7A]">
+          <div className="mt-10 rounded-[2rem] border border-dashed border-[#35242B]/15 bg-white px-6 py-16 text-center">
+            <span className="mx-auto grid size-16 place-items-center rounded-full bg-[#FFF0F4] text-[#A64D69]">
               <Trophy className="size-7" />
             </span>
 
-            <h3 className="mt-5 font-serif text-3xl text-[#241A1D]">
+            <h3 className="mt-5 font-serif text-3xl text-[#35242B]">
               Aucun concours en cours
             </h3>
 
-            <p className="mx-auto mt-3 max-w-md text-sm leading-7 text-[#75636A]">
+            <p className="mx-auto mt-3 max-w-md text-sm leading-7 text-[#79636C]">
               Consultez les concours à venir pour connaître les prochaines dates
               et les futurs lots à gagner.
             </p>
@@ -566,15 +566,15 @@ export default async function ContestsPage() {
         <section className="bg-white py-16 lg:py-24">
           <div className="mx-auto max-w-7xl px-5 lg:px-8">
             <div>
-              <p className="text-xs font-semibold uppercase tracking-[0.25em] text-[#A06F81]">
+              <p className="text-xs font-semibold uppercase tracking-[0.25em] text-[#A44E69]">
                 Prochainement
               </p>
 
-              <h2 className="mt-4 font-serif text-4xl text-[#241A1D] sm:text-5xl">
+              <h2 className="mt-4 font-serif text-4xl text-[#35242B] sm:text-5xl">
                 Concours à venir
               </h2>
 
-              <p className="mt-4 max-w-2xl leading-7 text-[#75636A]">
+              <p className="mt-4 max-w-2xl leading-7 text-[#79636C]">
                 Découvrez les prochains concours et les cadeaux qui seront mis
                 en jeu.
               </p>
@@ -598,9 +598,9 @@ export default async function ContestsPage() {
       {/* ------------------------------------------------------------------ */}
 
       <section className="px-5 py-20 lg:px-8 lg:py-28">
-        <div className="mx-auto flex max-w-7xl flex-col gap-7 rounded-[2.5rem] bg-[#241A1D] p-8 text-white sm:p-12 lg:flex-row lg:items-center lg:justify-between">
+        <div className="mx-auto flex max-w-7xl flex-col gap-7 rounded-[2.5rem] bg-[#35242B] p-8 text-white sm:p-12 lg:flex-row lg:items-center lg:justify-between">
           <div>
-            <p className="text-xs font-semibold uppercase tracking-[0.24em] text-[#E8B4B8]">
+            <p className="text-xs font-semibold uppercase tracking-[0.24em] text-[#E8B3C3]">
               Espace cliente
             </p>
 
@@ -616,7 +616,7 @@ export default async function ContestsPage() {
 
           <Link
             href="/connexion"
-            className="inline-flex h-13 shrink-0 items-center justify-center gap-2 rounded-full bg-white px-7 text-sm font-semibold text-[#241A1D] transition hover:bg-[#FFF0F0]"
+            className="inline-flex h-13 shrink-0 items-center justify-center gap-2 rounded-full bg-white px-7 text-sm font-semibold text-[#35242B] transition hover:bg-[#FFF0F4]"
           >
             <UserPlus className="size-4" />
             Accéder à mon compte

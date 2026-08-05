@@ -62,9 +62,9 @@ export function BookingCta({
   imageUrl = "",
 }: BookingCtaProps) {
   return (
-    <section className="bg-[#FFF9F8] py-20 lg:py-28">
+    <section className="bg-[#FFFAFB] py-20 lg:py-28">
       <div className="mx-auto max-w-7xl px-5 lg:px-8">
-        <div className="grid overflow-hidden rounded-[40px] bg-[#241A1D] shadow-2xl shadow-[#6E4452]/15 lg:grid-cols-[1.1fr_0.9fr]">
+        <div className="grid overflow-hidden rounded-[40px] bg-gradient-to-br from-[#3B2430] via-[#4A2A3A] to-[#2E1E28] shadow-2xl shadow-[#8B405A]/15 lg:grid-cols-[1.1fr_0.9fr]">
           {/* -------------------------------------------------------------- */}
           {/*                           APPEL À L’ACTION                      */}
           {/* -------------------------------------------------------------- */}
@@ -82,24 +82,24 @@ export function BookingCta({
                   className="object-cover"
                 />
 
-                <div className="absolute inset-0 bg-gradient-to-r from-[#241A1D]/95 via-[#241A1D]/80 to-[#241A1D]/35" />
+                <div className="absolute inset-0 bg-gradient-to-r from-[#2E1E28]/95 via-[#2E1E28]/80 to-[#2E1E28]/35" />
 
-                <div className="absolute inset-0 bg-gradient-to-t from-[#241A1D]/75 via-transparent to-[#241A1D]/20" />
+                <div className="absolute inset-0 bg-gradient-to-t from-[#2E1E28]/75 via-transparent to-[#2E1E28]/20" />
               </>
             ) : (
               <>
-                <div className="absolute -left-20 -top-20 size-72 rounded-full bg-[#E8B4B8]/15 blur-3xl" />
+                <div className="absolute -left-20 -top-20 size-72 rounded-full bg-[#C47890]/20 blur-3xl" />
 
-                <div className="absolute -bottom-32 right-0 size-80 rounded-full bg-[#C9A36A]/10 blur-3xl" />
+                <div className="absolute -bottom-32 right-0 size-80 rounded-full bg-[#D6B778]/10 blur-3xl" />
               </>
             )}
 
             <div className="relative flex h-full flex-col justify-center">
-              <p className="text-xs font-semibold uppercase tracking-[0.28em] text-[#E8B4B8]">
+              <p className="text-[10px] font-black uppercase tracking-[0.24em] text-[#F0C4D3]">
                 Prendre rendez-vous
               </p>
 
-              <h2 className="mt-5 max-w-xl font-serif text-4xl leading-tight sm:text-5xl">
+              <h2 className="mt-5 max-w-xl font-serif text-4xl italic leading-tight sm:text-5xl">
                 Votre prochain moment beauté commence ici.
               </h2>
 
@@ -112,7 +112,7 @@ export function BookingCta({
               <div className="mt-8 flex flex-col gap-3 sm:flex-row">
                 <Link
                   href="/reservation"
-                  className="inline-flex h-14 items-center justify-center gap-3 rounded-full bg-white px-7 text-sm font-semibold text-[#241A1D] shadow-xl transition hover:-translate-y-0.5 hover:bg-[#FFF0F0]"
+                  className="group inline-flex h-14 items-center justify-center gap-3 rounded-full bg-gradient-to-r from-[#AA526E] via-[#BD7088] to-[#8B405A] px-7 text-sm font-black text-white shadow-[0_18px_45px_rgba(139,64,90,0.35)] transition duration-300 hover:-translate-y-0.5 hover:shadow-[0_24px_55px_rgba(139,64,90,0.45)]"
                 >
                   <CalendarDays className="size-5" />
 
@@ -137,7 +137,7 @@ export function BookingCta({
 
           <div className="bg-white/5 p-8 sm:p-12">
             <div className="flex items-center gap-3 text-white">
-              <span className="flex size-11 items-center justify-center rounded-2xl bg-white/10 text-[#E8B4B8]">
+              <span className="flex size-11 items-center justify-center rounded-2xl bg-white/10 text-[#F0C4D3]">
                 <Clock3 className="size-5" />
               </span>
 

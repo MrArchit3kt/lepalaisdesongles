@@ -142,7 +142,7 @@ function getPositionClasses(
       return "bg-[#F7E4D7] text-[#A4643A]";
 
     default:
-      return "bg-[#FFF0F4] text-[#843F59]";
+      return "bg-[#FFF0F4] text-[#8B405A]";
   }
 }
 
@@ -248,24 +248,24 @@ async function ContestLeaderboard({
     >;
 }) {
   return (
-    <section className="rounded-[2rem] border border-[#241A1D]/8 bg-white p-6 shadow-sm sm:p-8">
+    <section className="rounded-[2rem] border border-[#35242B]/8 bg-white p-6 shadow-sm sm:p-8">
       <div className="flex flex-col gap-4 sm:flex-row sm:items-end sm:justify-between">
         <div>
-          <p className="text-xs font-semibold uppercase tracking-[0.22em] text-[#A06F81]">
+          <p className="text-xs font-semibold uppercase tracking-[0.22em] text-[#A44E69]">
             Classement
           </p>
 
-          <h2 className="mt-3 font-serif text-4xl text-[#241A1D]">
+          <h2 className="mt-3 font-serif text-4xl text-[#35242B]">
             Classement actuel
           </h2>
 
-          <p className="mt-3 max-w-xl text-sm leading-7 text-[#816D75]">
+          <p className="mt-3 max-w-xl text-sm leading-7 text-[#6F5962]">
             Le classement évolue selon les points et les votes
             enregistrés pendant toute la durée du concours.
           </p>
         </div>
 
-        <span className="inline-flex items-center gap-2 self-start rounded-full bg-[#FFF0F4] px-4 py-2 text-sm font-semibold text-[#843F59]">
+        <span className="inline-flex items-center gap-2 self-start rounded-full bg-[#FFF0F4] px-4 py-2 text-sm font-semibold text-[#8B405A]">
           <UsersRound className="size-4" />
 
           {contest.participantCount} participante
@@ -292,7 +292,7 @@ async function ContestLeaderboard({
                   entry.position ===
                     1
                     ? "border-[#D6B679]/55 bg-[#FFFDF4]"
-                    : "border-[#241A1D]/7 bg-[#FFF9F8]",
+                    : "border-[#35242B]/7 bg-[#FFFAFB]",
                 ].join(
                   " ",
                 )}
@@ -313,7 +313,7 @@ async function ContestLeaderboard({
                 </span>
 
                 {entry.imageUrl ? (
-                  <span className="relative size-11 shrink-0 overflow-hidden rounded-full border-2 border-white bg-[#F2D7D9] shadow-sm">
+                  <span className="relative size-11 shrink-0 overflow-hidden rounded-full border-2 border-white bg-[#F6E7EB] shadow-sm">
                     <Image
                       src={
                         entry.imageUrl
@@ -327,7 +327,7 @@ async function ContestLeaderboard({
                     />
                   </span>
                 ) : (
-                  <span className="grid size-11 shrink-0 place-items-center rounded-full bg-gradient-to-br from-[#E8B4C0] to-[#B45F7A] font-serif text-lg font-bold text-white">
+                  <span className="grid size-11 shrink-0 place-items-center rounded-full bg-gradient-to-br from-[#E8B3C3] to-[#A64D69] font-serif text-lg font-bold text-white">
                     {entry.displayName
                       .charAt(
                         0,
@@ -339,11 +339,11 @@ async function ContestLeaderboard({
                 )}
 
                 <div className="min-w-0 flex-1">
-                  <p className="truncate font-semibold text-[#241A1D]">
+                  <p className="truncate font-semibold text-[#35242B]">
                     {entry.displayName}
                   </p>
 
-                  <div className="mt-1 flex flex-wrap gap-x-4 gap-y-1 text-xs text-[#816D75]">
+                  <div className="mt-1 flex flex-wrap gap-x-4 gap-y-1 text-xs text-[#6F5962]">
                     <span>
                       {entry.points} point
                       {entry.points !==
@@ -366,11 +366,11 @@ async function ContestLeaderboard({
                 </div>
 
                 <div className="shrink-0 text-right">
-                  <p className="text-xl font-black text-[#843F59]">
+                  <p className="text-xl font-black text-[#8B405A]">
                     {entry.totalScore}
                   </p>
 
-                  <p className="text-[10px] font-semibold uppercase tracking-[0.12em] text-[#9B868E]">
+                  <p className="text-[10px] font-semibold uppercase tracking-[0.12em] text-[#8C747D]">
                     score
                   </p>
                 </div>
@@ -379,14 +379,14 @@ async function ContestLeaderboard({
           )}
         </div>
       ) : (
-        <div className="mt-7 rounded-2xl border border-dashed border-[#E8B4C0] bg-[#FFF9F8] px-6 py-12 text-center">
-          <Trophy className="mx-auto size-9 text-[#B45F7A]" />
+        <div className="mt-7 rounded-2xl border border-dashed border-[#E8B3C3] bg-[#FFFAFB] px-6 py-12 text-center">
+          <Trophy className="mx-auto size-9 text-[#A64D69]" />
 
-          <h3 className="mt-4 font-serif text-2xl text-[#241A1D]">
+          <h3 className="mt-4 font-serif text-2xl text-[#35242B]">
             Le classement est encore vide
           </h3>
 
-          <p className="mt-2 text-sm text-[#816D75]">
+          <p className="mt-2 text-sm text-[#6F5962]">
             Les premières participantes apparaîtront ici.
           </p>
         </div>
@@ -460,13 +460,13 @@ async function ContestWinners({
                 </p>
 
                 {winner.prizeName ? (
-                  <p className="mt-3 font-semibold text-[#241A1D]">
+                  <p className="mt-3 font-semibold text-[#35242B]">
                     {winner.prizeName}
                   </p>
                 ) : null}
 
                 {winner.prizeDescription ? (
-                  <p className="mt-1 text-sm leading-6 text-[#816D75]">
+                  <p className="mt-1 text-sm leading-6 text-[#6F5962]">
                     {winner.prizeDescription}
                   </p>
                 ) : null}
@@ -535,12 +535,12 @@ export default async function ContestDetailsPage({
     );
 
   return (
-    <main className="bg-[#FFF9F8]">
+    <main className="bg-[#FFFAFB]">
       {/* ------------------------------------------------------------------ */}
       {/*                               HERO                                 */}
       {/* ------------------------------------------------------------------ */}
 
-      <section className="relative min-h-[620px] overflow-hidden bg-[#241A1D]">
+      <section className="relative min-h-[620px] overflow-hidden bg-[#35242B]">
         {imageUrl ? (
           <>
             <Image
@@ -556,13 +556,13 @@ export default async function ContestDetailsPage({
               className="object-cover"
             />
 
-            <div className="absolute inset-0 bg-gradient-to-r from-[#241A1D]/95 via-[#241A1D]/75 to-[#241A1D]/25" />
+            <div className="absolute inset-0 bg-gradient-to-r from-[#35242B]/95 via-[#35242B]/75 to-[#35242B]/25" />
 
-            <div className="absolute inset-0 bg-gradient-to-t from-[#241A1D] via-transparent to-[#241A1D]/20" />
+            <div className="absolute inset-0 bg-gradient-to-t from-[#35242B] via-transparent to-[#35242B]/20" />
           </>
         ) : (
           <>
-            <div className="absolute -left-32 top-0 size-[500px] rounded-full bg-[#B45F7A]/35 blur-3xl" />
+            <div className="absolute -left-32 top-0 size-[500px] rounded-full bg-[#A64D69]/35 blur-3xl" />
 
             <div className="absolute -right-32 bottom-0 size-[500px] rounded-full bg-[#D6B679]/25 blur-3xl" />
           </>
@@ -589,7 +589,7 @@ export default async function ContestDetailsPage({
               ) : null}
 
               {contest.isUpcoming ? (
-                <span className="inline-flex items-center gap-2 rounded-full bg-white px-4 py-2 text-xs font-bold text-[#843F59]">
+                <span className="inline-flex items-center gap-2 rounded-full bg-white px-4 py-2 text-xs font-bold text-[#8B405A]">
                   <Clock3 className="size-4" />
 
                   Prochainement
@@ -597,7 +597,7 @@ export default async function ContestDetailsPage({
               ) : null}
 
               {contest.hasEnded ? (
-                <span className="inline-flex items-center gap-2 rounded-full bg-white px-4 py-2 text-xs font-bold text-[#816D75]">
+                <span className="inline-flex items-center gap-2 rounded-full bg-white px-4 py-2 text-xs font-bold text-[#6F5962]">
                   <Trophy className="size-4" />
 
                   Concours terminé
@@ -615,7 +615,7 @@ export default async function ContestDetailsPage({
 
             <div className="mt-8 flex flex-wrap gap-3">
               <span className="inline-flex items-center gap-2 rounded-full border border-white/15 bg-white/10 px-4 py-2 text-sm font-semibold text-white backdrop-blur">
-                <CalendarDays className="size-4 text-[#E8B4C0]" />
+                <CalendarDays className="size-4 text-[#E8B3C3]" />
 
                 Du{" "}
                 {formatDate(
@@ -628,7 +628,7 @@ export default async function ContestDetailsPage({
               </span>
 
               <span className="inline-flex items-center gap-2 rounded-full border border-white/15 bg-white/10 px-4 py-2 text-sm font-semibold text-white backdrop-blur">
-                <UsersRound className="size-4 text-[#E8B4C0]" />
+                <UsersRound className="size-4 text-[#E8B3C3]" />
 
                 {contest.participantCount} participante
                 {contest.participantCount !==
@@ -647,16 +647,16 @@ export default async function ContestDetailsPage({
 
       <section className="mx-auto grid max-w-7xl gap-8 px-5 py-16 lg:grid-cols-[1fr_380px] lg:px-8 lg:py-24">
         <div className="space-y-8">
-          <section className="rounded-[2rem] border border-[#241A1D]/8 bg-white p-6 shadow-sm sm:p-8">
-            <p className="text-xs font-semibold uppercase tracking-[0.22em] text-[#A06F81]">
+          <section className="rounded-[2rem] border border-[#35242B]/8 bg-white p-6 shadow-sm sm:p-8">
+            <p className="text-xs font-semibold uppercase tracking-[0.22em] text-[#A44E69]">
               Présentation
             </p>
 
-            <h2 className="mt-3 font-serif text-4xl text-[#241A1D]">
+            <h2 className="mt-3 font-serif text-4xl text-[#35242B]">
               À propos du concours
             </h2>
 
-            <p className="mt-5 whitespace-pre-line text-base leading-8 text-[#75636A]">
+            <p className="mt-5 whitespace-pre-line text-base leading-8 text-[#79636C]">
               {contest.description}
             </p>
           </section>
@@ -680,24 +680,24 @@ export default async function ContestDetailsPage({
           </section>
 
           {contest.rules ? (
-            <section className="rounded-[2rem] border border-[#241A1D]/8 bg-white p-6 shadow-sm sm:p-8">
+            <section className="rounded-[2rem] border border-[#35242B]/8 bg-white p-6 shadow-sm sm:p-8">
               <div className="flex items-start gap-4">
-                <span className="grid size-12 shrink-0 place-items-center rounded-2xl bg-[#FFF0F4] text-[#843F59]">
+                <span className="grid size-12 shrink-0 place-items-center rounded-2xl bg-[#FFF0F4] text-[#8B405A]">
                   <ShieldCheck className="size-6" />
                 </span>
 
                 <div>
-                  <p className="text-xs font-semibold uppercase tracking-[0.22em] text-[#A06F81]">
+                  <p className="text-xs font-semibold uppercase tracking-[0.22em] text-[#A44E69]">
                     Règlement
                   </p>
 
-                  <h2 className="mt-3 font-serif text-4xl text-[#241A1D]">
+                  <h2 className="mt-3 font-serif text-4xl text-[#35242B]">
                     Conditions de participation
                   </h2>
                 </div>
               </div>
 
-              <div className="mt-6 whitespace-pre-line text-sm leading-8 text-[#75636A]">
+              <div className="mt-6 whitespace-pre-line text-sm leading-8 text-[#79636C]">
                 {contest.rules}
               </div>
             </section>
@@ -721,33 +721,33 @@ export default async function ContestDetailsPage({
         {/* ---------------------------------------------------------------- */}
 
         <aside className="lg:sticky lg:top-28 lg:self-start">
-          <div className="rounded-[2rem] border border-[#241A1D]/8 bg-white p-6 shadow-xl shadow-[#6B4451]/8">
+          <div className="rounded-[2rem] border border-[#35242B]/8 bg-white p-6 shadow-xl shadow-[#8B405A]/8">
             <div className="flex items-center gap-3">
-              <span className="grid size-12 place-items-center rounded-2xl bg-[#FFF0F4] text-[#843F59]">
+              <span className="grid size-12 place-items-center rounded-2xl bg-[#FFF0F4] text-[#8B405A]">
                 <Trophy className="size-6" />
               </span>
 
               <div>
-                <p className="text-xs font-semibold uppercase tracking-[0.16em] text-[#A06F81]">
+                <p className="text-xs font-semibold uppercase tracking-[0.16em] text-[#A44E69]">
                   Participation
                 </p>
 
-                <h2 className="mt-1 font-serif text-2xl text-[#241A1D]">
+                <h2 className="mt-1 font-serif text-2xl text-[#35242B]">
                   Tentez votre chance
                 </h2>
               </div>
             </div>
 
             <div className="mt-6 space-y-3">
-              <div className="flex items-start gap-3 rounded-2xl bg-[#FFF9F8] p-4">
-                <CalendarDays className="mt-0.5 size-5 shrink-0 text-[#A27384]" />
+              <div className="flex items-start gap-3 rounded-2xl bg-[#FFFAFB] p-4">
+                <CalendarDays className="mt-0.5 size-5 shrink-0 text-[#A64D69]" />
 
                 <div>
-                  <p className="text-xs uppercase tracking-[0.12em] text-[#9A858D]">
+                  <p className="text-xs uppercase tracking-[0.12em] text-[#8C747D]">
                     Ouverture
                   </p>
 
-                  <p className="mt-1 text-sm font-bold text-[#241A1D]">
+                  <p className="mt-1 text-sm font-bold text-[#35242B]">
                     {formatDateTime(
                       contest.startsAt,
                     )}
@@ -755,15 +755,15 @@ export default async function ContestDetailsPage({
                 </div>
               </div>
 
-              <div className="flex items-start gap-3 rounded-2xl bg-[#FFF9F8] p-4">
-                <Clock3 className="mt-0.5 size-5 shrink-0 text-[#A27384]" />
+              <div className="flex items-start gap-3 rounded-2xl bg-[#FFFAFB] p-4">
+                <Clock3 className="mt-0.5 size-5 shrink-0 text-[#A64D69]" />
 
                 <div>
-                  <p className="text-xs uppercase tracking-[0.12em] text-[#9A858D]">
+                  <p className="text-xs uppercase tracking-[0.12em] text-[#8C747D]">
                     Clôture
                   </p>
 
-                  <p className="mt-1 text-sm font-bold text-[#241A1D]">
+                  <p className="mt-1 text-sm font-bold text-[#35242B]">
                     {formatDateTime(
                       contest.endsAt,
                     )}
@@ -772,15 +772,15 @@ export default async function ContestDetailsPage({
               </div>
 
               {contest.drawAt ? (
-                <div className="flex items-start gap-3 rounded-2xl bg-[#FFF9F8] p-4">
-                  <Crown className="mt-0.5 size-5 shrink-0 text-[#A27384]" />
+                <div className="flex items-start gap-3 rounded-2xl bg-[#FFFAFB] p-4">
+                  <Crown className="mt-0.5 size-5 shrink-0 text-[#A64D69]" />
 
                   <div>
-                    <p className="text-xs uppercase tracking-[0.12em] text-[#9A858D]">
+                    <p className="text-xs uppercase tracking-[0.12em] text-[#8C747D]">
                       Résultat prévu
                     </p>
 
-                    <p className="mt-1 text-sm font-bold text-[#241A1D]">
+                    <p className="mt-1 text-sm font-bold text-[#35242B]">
                       {formatDateTime(
                         contest.drawAt,
                       )}
@@ -789,15 +789,15 @@ export default async function ContestDetailsPage({
                 </div>
               ) : null}
 
-              <div className="flex items-start gap-3 rounded-2xl bg-[#FFF9F8] p-4">
-                <UsersRound className="mt-0.5 size-5 shrink-0 text-[#A27384]" />
+              <div className="flex items-start gap-3 rounded-2xl bg-[#FFFAFB] p-4">
+                <UsersRound className="mt-0.5 size-5 shrink-0 text-[#A64D69]" />
 
                 <div>
-                  <p className="text-xs uppercase tracking-[0.12em] text-[#9A858D]">
+                  <p className="text-xs uppercase tracking-[0.12em] text-[#8C747D]">
                     Places
                   </p>
 
-                  <p className="mt-1 text-sm font-bold text-[#241A1D]">
+                  <p className="mt-1 text-sm font-bold text-[#35242B]">
                     {contest.maximumEntries !==
                     null
                       ? `${contest.participantCount} / ${contest.maximumEntries}`
@@ -856,7 +856,7 @@ export default async function ContestDetailsPage({
             </div>
 
             {contest.requiresAccount ? (
-              <p className="mt-4 text-center text-xs leading-5 text-[#816D75]">
+              <p className="mt-4 text-center text-xs leading-5 text-[#6F5962]">
                 Un compte cliente actif est nécessaire pour
                 participer.
               </p>
@@ -869,11 +869,11 @@ export default async function ContestDetailsPage({
       {/*                                RETOUR                              */}
       {/* ------------------------------------------------------------------ */}
 
-      <section className="border-t border-[#241A1D]/7 bg-white px-5 py-12 lg:px-8">
+      <section className="border-t border-[#35242B]/7 bg-white px-5 py-12 lg:px-8">
         <div className="mx-auto flex max-w-7xl justify-center">
           <Link
             href="/concours"
-            className="inline-flex h-12 items-center justify-center gap-2 rounded-full border border-[#241A1D]/10 px-6 text-sm font-semibold text-[#241A1D] transition hover:bg-[#FFF0F4]"
+            className="inline-flex h-12 items-center justify-center gap-2 rounded-full border border-[#35242B]/10 px-6 text-sm font-semibold text-[#35242B] transition hover:bg-[#FFF0F4]"
           >
             <ArrowLeft className="size-4" />
 

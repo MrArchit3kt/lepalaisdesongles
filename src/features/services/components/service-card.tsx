@@ -41,10 +41,10 @@ export function ServiceCard({
       service.priceCents;
 
   return (
-    <article className="group flex h-full flex-col overflow-hidden rounded-[30px] border border-[#241A1D]/8 bg-white shadow-sm transition duration-300 hover:-translate-y-1 hover:shadow-xl hover:shadow-[#6B4451]/10">
+    <article className="group flex h-full flex-col overflow-hidden rounded-[30px] border border-[#35242B]/8 bg-white shadow-sm transition duration-300 hover:-translate-y-1 hover:shadow-xl hover:shadow-[#8B405A]/10">
       <Link
         href={`/prestations/${service.slug}`}
-        className="relative block aspect-[16/10] overflow-hidden bg-[#F8E7E9]"
+        className="relative block aspect-[16/10] overflow-hidden bg-[#FFF0F4]"
       >
         {displayedImageUrl ? (
           <Image
@@ -63,8 +63,8 @@ export function ServiceCard({
             className="flex size-full items-center justify-center"
             style={{
               background: `linear-gradient(135deg, ${
-                service.color ?? "#F2D7D9"
-              }, ${service.category.color ?? "#B8899A"})`,
+                service.color ?? "#F6E7EB"
+              }, ${service.category.color ?? "#A64D69"})`,
             }}
           >
             <div className="flex size-24 items-center justify-center rounded-full border border-white/40 bg-white/20 text-white backdrop-blur">
@@ -74,14 +74,14 @@ export function ServiceCard({
         )}
 
         <div className="absolute left-4 top-4">
-          <span className="rounded-full bg-white/90 px-4 py-2 text-xs font-semibold text-[#6F5660] shadow-sm backdrop-blur">
+          <span className="rounded-full bg-white/90 px-4 py-2 text-xs font-semibold text-[#4A3540] shadow-sm backdrop-blur">
             {service.category.name}
           </span>
         </div>
 
         {hasPromotion ? (
           <div className="absolute right-4 top-4">
-            <span className="rounded-full bg-[#241A1D] px-4 py-2 text-xs font-semibold text-white shadow-lg">
+            <span className="rounded-full bg-gradient-to-r from-[#AA526E] to-[#8B405A] px-4 py-2 text-xs font-semibold text-white shadow-lg">
               Offre spéciale
             </span>
           </div>
@@ -93,12 +93,12 @@ export function ServiceCard({
           <div>
             <Link
               href={`/prestations/${service.slug}`}
-              className="font-serif text-3xl leading-tight text-[#241A1D] transition hover:text-[#946A7A]"
+              className="font-serif text-3xl leading-tight text-[#35242B] transition hover:text-[#A64D69]"
             >
               {service.name}
             </Link>
 
-            <div className="mt-3 flex flex-wrap items-center gap-x-4 gap-y-2 text-sm text-[#7B6970]">
+            <div className="mt-3 flex flex-wrap items-center gap-x-4 gap-y-2 text-sm text-[#6F5962]">
               <span className="flex items-center gap-2">
                 <Clock3 className="size-4" />
                 {service.durationMinutes} min
@@ -116,12 +116,12 @@ export function ServiceCard({
           <div className="shrink-0 text-right">
             {hasPromotion &&
             service.priceCents !== null ? (
-              <p className="text-sm text-[#9A898F] line-through">
+              <p className="text-sm text-[#A6949B] line-through">
                 {formatPrice(service.priceCents)}
               </p>
             ) : null}
 
-            <p className="text-xl font-semibold text-[#241A1D]">
+            <p className="text-xl font-semibold text-[#35242B]">
               {displayedPrice !== null
                 ? formatPrice(displayedPrice)
                 : "Sur devis"}
@@ -129,16 +129,16 @@ export function ServiceCard({
           </div>
         </div>
 
-        <p className="mt-5 line-clamp-3 text-sm leading-7 text-[#75636A]">
+        <p className="mt-5 line-clamp-3 text-sm leading-7 text-[#79636C]">
           {service.shortDescription ??
               "Découvrez cette prestation et ses différentes possibilités de personnalisation."}
         </p>
 
         {service.depositRequired &&
         service.depositCents ? (
-          <div className="mt-5 rounded-2xl bg-[#FFF5F4] px-4 py-3 text-sm text-[#715D65]">
+          <div className="mt-5 rounded-2xl bg-[#FFF0F4] px-4 py-3 text-sm text-[#6F5962]">
             Acompte demandé :{" "}
-            <span className="font-semibold text-[#241A1D]">
+            <span className="font-semibold text-[#35242B]">
               {formatPrice(service.depositCents)}
             </span>
           </div>
@@ -147,7 +147,7 @@ export function ServiceCard({
         <div className="mt-auto grid gap-3 pt-7 sm:grid-cols-2">
           <Link
             href={`/prestations/${service.slug}`}
-            className="inline-flex h-11 items-center justify-center gap-2 rounded-full border border-[#241A1D]/10 bg-white px-4 text-sm font-semibold text-[#241A1D] transition hover:bg-[#FFF3F2]"
+            className="inline-flex h-11 items-center justify-center gap-2 rounded-full border border-[#35242B]/10 bg-white px-4 text-sm font-semibold text-[#35242B] transition hover:bg-[#FFF0F4]"
           >
             Voir les détails
             <ArrowRight className="size-4" />
@@ -155,7 +155,7 @@ export function ServiceCard({
 
           <Link
             href={`/reservation?service=${service.slug}`}
-            className="inline-flex h-11 items-center justify-center gap-2 rounded-full bg-[#241A1D] px-4 text-sm font-semibold text-white transition hover:bg-[#3B292F]"
+            className="inline-flex h-11 items-center justify-center gap-2 rounded-full bg-gradient-to-r from-[#AA526E] via-[#BD7088] to-[#8B405A] px-4 text-sm font-semibold text-white transition hover:shadow-[0_10px_25px_rgba(139,64,90,0.35)]"
           >
             <CalendarDays className="size-4" />
             Réserver

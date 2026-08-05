@@ -177,8 +177,8 @@ function PromotionCard({
     "ACTIVE";
 
   return (
-    <article className="group flex h-full flex-col overflow-hidden rounded-[34px] border border-[#241A1D]/8 bg-white shadow-sm transition duration-300 hover:-translate-y-1 hover:shadow-2xl hover:shadow-[#6B4451]/10">
-      <div className="relative aspect-[16/10] overflow-hidden bg-gradient-to-br from-[#F8E7E9] to-[#DCAEB8]">
+    <article className="group flex h-full flex-col overflow-hidden rounded-[34px] border border-[#35242B]/8 bg-white shadow-sm transition duration-300 hover:-translate-y-1 hover:shadow-2xl hover:shadow-[#8B405A]/10">
+      <div className="relative aspect-[16/10] overflow-hidden bg-gradient-to-br from-[#F6E7EB] to-[#DCA8B8]">
         {imageUrl ? (
           <>
             <Image
@@ -193,7 +193,7 @@ function PromotionCard({
               className="object-cover transition duration-500 group-hover:scale-105"
             />
 
-            <div className="absolute inset-0 bg-gradient-to-t from-[#241A1D]/75 via-transparent to-[#241A1D]/10" />
+            <div className="absolute inset-0 bg-gradient-to-t from-[#35242B]/75 via-transparent to-[#35242B]/10" />
           </>
         ) : (
           <div className="flex size-full items-center justify-center">
@@ -209,7 +209,7 @@ function PromotionCard({
               "inline-flex items-center gap-2 rounded-full px-4 py-2 text-xs font-bold shadow-lg backdrop-blur",
               isActive
                 ? "bg-emerald-50/95 text-emerald-700"
-                : "bg-white/95 text-[#843F59]",
+                : "bg-white/95 text-[#8B405A]",
             ].join(
               " ",
             )}
@@ -225,7 +225,7 @@ function PromotionCard({
               : "À venir"}
           </span>
 
-          <span className="rounded-full bg-[#241A1D]/90 px-4 py-2 text-sm font-black text-white shadow-lg backdrop-blur">
+          <span className="rounded-full bg-[#35242B]/90 px-4 py-2 text-sm font-black text-white shadow-lg backdrop-blur">
             {promotionValue}
           </span>
         </div>
@@ -242,23 +242,23 @@ function PromotionCard({
       </div>
 
       <div className="flex flex-1 flex-col p-6 sm:p-7">
-        <p className="text-sm leading-7 text-[#75636A]">
+        <p className="text-sm leading-7 text-[#79636C]">
           {promotion.description ??
             "Profitez de cette offre exclusive pendant sa période de validité."}
         </p>
 
         <div className="mt-6 grid gap-3 sm:grid-cols-2">
-          <div className="flex items-start gap-3 rounded-2xl bg-[#FFF9F8] p-4">
-            <CalendarDays className="mt-0.5 size-5 shrink-0 text-[#A27384]" />
+          <div className="flex items-start gap-3 rounded-2xl bg-[#FFFAFB] p-4">
+            <CalendarDays className="mt-0.5 size-5 shrink-0 text-[#A64D69]" />
 
             <div>
-              <p className="text-xs font-semibold uppercase tracking-[0.12em] text-[#9A858D]">
+              <p className="text-xs font-semibold uppercase tracking-[0.12em] text-[#8C747D]">
                 {isActive
                   ? "Valable jusqu’au"
                   : "Commence le"}
               </p>
 
-              <p className="mt-1 text-sm font-bold text-[#241A1D]">
+              <p className="mt-1 text-sm font-bold text-[#35242B]">
                 {formatDate(
                   isActive
                     ? promotion.endsAt
@@ -268,15 +268,15 @@ function PromotionCard({
             </div>
           </div>
 
-          <div className="flex items-start gap-3 rounded-2xl bg-[#FFF9F8] p-4">
-            <Clock3 className="mt-0.5 size-5 shrink-0 text-[#A27384]" />
+          <div className="flex items-start gap-3 rounded-2xl bg-[#FFFAFB] p-4">
+            <Clock3 className="mt-0.5 size-5 shrink-0 text-[#A64D69]" />
 
             <div>
-              <p className="text-xs font-semibold uppercase tracking-[0.12em] text-[#9A858D]">
+              <p className="text-xs font-semibold uppercase tracking-[0.12em] text-[#8C747D]">
                 Période
               </p>
 
-              <p className="mt-1 text-sm font-bold text-[#241A1D]">
+              <p className="mt-1 text-sm font-bold text-[#35242B]">
                 Du{" "}
                 {formatDate(
                   promotion.startsAt,
@@ -291,22 +291,22 @@ function PromotionCard({
         </div>
 
         {promotion.code ? (
-          <div className="mt-5 flex items-center justify-between gap-4 rounded-2xl border border-dashed border-[#B8899A]/45 bg-[#FFF0F2] px-5 py-4">
+          <div className="mt-5 flex items-center justify-between gap-4 rounded-2xl border border-dashed border-[#A64D69]/45 bg-[#FFF0F4] px-5 py-4">
             <div className="flex items-center gap-3">
-              <Tag className="size-5 text-[#9D6F80]" />
+              <Tag className="size-5 text-[#A64D69]" />
 
               <div>
-                <p className="text-xs text-[#816D75]">
+                <p className="text-xs text-[#6F5962]">
                   Code promotionnel
                 </p>
 
-                <p className="mt-1 font-mono text-lg font-black tracking-[0.16em] text-[#241A1D]">
+                <p className="mt-1 font-mono text-lg font-black tracking-[0.16em] text-[#35242B]">
                   {promotion.code}
                 </p>
               </div>
             </div>
 
-            <span className="text-xs font-semibold text-[#9D6F80]">
+            <span className="text-xs font-semibold text-[#A64D69]">
               À indiquer lors de la réservation
             </span>
           </div>
@@ -315,13 +315,13 @@ function PromotionCard({
         <div className="mt-5 space-y-3">
           {promotion.minimumSpendCents !==
           null ? (
-            <div className="flex items-center gap-3 text-sm text-[#695960]">
-              <span className="grid size-8 shrink-0 place-items-center rounded-full bg-[#FFF0F2] text-[#9D6F80]">
+            <div className="flex items-center gap-3 text-sm text-[#5B4A52]">
+              <span className="grid size-8 shrink-0 place-items-center rounded-full bg-[#FFF0F4] text-[#A64D69]">
                 <Gift className="size-4" />
               </span>
 
               Minimum de commande :{" "}
-              <strong className="text-[#241A1D]">
+              <strong className="text-[#35242B]">
                 {formatPrice(
                   promotion.minimumSpendCents,
                 )}
@@ -331,8 +331,8 @@ function PromotionCard({
 
           {promotion.remainingUses !==
           null ? (
-            <div className="flex items-center gap-3 text-sm text-[#695960]">
-              <span className="grid size-8 shrink-0 place-items-center rounded-full bg-[#FFF0F2] text-[#9D6F80]">
+            <div className="flex items-center gap-3 text-sm text-[#5B4A52]">
+              <span className="grid size-8 shrink-0 place-items-center rounded-full bg-[#FFF0F4] text-[#A64D69]">
                 <TicketCheck className="size-4" />
               </span>
 
@@ -351,7 +351,7 @@ function PromotionCard({
         </div>
 
         <div className="mt-6">
-          <p className="text-xs font-semibold uppercase tracking-[0.16em] text-[#9A858D]">
+          <p className="text-xs font-semibold uppercase tracking-[0.16em] text-[#8C747D]">
             Prestations concernées
           </p>
 
@@ -367,7 +367,7 @@ function PromotionCard({
                       service.id
                     }
                     href={`/prestations/${service.slug}`}
-                    className="rounded-full border border-[#241A1D]/8 bg-[#FFF9F8] px-4 py-2 text-xs font-semibold text-[#6F5660] transition hover:border-[#B8899A] hover:bg-[#FFF0F2]"
+                    className="rounded-full border border-[#35242B]/8 bg-[#FFFAFB] px-4 py-2 text-xs font-semibold text-[#4A3540] transition hover:border-[#A64D69] hover:bg-[#FFF0F4]"
                   >
                     {service.name}
                   </Link>
@@ -375,7 +375,7 @@ function PromotionCard({
               )}
             </div>
           ) : (
-            <p className="mt-2 text-sm text-[#695960]">
+            <p className="mt-2 text-sm text-[#5B4A52]">
               Offre valable sur toutes les prestations éligibles.
             </p>
           )}
@@ -388,7 +388,7 @@ function PromotionCard({
                 ? "/reservation"
                 : "/prestations"
             }
-            className="inline-flex h-12 w-full items-center justify-center gap-2 rounded-full bg-[#241A1D] px-6 text-sm font-semibold text-white shadow-lg shadow-black/10 transition hover:-translate-y-0.5 hover:bg-[#3B292F]"
+            className="inline-flex h-12 w-full items-center justify-center gap-2 rounded-full bg-[#35242B] px-6 text-sm font-semibold text-white shadow-lg shadow-black/10 transition hover:-translate-y-0.5 hover:bg-[#4A2E38]"
           >
             {isActive
               ? "Profiter de l’offre"
@@ -417,7 +417,7 @@ export default async function PromotionsPage() {
     ]);
 
   return (
-    <main className="bg-[#FFF9F8]">
+    <main className="bg-[#FFFAFB]">
       {/* ------------------------------------------------------------------ */}
       {/*                               HERO                                 */}
       {/* ------------------------------------------------------------------ */}
@@ -434,15 +434,15 @@ export default async function PromotionsPage() {
         className="mx-auto max-w-7xl scroll-mt-24 px-5 py-16 lg:px-8 lg:py-24"
       >
         <div>
-          <p className="text-xs font-semibold uppercase tracking-[0.25em] text-[#A06F81]">
+          <p className="text-xs font-semibold uppercase tracking-[0.25em] text-[#A44E69]">
             Offres disponibles
           </p>
 
-          <h2 className="mt-4 font-serif text-4xl text-[#241A1D] sm:text-5xl">
+          <h2 className="mt-4 font-serif text-4xl text-[#35242B] sm:text-5xl">
             Promotions en cours
           </h2>
 
-          <p className="mt-4 max-w-2xl leading-7 text-[#75636A]">
+          <p className="mt-4 max-w-2xl leading-7 text-[#79636C]">
             Profitez de ces avantages avant leur date de fin ou
             avant épuisement du nombre d’utilisations.
           </p>
@@ -471,16 +471,16 @@ export default async function PromotionsPage() {
             )}
           </div>
         ) : (
-          <div className="mt-10 rounded-[34px] border border-dashed border-[#241A1D]/15 bg-white px-6 py-16 text-center">
-            <span className="mx-auto grid size-16 place-items-center rounded-full bg-[#FFF0F2] text-[#9D6F80]">
+          <div className="mt-10 rounded-[34px] border border-dashed border-[#35242B]/15 bg-white px-6 py-16 text-center">
+            <span className="mx-auto grid size-16 place-items-center rounded-full bg-[#FFF0F4] text-[#A64D69]">
               <Sparkles className="size-7" />
             </span>
 
-            <h3 className="mt-5 font-serif text-3xl text-[#241A1D]">
+            <h3 className="mt-5 font-serif text-3xl text-[#35242B]">
               Aucune promotion active
             </h3>
 
-            <p className="mx-auto mt-3 max-w-md text-sm leading-7 text-[#75636A]">
+            <p className="mx-auto mt-3 max-w-md text-sm leading-7 text-[#79636C]">
               De nouvelles offres seront prochainement disponibles.
             </p>
           </div>
@@ -496,15 +496,15 @@ export default async function PromotionsPage() {
         <section className="bg-white py-16 lg:py-24">
           <div className="mx-auto max-w-7xl px-5 lg:px-8">
             <div>
-              <p className="text-xs font-semibold uppercase tracking-[0.25em] text-[#A06F81]">
+              <p className="text-xs font-semibold uppercase tracking-[0.25em] text-[#A44E69]">
                 Prochainement
               </p>
 
-              <h2 className="mt-4 font-serif text-4xl text-[#241A1D] sm:text-5xl">
+              <h2 className="mt-4 font-serif text-4xl text-[#35242B] sm:text-5xl">
                 Promotions à venir
               </h2>
 
-              <p className="mt-4 max-w-2xl leading-7 text-[#75636A]">
+              <p className="mt-4 max-w-2xl leading-7 text-[#79636C]">
                 Notez les dates pour ne manquer aucune prochaine
                 offre du salon.
               </p>
@@ -539,9 +539,9 @@ export default async function PromotionsPage() {
       {/* ------------------------------------------------------------------ */}
 
       <section className="px-5 py-20 lg:px-8 lg:py-28">
-        <div className="mx-auto flex max-w-7xl flex-col gap-7 rounded-[38px] bg-[#241A1D] p-8 text-white sm:p-12 lg:flex-row lg:items-center lg:justify-between">
+        <div className="mx-auto flex max-w-7xl flex-col gap-7 rounded-[38px] bg-[#35242B] p-8 text-white sm:p-12 lg:flex-row lg:items-center lg:justify-between">
           <div>
-            <p className="text-xs font-semibold uppercase tracking-[0.24em] text-[#E8B4B8]">
+            <p className="text-xs font-semibold uppercase tracking-[0.24em] text-[#E8B3C3]">
               Votre prochain rendez-vous
             </p>
 
@@ -557,7 +557,7 @@ export default async function PromotionsPage() {
 
           <Link
             href="/reservation"
-            className="inline-flex h-13 shrink-0 items-center justify-center gap-2 rounded-full bg-white px-7 text-sm font-semibold text-[#241A1D] transition hover:bg-[#FFF0F0]"
+            className="inline-flex h-13 shrink-0 items-center justify-center gap-2 rounded-full bg-white px-7 text-sm font-semibold text-[#35242B] transition hover:bg-[#FFF0F4]"
           >
             <CalendarDays className="size-4" />
 

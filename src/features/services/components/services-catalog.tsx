@@ -182,14 +182,14 @@ export function ServicesCatalog({
 
   return (
     <div>
-      <div className="rounded-[30px] border border-[#241A1D]/8 bg-white p-5 shadow-sm lg:p-6">
+      <div className="rounded-[30px] border border-[#35242B]/8 bg-white p-5 shadow-sm lg:p-6">
         <div className="grid gap-4 lg:grid-cols-[1fr_240px]">
           <label className="relative block">
             <span className="sr-only">
               Rechercher une prestation
             </span>
 
-            <Search className="pointer-events-none absolute left-4 top-1/2 size-5 -translate-y-1/2 text-[#8C7A81]" />
+            <Search className="pointer-events-none absolute left-4 top-1/2 size-5 -translate-y-1/2 text-[#8C747D]" />
 
             <input
               type="search"
@@ -198,7 +198,7 @@ export function ServicesCatalog({
                 setSearch(event.target.value)
               }
               placeholder="Rechercher une prestation..."
-              className="h-13 w-full rounded-2xl border border-[#241A1D]/10 bg-[#FFF9F8] pl-12 pr-4 text-sm text-[#241A1D] outline-none transition placeholder:text-[#9C8C91] focus:border-[#B8899A] focus:ring-4 focus:ring-[#B8899A]/10"
+              className="h-13 w-full rounded-2xl border border-[#35242B]/10 bg-[#FFFAFB] pl-12 pr-4 text-sm text-[#35242B] outline-none transition placeholder:text-[#A6949B] focus:border-[#A64D69] focus:ring-4 focus:ring-[#A64D69]/10"
             />
           </label>
 
@@ -207,7 +207,7 @@ export function ServicesCatalog({
               Trier les prestations
             </span>
 
-            <SlidersHorizontal className="pointer-events-none absolute left-4 top-1/2 size-4 -translate-y-1/2 text-[#8C7A81]" />
+            <SlidersHorizontal className="pointer-events-none absolute left-4 top-1/2 size-4 -translate-y-1/2 text-[#8C747D]" />
 
             <select
               value={sort}
@@ -216,7 +216,7 @@ export function ServicesCatalog({
                   event.target.value as SortValue,
                 )
               }
-              className="h-13 w-full appearance-none rounded-2xl border border-[#241A1D]/10 bg-[#FFF9F8] pl-11 pr-4 text-sm text-[#241A1D] outline-none transition focus:border-[#B8899A] focus:ring-4 focus:ring-[#B8899A]/10"
+              className="h-13 w-full appearance-none rounded-2xl border border-[#35242B]/10 bg-[#FFFAFB] pl-11 pr-4 text-sm text-[#35242B] outline-none transition focus:border-[#A64D69] focus:ring-4 focus:ring-[#A64D69]/10"
             >
               <option value="recommended">
                 Ordre recommandé
@@ -250,8 +250,8 @@ export function ServicesCatalog({
             className={cn(
               "shrink-0 rounded-full px-5 py-2.5 text-sm font-semibold transition",
               selectedCategory === "all"
-                ? "bg-[#241A1D] text-white"
-                : "border border-[#241A1D]/10 bg-[#FFF9F8] text-[#6D5B62] hover:bg-[#FFF0F0]",
+                ? "bg-gradient-to-r from-[#AA526E] via-[#BD7088] to-[#8B405A] text-white"
+                : "border border-[#35242B]/10 bg-[#FFFAFB] text-[#4A3540] hover:bg-[#FFF0F4]",
             )}
           >
             Toutes
@@ -273,8 +273,8 @@ export function ServicesCatalog({
                 "shrink-0 rounded-full px-5 py-2.5 text-sm font-semibold transition",
                 selectedCategory ===
                   category.slug
-                  ? "bg-[#241A1D] text-white"
-                  : "border border-[#241A1D]/10 bg-[#FFF9F8] text-[#6D5B62] hover:bg-[#FFF0F0]",
+                  ? "bg-gradient-to-r from-[#AA526E] via-[#BD7088] to-[#8B405A] text-white"
+                  : "border border-[#35242B]/10 bg-[#FFFAFB] text-[#4A3540] hover:bg-[#FFF0F4]",
               )}
             >
               {category.name}
@@ -288,8 +288,8 @@ export function ServicesCatalog({
       </div>
 
       <div className="mt-8 flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
-        <p className="text-sm text-[#79676E]">
-          <span className="font-semibold text-[#241A1D]">
+        <p className="text-sm text-[#79636C]">
+          <span className="font-semibold text-[#35242B]">
             {displayedServices.length}
           </span>{" "}
           prestation
@@ -306,7 +306,7 @@ export function ServicesCatalog({
           <button
             type="button"
             onClick={resetFilters}
-            className="inline-flex items-center gap-2 self-start text-sm font-semibold text-[#926878] transition hover:text-[#241A1D]"
+            className="inline-flex items-center gap-2 self-start text-sm font-semibold text-[#A64D69] transition hover:text-[#35242B]"
           >
             <X className="size-4" />
             Réinitialiser les filtres
@@ -333,16 +333,16 @@ export function ServicesCatalog({
           )}
         </div>
       ) : (
-        <div className="mt-7 rounded-[30px] border border-dashed border-[#241A1D]/15 bg-white px-6 py-16 text-center">
-          <span className="mx-auto flex size-14 items-center justify-center rounded-full bg-[#FFF0F0] text-[#9D6F80]">
+        <div className="mt-7 rounded-[30px] border border-dashed border-[#DCA8B8] bg-white px-6 py-16 text-center">
+          <span className="mx-auto flex size-14 items-center justify-center rounded-full bg-[#FFF0F4] text-[#A64D69]">
             <Sparkles className="size-6" />
           </span>
 
-          <h2 className="mt-5 font-serif text-3xl text-[#241A1D]">
+          <h2 className="mt-5 font-serif text-3xl text-[#35242B]">
             Aucune prestation trouvée
           </h2>
 
-          <p className="mx-auto mt-3 max-w-md text-sm leading-7 text-[#75636A]">
+          <p className="mx-auto mt-3 max-w-md text-sm leading-7 text-[#79636C]">
             Modifiez votre recherche ou
             sélectionnez une autre catégorie.
           </p>
@@ -350,7 +350,7 @@ export function ServicesCatalog({
           <button
             type="button"
             onClick={resetFilters}
-            className="mt-6 inline-flex h-11 items-center justify-center rounded-full bg-[#241A1D] px-6 text-sm font-semibold text-white"
+            className="mt-6 inline-flex h-11 items-center justify-center rounded-full bg-gradient-to-r from-[#AA526E] via-[#BD7088] to-[#8B405A] px-6 text-sm font-semibold text-white"
           >
             Afficher toutes les prestations
           </button>

@@ -87,34 +87,34 @@ export const metadata: Metadata = {
 
 export default function ContactPage() {
   return (
-    <main className="overflow-hidden bg-[#FFF9F8]">
-      <section className="relative border-b border-[#241A1D]/5 px-5 py-20 sm:py-24 lg:px-8 lg:py-28">
+    <main className="overflow-hidden bg-[#FFFAFB]">
+      <section className="relative border-b border-[#35242B]/5 px-5 py-20 sm:py-24 lg:px-8 lg:py-28">
         <div
           aria-hidden="true"
-          className="absolute -left-40 top-0 size-[420px] rounded-full bg-[#E8B4B8]/25 blur-3xl"
+          className="absolute -left-40 top-0 size-[420px] rounded-full bg-[#E8B3C3]/30 blur-3xl"
         />
 
         <div
           aria-hidden="true"
-          className="absolute -right-40 bottom-0 size-[460px] rounded-full bg-[#C9A36A]/15 blur-3xl"
+          className="absolute -right-40 bottom-0 size-[460px] rounded-full bg-[#D6B778]/15 blur-3xl"
         />
 
         <div className="relative mx-auto max-w-7xl">
           <div className="mx-auto max-w-4xl text-center">
-            <div className="inline-flex items-center gap-2 rounded-full border border-[#B8899A]/20 bg-white px-4 py-2 text-xs font-semibold uppercase tracking-[0.18em] text-[#916777] shadow-sm">
+            <div className="inline-flex items-center gap-2 rounded-full border border-white/90 bg-white/60 px-4 py-2 text-[10px] font-black uppercase tracking-[0.24em] text-[#A44E69] shadow-sm backdrop-blur-xl">
               <MessageCircle className="size-4" />
               Contact et accès
             </div>
 
-            <h1 className="mt-7 font-serif text-5xl leading-tight text-[#241A1D] sm:text-6xl lg:text-7xl">
+            <h1 className="mt-7 font-serif text-5xl leading-tight text-[#35242B] sm:text-6xl lg:text-7xl">
               Une question avant
-              <span className="text-[#B8899A]">
+              <span className="bg-gradient-to-r from-[#A64D69] via-[#C47890] to-[#8B3E59] bg-clip-text italic text-transparent">
                 {" "}
                 votre rendez-vous ?
               </span>
             </h1>
 
-            <p className="mx-auto mt-6 max-w-2xl text-base leading-8 text-[#75636A] sm:text-lg">
+            <p className="mx-auto mt-6 max-w-2xl text-base leading-8 text-[#79636C] sm:text-lg">
               Retrouvez toutes les informations
               utiles pour contacter Le Palais des
               Ongles, rejoindre le salon et préparer
@@ -124,7 +124,7 @@ export default function ContactPage() {
             <div className="mt-9 flex flex-col justify-center gap-3 sm:flex-row">
               <a
                 href={PHONE_LINK}
-                className="inline-flex h-14 items-center justify-center gap-3 rounded-full bg-[#241A1D] px-7 text-sm font-semibold text-white shadow-xl shadow-black/10 transition hover:-translate-y-0.5 hover:bg-[#3A292F]"
+                className="inline-flex h-14 items-center justify-center gap-3 rounded-full bg-gradient-to-r from-[#AA526E] via-[#BD7088] to-[#8B405A] px-7 text-sm font-black text-white shadow-[0_18px_45px_rgba(139,64,90,0.28)] transition duration-300 hover:-translate-y-0.5 hover:shadow-[0_24px_55px_rgba(139,64,90,0.35)]"
               >
                 <Phone className="size-5" />
                 Appeler le salon
@@ -132,7 +132,7 @@ export default function ContactPage() {
 
               <Link
                 href="/reservation"
-                className="inline-flex h-14 items-center justify-center gap-3 rounded-full border border-[#241A1D]/10 bg-white px-7 text-sm font-semibold text-[#241A1D] transition hover:-translate-y-0.5 hover:bg-[#FFF0F0]"
+                className="inline-flex h-14 items-center justify-center gap-3 rounded-full border border-white/90 bg-white/65 px-7 text-sm font-bold text-[#35242B] shadow-sm backdrop-blur transition hover:bg-white"
               >
                 <CalendarDays className="size-5" />
                 Réserver en ligne
@@ -144,16 +144,16 @@ export default function ContactPage() {
 
       <section className="px-5 py-20 lg:px-8 lg:py-24">
         <div className="mx-auto grid max-w-7xl gap-6 md:grid-cols-2 xl:grid-cols-4">
-          <article className="rounded-[2rem] border border-[#241A1D]/7 bg-white p-7 shadow-[0_25px_70px_-45px_rgba(36,26,29,0.35)]">
-            <span className="flex size-12 items-center justify-center rounded-2xl bg-[#F8E6E8] text-[#A87587]">
+          <article className="rounded-[2rem] border border-[#F0DCE3] bg-white p-7 shadow-[0_25px_70px_-45px_rgba(139,64,90,0.35)]">
+            <span className="flex size-12 items-center justify-center rounded-2xl bg-[#FFF0F4] text-[#A64D69]">
               <MapPin className="size-5" />
             </span>
 
-            <h2 className="mt-6 font-serif text-2xl text-[#241A1D]">
+            <h2 className="mt-6 font-serif text-2xl text-[#35242B]">
               Adresse
             </h2>
 
-            <p className="mt-3 text-sm leading-7 text-[#75636A]">
+            <p className="mt-3 text-sm leading-7 text-[#79636C]">
               31 route d’Autun
               <br />
               71140 Maltat
@@ -163,60 +163,60 @@ export default function ContactPage() {
               href={GOOGLE_MAPS_URL}
               target="_blank"
               rel="noopener noreferrer"
-              className="mt-5 inline-flex items-center gap-2 text-sm font-semibold text-[#A87587] transition hover:text-[#241A1D]"
+              className="mt-5 inline-flex items-center gap-2 text-sm font-semibold text-[#A64D69] transition hover:text-[#35242B]"
             >
               Voir l’itinéraire
               <ArrowRight className="size-4" />
             </a>
           </article>
 
-          <article className="rounded-[2rem] border border-[#241A1D]/7 bg-white p-7 shadow-[0_25px_70px_-45px_rgba(36,26,29,0.35)]">
-            <span className="flex size-12 items-center justify-center rounded-2xl bg-[#F8E6E8] text-[#A87587]">
+          <article className="rounded-[2rem] border border-[#F0DCE3] bg-white p-7 shadow-[0_25px_70px_-45px_rgba(139,64,90,0.35)]">
+            <span className="flex size-12 items-center justify-center rounded-2xl bg-[#FFF0F4] text-[#A64D69]">
               <Phone className="size-5" />
             </span>
 
-            <h2 className="mt-6 font-serif text-2xl text-[#241A1D]">
+            <h2 className="mt-6 font-serif text-2xl text-[#35242B]">
               Téléphone
             </h2>
 
-            <p className="mt-3 text-sm leading-7 text-[#75636A]">
+            <p className="mt-3 text-sm leading-7 text-[#79636C]">
               Une question rapide ou besoin d’un
               conseil avant votre réservation ?
             </p>
 
             <a
               href={PHONE_LINK}
-              className="mt-5 inline-flex items-center gap-2 text-sm font-semibold text-[#A87587] transition hover:text-[#241A1D]"
+              className="mt-5 inline-flex items-center gap-2 text-sm font-semibold text-[#A64D69] transition hover:text-[#35242B]"
             >
               {PHONE_DISPLAY}
               <ArrowRight className="size-4" />
             </a>
           </article>
 
-          <article className="rounded-[2rem] border border-[#241A1D]/7 bg-white p-7 shadow-[0_25px_70px_-45px_rgba(36,26,29,0.35)]">
-            <span className="flex size-12 items-center justify-center rounded-2xl bg-[#F8E6E8] text-[#A87587]">
+          <article className="rounded-[2rem] border border-[#F0DCE3] bg-white p-7 shadow-[0_25px_70px_-45px_rgba(139,64,90,0.35)]">
+            <span className="flex size-12 items-center justify-center rounded-2xl bg-[#FFF0F4] text-[#A64D69]">
               <Mail className="size-5" />
             </span>
 
-            <h2 className="mt-6 font-serif text-2xl text-[#241A1D]">
+            <h2 className="mt-6 font-serif text-2xl text-[#35242B]">
               E-mail
             </h2>
 
-            <p className="mt-3 text-sm leading-7 text-[#75636A]">
+            <p className="mt-3 text-sm leading-7 text-[#79636C]">
               Pour toute demande complémentaire
               concernant le salon ou une prestation.
             </p>
 
             <a
               href={`mailto:${EMAIL}`}
-              className="mt-5 inline-flex break-all text-sm font-semibold text-[#A87587] transition hover:text-[#241A1D]"
+              className="mt-5 inline-flex break-all text-sm font-semibold text-[#A64D69] transition hover:text-[#35242B]"
             >
               {EMAIL}
             </a>
           </article>
 
-          <article className="rounded-[2rem] border border-[#241A1D]/7 bg-[#241A1D] p-7 text-white shadow-[0_25px_70px_-35px_rgba(36,26,29,0.6)]">
-            <span className="flex size-12 items-center justify-center rounded-2xl bg-white/10 text-[#E8B4B8]">
+          <article className="rounded-[2rem] border border-white/10 bg-gradient-to-br from-[#3B2430] via-[#4A2A3A] to-[#2E1E28] p-7 text-white shadow-[0_25px_70px_-35px_rgba(46,30,40,0.6)]">
+            <span className="flex size-12 items-center justify-center rounded-2xl bg-white/10 text-[#F0C4D3]">
               <CalendarDays className="size-5" />
             </span>
 
@@ -232,7 +232,7 @@ export default function ContactPage() {
 
             <Link
               href="/reservation"
-              className="mt-5 inline-flex items-center gap-2 text-sm font-semibold text-[#E8B4B8] transition hover:text-white"
+              className="mt-5 inline-flex items-center gap-2 text-sm font-semibold text-[#F0C4D3] transition hover:text-white"
             >
               Réserver maintenant
               <ArrowRight className="size-4" />
@@ -244,22 +244,22 @@ export default function ContactPage() {
       <section className="px-5 pb-20 lg:px-8 lg:pb-24">
         <div className="mx-auto max-w-7xl">
           <div className="mb-10 max-w-3xl">
-            <div className="inline-flex items-center gap-2 text-sm font-semibold uppercase tracking-[0.16em] text-[#A87587]">
+            <div className="inline-flex items-center gap-2 text-[10px] font-black uppercase tracking-[0.24em] text-[#A44E69]">
               <Navigation className="size-4" />
               Nous trouver
             </div>
 
-            <h2 className="mt-4 font-serif text-4xl text-[#241A1D] sm:text-5xl">
+            <h2 className="mt-4 font-serif text-4xl text-[#35242B] sm:text-5xl">
               Votre itinéraire en un clic
             </h2>
 
-            <p className="mt-4 max-w-2xl text-base leading-8 text-[#75636A]">
+            <p className="mt-4 max-w-2xl text-base leading-8 text-[#79636C]">
               Ouvrez directement l’adresse du salon
               dans votre application GPS préférée.
             </p>
           </div>
 
-          <div className="overflow-hidden rounded-[2.5rem] border border-[#241A1D]/7 bg-white shadow-[0_35px_90px_-50px_rgba(36,26,29,0.45)]">
+          <div className="overflow-hidden rounded-[2.5rem] border border-[#F0DCE3] bg-white shadow-[0_35px_90px_-50px_rgba(139,64,90,0.35)]">
             <div className="relative aspect-[16/9] min-h-[360px] w-full lg:aspect-[21/8]">
               <iframe
                 src={GOOGLE_MAPS_EMBED_URL}
@@ -273,16 +273,16 @@ export default function ContactPage() {
 
             <div className="grid gap-6 p-6 sm:p-8 lg:grid-cols-[1fr_auto] lg:items-center">
               <div className="flex gap-4">
-                <span className="flex size-12 shrink-0 items-center justify-center rounded-2xl bg-[#F8E6E8] text-[#A87587]">
+                <span className="flex size-12 shrink-0 items-center justify-center rounded-2xl bg-[#FFF0F4] text-[#A64D69]">
                   <Route className="size-5" />
                 </span>
 
                 <div>
-                  <h3 className="font-serif text-2xl text-[#241A1D]">
+                  <h3 className="font-serif text-2xl text-[#35242B]">
                     Le Palais des Ongles
                   </h3>
 
-                  <p className="mt-1 text-sm leading-6 text-[#75636A]">
+                  <p className="mt-1 text-sm leading-6 text-[#79636C]">
                     31 route d’Autun
                     <br />
                     71140 Maltat
@@ -295,7 +295,7 @@ export default function ContactPage() {
                   href={GOOGLE_MAPS_URL}
                   target="_blank"
                   rel="noopener noreferrer"
-                  className="inline-flex h-12 items-center justify-center gap-2 rounded-full bg-[#241A1D] px-6 text-sm font-semibold text-white transition hover:-translate-y-0.5 hover:bg-[#3A292F]"
+                  className="inline-flex h-12 items-center justify-center gap-2 rounded-full bg-[#35242B] px-6 text-sm font-semibold text-white transition hover:-translate-y-0.5 hover:bg-[#4A2E38]"
                 >
                   <Navigation className="size-4" />
                   Google Maps
@@ -306,7 +306,7 @@ export default function ContactPage() {
                   href={APPLE_MAPS_URL}
                   target="_blank"
                   rel="noopener noreferrer"
-                  className="inline-flex h-12 items-center justify-center gap-2 rounded-full border border-[#241A1D]/10 bg-white px-6 text-sm font-semibold text-[#241A1D] transition hover:-translate-y-0.5 hover:bg-[#FFF0F0]"
+                  className="inline-flex h-12 items-center justify-center gap-2 rounded-full border border-[#35242B]/10 bg-white px-6 text-sm font-semibold text-[#35242B] transition hover:-translate-y-0.5 hover:bg-[#FFF0F4]"
                 >
                   <MapPin className="size-4" />
                   Apple Plans
@@ -317,37 +317,37 @@ export default function ContactPage() {
           </div>
 
           <div className="mt-6 grid gap-4 sm:grid-cols-3">
-            <div className="flex items-center gap-3 rounded-2xl border border-[#241A1D]/7 bg-white px-5 py-4 text-sm text-[#5F5056]">
-              <Car className="size-5 text-[#A87587]" />
+            <div className="flex items-center gap-3 rounded-2xl border border-[#F0DCE3] bg-white px-5 py-4 text-sm text-[#6F5962]">
+              <Car className="size-5 text-[#A64D69]" />
               Accès simple en voiture
             </div>
 
-            <div className="flex items-center gap-3 rounded-2xl border border-[#241A1D]/7 bg-white px-5 py-4 text-sm text-[#5F5056]">
-              <Navigation className="size-5 text-[#A87587]" />
+            <div className="flex items-center gap-3 rounded-2xl border border-[#F0DCE3] bg-white px-5 py-4 text-sm text-[#6F5962]">
+              <Navigation className="size-5 text-[#A64D69]" />
               GPS disponible en un clic
             </div>
 
-            <div className="flex items-center gap-3 rounded-2xl border border-[#241A1D]/7 bg-white px-5 py-4 text-sm text-[#5F5056]">
-              <CheckCircle2 className="size-5 text-[#A87587]" />
+            <div className="flex items-center gap-3 rounded-2xl border border-[#F0DCE3] bg-white px-5 py-4 text-sm text-[#6F5962]">
+              <CheckCircle2 className="size-5 text-[#A64D69]" />
               Adresse complète enregistrée
             </div>
           </div>
         </div>
       </section>
 
-      <section className="border-y border-[#241A1D]/5 bg-white px-5 py-20 lg:px-8 lg:py-24">
+      <section className="border-y border-[#35242B]/5 bg-white px-5 py-20 lg:px-8 lg:py-24">
         <div className="mx-auto max-w-7xl">
           <div className="mx-auto max-w-3xl text-center">
-            <div className="inline-flex items-center gap-2 text-sm font-semibold uppercase tracking-[0.16em] text-[#A87587]">
+            <div className="inline-flex items-center gap-2 text-[10px] font-black uppercase tracking-[0.24em] text-[#A44E69]">
               <Sparkles className="size-4" />
               Réseaux sociaux
             </div>
 
-            <h2 className="mt-4 font-serif text-4xl text-[#241A1D] sm:text-5xl">
+            <h2 className="mt-4 font-serif text-4xl text-[#35242B] sm:text-5xl">
               Suivez toute l’actualité du salon
             </h2>
 
-            <p className="mt-4 text-base leading-8 text-[#75636A]">
+            <p className="mt-4 text-base leading-8 text-[#79636C]">
               Découvrez les dernières réalisations,
               les nouveautés, les promotions et les
               jeux concours du Palais des Ongles.
@@ -355,10 +355,10 @@ export default function ContactPage() {
           </div>
 
           <div className="mt-12 grid gap-6 lg:grid-cols-2">
-            <article className="group relative overflow-hidden rounded-[2.25rem] border border-[#241A1D]/7 bg-gradient-to-br from-[#FFF0F0] via-white to-[#FBF3F5] p-8 shadow-[0_30px_80px_-50px_rgba(36,26,29,0.35)] sm:p-10">
+            <article className="group relative overflow-hidden rounded-[2.25rem] border border-[#35242B]/7 bg-gradient-to-br from-[#FFF0F4] via-white to-[#FBF3F5] p-8 shadow-[0_30px_80px_-50px_rgba(139,64,90,0.35)] sm:p-10">
               <div
                 aria-hidden="true"
-                className="absolute -right-20 -top-20 size-64 rounded-full bg-[#E8B4B8]/35 blur-3xl"
+                className="absolute -right-20 -top-20 size-64 rounded-full bg-[#E8B3C3]/35 blur-3xl"
               />
 
               <div className="relative">
@@ -366,15 +366,15 @@ export default function ContactPage() {
                   <FaInstagram className="size-6" />
                 </span>
 
-                <p className="mt-7 text-sm font-semibold uppercase tracking-[0.16em] text-[#A87587]">
+                <p className="mt-7 text-sm font-semibold uppercase tracking-[0.16em] text-[#A64D69]">
                   Instagram
                 </p>
 
-                <h3 className="mt-2 font-serif text-3xl text-[#241A1D]">
+                <h3 className="mt-2 font-serif text-3xl text-[#35242B]">
                   @le_palais_des_ongles71
                 </h3>
 
-                <p className="mt-4 max-w-xl text-sm leading-7 text-[#75636A]">
+                <p className="mt-4 max-w-xl text-sm leading-7 text-[#79636C]">
                   Retrouvez les dernières poses, les
                   inspirations, les nouveautés et les
                   coulisses du salon.
@@ -384,7 +384,7 @@ export default function ContactPage() {
                   href={INSTAGRAM_URL}
                   target="_blank"
                   rel="noopener noreferrer"
-                  className="mt-7 inline-flex h-12 items-center justify-center gap-2 rounded-full bg-[#241A1D] px-6 text-sm font-semibold text-white transition hover:-translate-y-0.5 hover:bg-[#3A292F]"
+                  className="mt-7 inline-flex h-12 items-center justify-center gap-2 rounded-full bg-[#35242B] px-6 text-sm font-semibold text-white transition hover:-translate-y-0.5 hover:bg-[#4A2E38]"
                 >
                   <FaInstagram className="size-4" />
                   Suivre sur Instagram
@@ -393,7 +393,7 @@ export default function ContactPage() {
               </div>
             </article>
 
-            <article className="group relative overflow-hidden rounded-[2.25rem] border border-[#241A1D]/7 bg-gradient-to-br from-blue-50 via-white to-[#FBF3F5] p-8 shadow-[0_30px_80px_-50px_rgba(36,26,29,0.35)] sm:p-10">
+            <article className="group relative overflow-hidden rounded-[2.25rem] border border-[#35242B]/7 bg-gradient-to-br from-blue-50 via-white to-[#FBF3F5] p-8 shadow-[0_30px_80px_-50px_rgba(139,64,90,0.35)] sm:p-10">
               <div
                 aria-hidden="true"
                 className="absolute -right-20 -top-20 size-64 rounded-full bg-blue-200/40 blur-3xl"
@@ -408,11 +408,11 @@ export default function ContactPage() {
                   Facebook
                 </p>
 
-                <h3 className="mt-2 font-serif text-3xl text-[#241A1D]">
+                <h3 className="mt-2 font-serif text-3xl text-[#35242B]">
                   Le Palais des Ongles by Pauline
                 </h3>
 
-                <p className="mt-4 max-w-xl text-sm leading-7 text-[#75636A]">
+                <p className="mt-4 max-w-xl text-sm leading-7 text-[#79636C]">
                   Consultez les actualités, échangez
                   avec le salon et ne manquez aucune
                   publication.
@@ -436,16 +436,16 @@ export default function ContactPage() {
 
       <section className="px-5 py-20 lg:px-8 lg:py-24">
         <div className="mx-auto grid max-w-7xl gap-8 lg:grid-cols-[0.8fr_1.2fr]">
-          <div className="rounded-[2.5rem] bg-[#241A1D] p-8 text-white shadow-2xl shadow-black/15 sm:p-10">
-            <span className="flex size-14 items-center justify-center rounded-2xl bg-white/10 text-[#E8B4B8]">
+          <div className="rounded-[2.5rem] bg-gradient-to-br from-[#3B2430] via-[#4A2A3A] to-[#2E1E28] p-8 text-white shadow-2xl shadow-black/15 sm:p-10">
+            <span className="flex size-14 items-center justify-center rounded-2xl bg-white/10 text-[#F0C4D3]">
               <Star className="size-6 fill-current" />
             </span>
 
-            <p className="mt-8 text-sm font-semibold uppercase tracking-[0.18em] text-[#E8B4B8]">
+            <p className="mt-8 text-[10px] font-black uppercase tracking-[0.24em] text-[#F0C4D3]">
               Besoin d’aide ?
             </p>
 
-            <h2 className="mt-3 font-serif text-4xl">
+            <h2 className="mt-3 font-serif text-4xl italic">
               Une question avant votre rendez-vous ?
             </h2>
 
@@ -459,7 +459,7 @@ export default function ContactPage() {
             <div className="mt-8 flex flex-col gap-3">
               <a
                 href={PHONE_LINK}
-                className="inline-flex h-12 items-center justify-center gap-2 rounded-full bg-white px-6 text-sm font-semibold text-[#241A1D] transition hover:-translate-y-0.5"
+                className="inline-flex h-12 items-center justify-center gap-2 rounded-full bg-white px-6 text-sm font-semibold text-[#35242B] transition hover:-translate-y-0.5"
               >
                 <Phone className="size-4" />
                 {PHONE_DISPLAY}
@@ -477,38 +477,38 @@ export default function ContactPage() {
             </div>
           </div>
 
-          <div className="rounded-[2.5rem] border border-[#241A1D]/7 bg-white p-8 shadow-[0_30px_80px_-50px_rgba(36,26,29,0.35)] sm:p-10">
+          <div className="rounded-[2.5rem] border border-[#F0DCE3] bg-white p-8 shadow-[0_30px_80px_-50px_rgba(139,64,90,0.35)] sm:p-10">
             <div className="flex items-center gap-3">
-              <span className="flex size-12 items-center justify-center rounded-2xl bg-[#F8E6E8] text-[#A87587]">
+              <span className="flex size-12 items-center justify-center rounded-2xl bg-[#FFF0F4] text-[#A64D69]">
                 <HelpCircle className="size-5" />
               </span>
 
               <div>
-                <p className="text-sm font-semibold uppercase tracking-[0.15em] text-[#A87587]">
+                <p className="text-[10px] font-black uppercase tracking-[0.2em] text-[#A44E69]">
                   Questions fréquentes
                 </p>
 
-                <h2 className="mt-1 font-serif text-3xl text-[#241A1D]">
+                <h2 className="mt-1 font-serif text-3xl text-[#35242B]">
                   Tout savoir avant de venir
                 </h2>
               </div>
             </div>
 
-            <div className="mt-8 divide-y divide-[#241A1D]/8">
+            <div className="mt-8 divide-y divide-[#F0DCE3]">
               {faqItems.map((item) => (
                 <details
                   key={item.question}
                   className="group py-5"
                 >
-                  <summary className="flex cursor-pointer list-none items-center justify-between gap-4 text-left font-semibold text-[#241A1D]">
+                  <summary className="flex cursor-pointer list-none items-center justify-between gap-4 text-left font-semibold text-[#35242B]">
                     {item.question}
 
-                    <span className="flex size-8 shrink-0 items-center justify-center rounded-full bg-[#FFF0F0] text-[#A87587] transition group-open:rotate-45">
+                    <span className="flex size-8 shrink-0 items-center justify-center rounded-full bg-[#FFF0F4] text-[#A64D69] transition group-open:rotate-45">
                       +
                     </span>
                   </summary>
 
-                  <p className="mt-3 max-w-2xl pr-10 text-sm leading-7 text-[#75636A]">
+                  <p className="mt-3 max-w-2xl pr-10 text-sm leading-7 text-[#79636C]">
                     {item.answer}
                   </p>
                 </details>
@@ -519,7 +519,7 @@ export default function ContactPage() {
       </section>
 
       <section className="px-5 pb-20 lg:px-8 lg:pb-24">
-        <div className="relative mx-auto max-w-7xl overflow-hidden rounded-[2.75rem] bg-gradient-to-br from-[#E8B4B8] via-[#C999A8] to-[#9D6D7F] px-6 py-14 text-center text-white shadow-2xl shadow-[#9D6D7F]/25 sm:px-10 sm:py-16">
+        <div className="relative mx-auto max-w-7xl overflow-hidden rounded-[2.75rem] bg-gradient-to-br from-[#E8B3C3] via-[#D89CB0] to-[#8B405A] px-6 py-14 text-center text-white shadow-2xl shadow-[#8B405A]/25 sm:px-10 sm:py-16">
           <div
             aria-hidden="true"
             className="absolute -left-24 -top-24 size-72 rounded-full bg-white/15 blur-3xl"
@@ -527,7 +527,7 @@ export default function ContactPage() {
 
           <div
             aria-hidden="true"
-            className="absolute -bottom-32 -right-20 size-80 rounded-full bg-[#241A1D]/20 blur-3xl"
+            className="absolute -bottom-32 -right-20 size-80 rounded-full bg-[#35242B]/20 blur-3xl"
           />
 
           <div className="relative mx-auto max-w-3xl">
@@ -535,7 +535,7 @@ export default function ContactPage() {
               <Sparkles className="size-6" />
             </div>
 
-            <h2 className="mt-6 font-serif text-4xl sm:text-5xl">
+            <h2 className="mt-6 font-serif text-4xl italic sm:text-5xl">
               Prête à sublimer vos ongles ?
             </h2>
 
@@ -547,7 +547,7 @@ export default function ContactPage() {
 
             <Link
               href="/reservation"
-              className="mt-8 inline-flex h-14 items-center justify-center gap-3 rounded-full bg-white px-8 text-sm font-semibold text-[#6E4452] shadow-xl transition hover:-translate-y-0.5 hover:bg-[#FFF9F8]"
+              className="mt-8 inline-flex h-14 items-center justify-center gap-3 rounded-full bg-white px-8 text-sm font-semibold text-[#8B405A] shadow-xl transition hover:-translate-y-0.5 hover:bg-[#FFFAFB]"
             >
               <CalendarDays className="size-5" />
               Réserver maintenant
