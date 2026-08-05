@@ -1013,15 +1013,26 @@ model Appointment {
   paypalOrderId        String?           @unique
   paypalCaptureId      String?
   paypalPayerId        String?
-  paidAt               DateTime?
-  confirmedAt          DateTime?
-  refusedAt            DateTime?
-  cancelledAt          DateTime?
-  completedAt          DateTime?
-  reminderSentAt       DateTime?
-  reviewRequestSentAt  DateTime?
-  createdAt            DateTime          @default(now())
-  updatedAt            DateTime          @updatedAt
+
+  paypalRefundId        String?   @unique
+  paypalRefundRequestId String?   @unique
+  paypalRefundStatus    String?
+  refundRequestedAt     DateTime?
+  refundedAmountCents   Int       @default(0)
+  refundedAt            DateTime?
+  refundReason          String?
+  refundedById          String?
+
+  paidAt              DateTime?
+  confirmedAt         DateTime?
+  refusedAt           DateTime?
+  cancelledAt         DateTime?
+  completedAt         DateTime?
+  reminderSentAt      DateTime?
+  reminder2hSentAt    DateTime?
+  reviewRequestSentAt DateTime?
+  createdAt           DateTime  @default(now())
+  updatedAt           DateTime  @updatedAt
 
   client      User          @relation("ClientAppointments", fields: [clientId], references: [id], onDelete: Restrict)
   staff       StaffProfile? @relation(fields: [staffId], references: [id], onDelete: SetNull)
