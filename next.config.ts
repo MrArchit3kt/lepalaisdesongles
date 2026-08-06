@@ -21,6 +21,13 @@ const paypalSources = [
 
 const uploadThingConnectSources = [
   "https://ingest.uploadthing.com",
+  /*
+   * Les URL présignées pointent vers un sous-domaine régional à
+   * deux niveaux (ex. sea1.ingest.uploadthing.com) : un caractère
+   * générique ne couvre qu’un seul niveau de sous-domaine en CSP,
+   * "*.uploadthing.com" ne matche donc pas "sea1.ingest.uploadthing.com".
+   */
+  "https://*.ingest.uploadthing.com",
   "https://api.uploadthing.com",
   "https://ufs.sh",
   "https://*.ufs.sh",
