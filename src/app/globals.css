@@ -17,6 +17,20 @@ html {
   scroll-behavior: smooth;
 }
 
+/*
+ * Tailwind dimensionne la quasi-totalité de ses classes (textes,
+ * paddings, marges, gaps, rayons de bordure…) en rem, elles-mêmes
+ * calculées à partir de la taille de police racine. Réduire cette
+ * taille racine sur petit écran réduit donc proportionnellement
+ * tout le site (public ET admin) sans avoir à retoucher chaque
+ * composant — moins de hauteur de page, donc moins de scroll.
+ */
+@media (max-width: 640px) {
+  html {
+    font-size: 14.5px;
+  }
+}
+
 body {
   margin: 0;
   background: var(--background);
