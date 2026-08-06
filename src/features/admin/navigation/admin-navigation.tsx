@@ -4,11 +4,13 @@ import type { ReactNode } from "react";
 
 import type { LucideIcon } from "lucide-react";
 
+import Image from "next/image";
 import Link from "next/link";
 
 import {
   CalendarClock,
   CalendarDays,
+  ChevronDown,
   ChevronLeft,
   ChevronRight,
   Clock3,
@@ -16,7 +18,7 @@ import {
   Gift,
   Home,
   ImageIcon,
-  Mail,
+  LogOut,
   Menu,
   MessageCircle,
   Settings,
@@ -30,9 +32,11 @@ import {
   X,
 } from "lucide-react";
 
+import { signOut } from "next-auth/react";
+
 import { usePathname } from "next/navigation";
 
-import { useState } from "react";
+import { useEffect, useRef, useState } from "react";
 
 import { AdminNotificationCenter } from "@/features/notifications/components/admin-notification-center";
 
@@ -100,13 +104,6 @@ const MAIN_NAVIGATION: NavigationItem[] = [
     href: "/admin/messages",
 
     icon: MessageCircle,
-  },
-  {
-    label: "Studio e-mails",
-
-    href: "/admin/emails",
-
-    icon: Mail,
   },
   {
     label: "Prestations",
@@ -243,10 +240,14 @@ function SalonLogo({ compact = false }: { compact?: boolean }) {
         compact ? "lg:justify-center" : ""
       }`}
     >
-      <span className="relative grid size-12 shrink-0 place-items-center rounded-[1.1rem] bg-gradient-to-br from-[#C97992] via-[#B45F7A] to-[#843F59] text-white shadow-[0_12px_30px_rgba(132,63,89,0.28)] transition duration-300 group-hover:-translate-y-0.5 group-hover:shadow-[0_16px_34px_rgba(132,63,89,0.34)]">
-        <Sparkles className="size-5" />
-
-        <span className="absolute -right-1 -top-1 size-3 rounded-full border-2 border-[#FFFDFC] bg-[#D6B679]" />
+      <span className="relative block size-12 shrink-0 overflow-hidden rounded-[1.1rem] border border-[#EFDDE3] bg-white shadow-[0_12px_30px_rgba(132,63,89,0.16)] transition duration-300 group-hover:-translate-y-0.5 group-hover:shadow-[0_16px_34px_rgba(132,63,89,0.24)]">
+        <Image
+          src="/images/logo/logo-palais-des-ongles.png"
+          alt="Le Palais des Ongles"
+          fill
+          sizes="48px"
+          className="object-contain p-1.5"
+        />
       </span>
 
       <span className={`min-w-0 ${compact ? "lg:hidden" : ""}`}>
@@ -422,48 +423,7 @@ export function AdminNavigation({
         {/* ---------------------------------------------------------------- */}
 
         <div className="border-t border-[#F1E2E7] bg-[#FFF9FA] p-3">
-          <div
-            className={`relative overflow-hidden rounded-[1.35rem] border border-[#EFDDE3] bg-white p-3 shadow-[0_10px_25px_rgba(92,42,60,0.06)] ${
-              collapsed ? "lg:flex lg:justify-center" : ""
-            }`}
-          >
-            <div
-              aria-hidden="true"
-              className="absolute -right-8 -top-8 size-20 rounded-full bg-[#E8B4C0]/20 blur-2xl"
-            />
-
-            <div
-              className={`relative flex items-center gap-3 ${
-                collapsed ? "lg:justify-center" : ""
-              }`}
-            >
-              <div className="grid size-11 shrink-0 place-items-center overflow-hidden rounded-2xl border border-[#E5C8D1] bg-gradient-to-br from-[#F9DCE4] to-[#E8B4C0] text-sm font-black text-[#843F59] shadow-sm">
-                {user.image ? (
-                  <img
-                    src={user.image}
-                    alt={`${user.firstName} ${user.lastName}`}
-                    className="size-full object-cover"
-                  />
-                ) : (
-                  getInitials(user.firstName, user.lastName)
-                )}
-              </div>
-
-              <div className={`min-w-0 flex-1 ${collapsed ? "lg:hidden" : ""}`}>
-                <p className="truncate text-sm font-bold text-[#2F2027]">
-                  {user.firstName} {user.lastName}
-                </p>
-
-                <p className="mt-0.5 truncate text-xs text-[#8E747E]">
-                  {user.email}
-                </p>
-
-                <span className="mt-2 inline-flex rounded-full bg-[#FFF0F4] px-2.5 py-1 text-[10px] font-bold uppercase tracking-wide text-[#A5526D]">
-                  Administrateur
-                </span>
-              </div>
-            </div>
-          </div>
+          <UserMenu user={user} collapsed={collapsed} />
 
           <button
             type="button"
@@ -493,6 +453,138 @@ export function AdminNavigation({
       >
         {children}
       </div>
+    </div>
+  );
+}
+
+/* -------------------------------------------------------------------------- */
+/*                       MENU UTILISATEUR (DÉCONNEXION)                       */
+/* -------------------------------------------------------------------------- */
+
+type UserMenuProps = {
+  user: AdminNavigationProps["user"];
+  collapsed: boolean;
+};
+
+function UserMenu({ user, collapsed }: UserMenuProps) {
+  const [open, setOpen] = useState(false);
+
+  const [signingOut, setSigningOut] = useState(false);
+
+  const containerRef = useRef<HTMLDivElement | null>(null);
+
+  useEffect(() => {
+    function handlePointerDown(event: PointerEvent): void {
+      const target = event.target;
+
+      if (!(target instanceof Node)) {
+        return;
+      }
+
+      if (containerRef.current && !containerRef.current.contains(target)) {
+        setOpen(false);
+      }
+    }
+
+    function handleKeyDown(event: KeyboardEvent): void {
+      if (event.key === "Escape") {
+        setOpen(false);
+      }
+    }
+
+    document.addEventListener("pointerdown", handlePointerDown);
+    document.addEventListener("keydown", handleKeyDown);
+
+    return () => {
+      document.removeEventListener("pointerdown", handlePointerDown);
+      document.removeEventListener("keydown", handleKeyDown);
+    };
+  }, []);
+
+  async function handleSignOut(): Promise<void> {
+    setSigningOut(true);
+
+    await signOut({ callbackUrl: "/connexion" });
+  }
+
+  return (
+    <div ref={containerRef} className="relative">
+      {open ? (
+        <div className="absolute inset-x-0 bottom-full z-20 mb-2 overflow-hidden rounded-[1.25rem] border border-[#EFDDE3] bg-white shadow-[0_18px_44px_rgba(75,35,51,0.16)]">
+          <div className="border-b border-[#F1E2E7] px-4 py-3">
+            <p className="truncate text-sm font-bold text-[#2F2027]">
+              {user.firstName} {user.lastName}
+            </p>
+
+            <p className="mt-0.5 truncate text-xs text-[#8E747E]">
+              {user.email}
+            </p>
+          </div>
+
+          <button
+            type="button"
+            onClick={handleSignOut}
+            disabled={signingOut}
+            className="flex h-12 w-full items-center gap-3 px-4 text-sm font-semibold text-[#A5526D] transition hover:bg-[#FFF0F4] disabled:cursor-not-allowed disabled:opacity-60"
+          >
+            <LogOut className="size-4" />
+            {signingOut ? "Déconnexion…" : "Se déconnecter"}
+          </button>
+        </div>
+      ) : null}
+
+      <button
+        type="button"
+        onClick={() => setOpen((current) => !current)}
+        aria-expanded={open}
+        aria-haspopup="menu"
+        className={`relative w-full overflow-hidden rounded-[1.35rem] border border-[#EFDDE3] bg-white p-3 shadow-[0_10px_25px_rgba(92,42,60,0.06)] transition hover:border-[#DDBAC5] ${
+          collapsed ? "lg:flex lg:justify-center" : ""
+        }`}
+      >
+        <div
+          aria-hidden="true"
+          className="absolute -right-8 -top-8 size-20 rounded-full bg-[#E8B4C0]/20 blur-2xl"
+        />
+
+        <div
+          className={`relative flex items-center gap-3 ${
+            collapsed ? "lg:justify-center" : ""
+          }`}
+        >
+          <div className="grid size-11 shrink-0 place-items-center overflow-hidden rounded-2xl border border-[#E5C8D1] bg-gradient-to-br from-[#F9DCE4] to-[#E8B4C0] text-sm font-black text-[#843F59] shadow-sm">
+            {user.image ? (
+              <img
+                src={user.image}
+                alt={`${user.firstName} ${user.lastName}`}
+                className="size-full object-cover"
+              />
+            ) : (
+              getInitials(user.firstName, user.lastName)
+            )}
+          </div>
+
+          <div className={`min-w-0 flex-1 text-left ${collapsed ? "lg:hidden" : ""}`}>
+            <p className="truncate text-sm font-bold text-[#2F2027]">
+              {user.firstName} {user.lastName}
+            </p>
+
+            <p className="mt-0.5 truncate text-xs text-[#8E747E]">
+              {user.email}
+            </p>
+
+            <span className="mt-2 inline-flex rounded-full bg-[#FFF0F4] px-2.5 py-1 text-[10px] font-bold uppercase tracking-wide text-[#A5526D]">
+              Administrateur
+            </span>
+          </div>
+
+          <ChevronDown
+            className={`relative size-4 shrink-0 text-[#A68C96] transition ${
+              open ? "rotate-180" : ""
+            } ${collapsed ? "lg:hidden" : ""}`}
+          />
+        </div>
+      </button>
     </div>
   );
 }
