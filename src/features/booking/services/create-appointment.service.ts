@@ -16,7 +16,11 @@ import type {
   CreateAppointmentResult,
 } from "../types/create-appointment.types";
 import { getAvailability } from "./availability.service";
-import { calculateRequiredPaymentCents } from "../utils/booking-rules";
+import { APPOINTMENT_PAYMENT_TIMEOUT_MINUTES } from "./appointment-expiration.service";
+import {
+  addMinutes,
+  calculateRequiredPaymentCents,
+} from "../utils/booking-rules";
 
 const BLOCKING_STATUSES: AppointmentStatus[] = [
   AppointmentStatus.PENDING,
@@ -103,7 +107,7 @@ function dateInParis(value: Date): string {
   }).format(value);
 }
 
-function makeReference(): string {
+export function makeReference(): string {
   const date = new Intl.DateTimeFormat("fr-CA", {
     timeZone: "Europe/Paris",
     year: "2-digit",
@@ -163,7 +167,9 @@ function isRetryableTransactionError(error: unknown): boolean {
   );
 }
 
-async function createWithRetry<T>(operation: () => Promise<T>): Promise<T> {
+export async function createWithRetry<T>(
+  operation: () => Promise<T>,
+): Promise<T> {
   let lastError: unknown;
 
   for (let attempt = 1; attempt <= 3; attempt += 1) {
@@ -583,6 +589,10 @@ export async function createAppointment(
             paymentMethod: requiresPayment ? PaymentMethod.PAYPAL : null,
 
             confirmedAt: requiresPayment ? null : new Date(),
+
+            expiresAt: requiresPayment
+              ? addMinutes(new Date(), APPOINTMENT_PAYMENT_TIMEOUT_MINUTES)
+              : null,
 
             clientComment: input.clientComment?.trim() || null,
 

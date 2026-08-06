@@ -10,6 +10,7 @@ import {
 } from "lucide-react";
 
 import { PayPalCheckout } from "@/features/booking/components/paypal-checkout";
+import { PromotionCodeForm } from "@/features/booking/components/promotion-code-form";
 import { expireAppointmentIfNeeded } from "@/features/booking/services/appointment-expiration.service";
 import { prisma } from "@/lib/prisma";
 import { requireClientUser } from "@/lib/session";
@@ -95,8 +96,15 @@ export default async function PaymentPage({
         endsAt: true,
         totalPriceCents: true,
         depositCents: true,
+        discountCents: true,
         paymentStatus: true,
         createdAt: true,
+
+        promotion: {
+          select: {
+            name: true,
+          },
+        },
 
         client: {
           select: {
@@ -189,6 +197,11 @@ export default async function PaymentPage({
       .filter(Boolean)
       .join(" ") ||
     "Le Palais des Ongles";
+
+  const servicesTotalCents = appointment.services.reduce(
+    (total, service) => total + service.unitPriceCents * service.quantity,
+    0,
+  );
 
   const isFullPayment =
     appointment.depositCents ===
@@ -336,6 +349,14 @@ export default async function PaymentPage({
               </div>
             </div>
 
+            <div className="mt-6">
+              <PromotionCodeForm
+                reference={appointment.reference}
+                appliedPromotionName={appointment.promotion?.name ?? null}
+                discountCents={appointment.discountCents}
+              />
+            </div>
+
             <div className="mt-6 space-y-3 border-t border-[#E8D4DB] pt-6">
               <div className="flex items-center justify-between gap-4 text-sm font-medium text-[#816D75]">
                 <span>
@@ -344,10 +365,25 @@ export default async function PaymentPage({
 
                 <span>
                   {formatCurrency(
-                    appointment.totalPriceCents,
+                    servicesTotalCents,
                   )}
                 </span>
               </div>
+
+              {appointment.discountCents > 0 ? (
+                <div className="flex items-center justify-between gap-4 text-sm font-bold text-emerald-700">
+                  <span>
+                    Réduction
+                    {appointment.promotion?.name
+                      ? ` (${appointment.promotion.name})`
+                      : ""}
+                  </span>
+
+                  <span>
+                    -{formatCurrency(appointment.discountCents)}
+                  </span>
+                </div>
+              ) : null}
 
               {isFullPayment ? (
                 <>

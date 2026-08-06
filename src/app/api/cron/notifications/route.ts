@@ -1,5 +1,6 @@
 import { NextResponse } from "next/server";
 
+import { expirePendingAppointments } from "@/features/booking/services/appointment-expiration.service";
 import { processNotificationAutomations } from "@/features/notifications/services/notification-automation.service";
 
 export const runtime = "nodejs";
@@ -18,10 +19,21 @@ export async function GET(request: Request): Promise<Response> {
   }
 
   try {
+    /*
+     * Exécuté sur le même cron horaire que les automatisations de
+     * notification : annule les rendez-vous PENDING dont la date
+     * limite de paiement de l'acompte (expiresAt) est dépassée — 15
+     * minutes pour une réservation en ligne, 24h pour un rendez-vous
+     * créé manuellement par l'équipe (voir
+     * appointment-expiration.service.ts).
+     */
+    const expiredAppointmentsCount = await expirePendingAppointments();
+
     const result = await processNotificationAutomations();
 
     return NextResponse.json({
       success: true,
+      expiredAppointmentsCount,
       ...result,
       executedAt: new Date().toISOString(),
     });

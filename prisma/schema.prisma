@@ -1014,12 +1014,27 @@ model Appointment {
   depositCents         Int               @default(0)
   paymentStatus        PaymentStatus     @default(NOT_REQUIRED)
   paymentMethod        PaymentMethod?
-  clientComment        String?
-  adminComment         String?
-  cancellationReason   String?
-  paypalOrderId        String?           @unique
-  paypalCaptureId      String?
-  paypalPayerId        String?
+
+  /**
+   * Date limite au-delà de laquelle un rendez-vous PENDING dont
+   * l'acompte n'a pas été réglé est automatiquement expiré (voir
+   * `appointment-expiration.service.ts`). Nulle si aucun acompte
+   * n'est requis ou si le paiement a déjà été enregistré.
+   */
+  expiresAt DateTime?
+
+  // Code promo éventuellement appliqué sur la page de paiement de
+  // l'acompte : `discountCents` conserve la réduction appliquée sur
+  // `totalPriceCents` à titre d'historique/affichage.
+  promotionId   String?
+  discountCents Int     @default(0)
+
+  clientComment      String?
+  adminComment       String?
+  cancellationReason String?
+  paypalOrderId      String? @unique
+  paypalCaptureId    String?
+  paypalPayerId      String?
 
   paypalRefundId        String?   @unique
   paypalRefundRequestId String?   @unique
@@ -1045,6 +1060,7 @@ model Appointment {
   staff       StaffProfile? @relation(fields: [staffId], references: [id], onDelete: SetNull)
   workstation Workstation?  @relation(fields: [workstationId], references: [id], onDelete: SetNull)
   processedBy User?         @relation("AppointmentProcessor", fields: [processedById], references: [id], onDelete: SetNull)
+  promotion   Promotion?    @relation(fields: [promotionId], references: [id], onDelete: SetNull)
 
   services AppointmentService[]
   images   AppointmentImage[]
@@ -1056,6 +1072,8 @@ model Appointment {
   @@index([workstationId, startsAt, endsAt])
   @@index([workstationId, status, startsAt])
   @@index([staffId, status, startsAt])
+  @@index([promotionId])
+  @@index([status, expiresAt])
   @@index([status, startsAt])
   @@index([startsAt, endsAt])
   @@index([createdAt])
@@ -1292,9 +1310,10 @@ model Promotion {
   createdAt         DateTime      @default(now())
   updatedAt         DateTime      @updatedAt
 
-  createdBy User?              @relation("PromotionCreator", fields: [createdById], references: [id], onDelete: SetNull)
-  services  PromotionService[]
-  banners   Banner[]
+  createdBy    User?              @relation("PromotionCreator", fields: [createdById], references: [id], onDelete: SetNull)
+  services     PromotionService[]
+  banners      Banner[]
+  appointments Appointment[]
 
   @@index([isActive, startsAt, endsAt])
   @@index([showOnHomepage])

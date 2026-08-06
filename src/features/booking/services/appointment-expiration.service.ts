@@ -36,40 +36,70 @@ export function getExpirationCutoff(
   );
 }
 
+/*
+ * Un rendez-vous PENDING expire à sa date `expiresAt` explicite quand
+ * elle est renseignée (réservation publique : 15 minutes ; création
+ * manuelle admin : 24 heures — voir respectivement
+ * `create-appointment.service.ts` et `admin-create-appointment.service.ts`).
+ *
+ * Les rendez-vous créés avant l'introduction de ce champ n'ont pas de
+ * `expiresAt` : on retombe alors sur l'ancien comportement (15 minutes
+ * après `createdAt`), pour ne rien changer à leur traitement.
+ */
+function expirationWhereClause(now: Date) {
+  const legacyCutoff = getExpirationCutoff(now);
+
+  return {
+    status: "PENDING" as const,
+
+    paymentStatus: {
+      not: "PAID" as const,
+    },
+
+    depositCents: {
+      gt: 0,
+    },
+
+    OR: [
+      {
+        expiresAt: {
+          lte: now,
+        },
+      },
+      {
+        expiresAt: null,
+
+        createdAt: {
+          lte: legacyCutoff,
+        },
+      },
+    ],
+  };
+}
+
+const EXPIRATION_REASON =
+  "Réservation expirée automatiquement : l’acompte n’a pas été réglé dans le délai imparti.";
+
 /**
  * Expire toutes les réservations :
  * - encore en attente ;
  * - nécessitant un paiement ;
  * - non payées ;
- * - créées depuis au moins 15 minutes.
+ * - dont la date limite de paiement est dépassée.
  *
  * La mise à jour groupée est atomique et idempotente.
  */
 export async function expirePendingAppointments(
   now = new Date(),
 ): Promise<number> {
-  const cutoff = getExpirationCutoff(now);
-
   const result =
     await prisma.appointment.updateMany({
-      where: {
-        status: "PENDING",
-        paymentStatus: {
-          not: "PAID",
-        },
-        depositCents: {
-          gt: 0,
-        },
-        createdAt: {
-          lte: cutoff,
-        },
-      },
+      where: expirationWhereClause(now),
 
       data: {
         status: "EXPIRED",
         cancelledAt: now,
-        cancellationReason:
-          "Réservation expirée automatiquement : paiement non reçu dans le délai de 15 minutes.",
+        cancellationReason: EXPIRATION_REASON,
       },
     });
 
@@ -95,29 +125,17 @@ export async function expireAppointmentIfNeeded(
     return false;
   }
 
-  const cutoff = getExpirationCutoff(now);
-
   const result =
     await prisma.appointment.updateMany({
       where: {
         id: cleanAppointmentId,
-        status: "PENDING",
-        paymentStatus: {
-          not: "PAID",
-        },
-        depositCents: {
-          gt: 0,
-        },
-        createdAt: {
-          lte: cutoff,
-        },
+        ...expirationWhereClause(now),
       },
 
       data: {
         status: "EXPIRED",
         cancelledAt: now,
-        cancellationReason:
-          "Réservation expirée automatiquement : paiement non reçu dans le délai de 15 minutes.",
+        cancellationReason: EXPIRATION_REASON,
       },
     });
 

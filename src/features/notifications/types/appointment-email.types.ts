@@ -20,6 +20,13 @@ export type AppointmentEmailData = {
   // Uniquement pour DEPOSIT_PAYMENT_REQUESTED : montant de l'acompte
   // demandé, affiché dans le détail et utilisé pour le bouton d'action.
   depositAmountCents?: number | null;
+
+  // Uniquement pour DEPOSIT_PAYMENT_REQUESTED : date limite (ISO) au-delà
+  // de laquelle la réservation sera annulée automatiquement si l'acompte
+  // n'est pas réglé. Absente pour une réservation en ligne classique (délai
+  // trop court pour être communiqué utilement) ; renseignée pour un
+  // rendez-vous créé manuellement par l'équipe (délai de 24h).
+  paymentDeadline?: string | null;
 };
 
 export type RenderedEmail = {

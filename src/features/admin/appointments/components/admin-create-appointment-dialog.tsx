@@ -50,19 +50,19 @@ type ClientSearchResponse = {
   error?: string;
 };
 
-type AvailabilitySlot = {
-  startsAt: string;
-  endsAt: string;
-  label: string;
-  staff: { id: string; displayName: string };
-  workstation: { id: string; name: string };
+type StaffOption = {
+  staffId: string;
+  displayName: string;
+  totalDurationMinutes: number;
+  cleanupMinutes: number;
+  totalPriceCents: number;
+  depositCents: number;
+  workstationId: string | null;
 };
 
-type AvailabilityResponse = {
-  slots?: AvailabilitySlot[];
-  totalPriceCents?: number;
-  depositCents?: number;
-  message?: string;
+type StaffOptionsResponse = {
+  staff?: StaffOption[];
+  error?: string;
 };
 
 type CreateAppointmentResponse = {
@@ -74,6 +74,17 @@ type CreateAppointmentResponse = {
     reference: string;
     requiresPayment: boolean;
   };
+};
+
+type PaymentOption = "ONLINE" | "ALREADY_PAID";
+
+type OfflinePaymentMethod = "CASH" | "CARD" | "BANK_TRANSFER" | "OTHER";
+
+const OFFLINE_PAYMENT_METHOD_LABELS: Record<OfflinePaymentMethod, string> = {
+  CASH: "Espèces",
+  CARD: "Carte bancaire",
+  BANK_TRANSFER: "Virement",
+  OTHER: "Autre",
 };
 
 /* -------------------------------------------------------------------------- */
@@ -97,15 +108,21 @@ function todayIsoDate(): string {
   }).format(new Date());
 }
 
-function formatSlotDate(value: string): string {
+const DEFAULT_TIME = "10:00";
+
+/*
+ * Formate une date calendaire "YYYY-MM-DD" sans jamais passer par le
+ * fuseau horaire du navigateur (on force UTC minuit), afin que
+ * l'aperçu affiché à l'admin corresponde toujours au jour saisi.
+ */
+function formatCalendarDate(value: string): string {
   return new Intl.DateTimeFormat("fr-FR", {
-    timeZone: "Europe/Paris",
+    timeZone: "UTC",
     weekday: "short",
     day: "numeric",
     month: "short",
-    hour: "2-digit",
-    minute: "2-digit",
-  }).format(new Date(value));
+    year: "numeric",
+  }).format(new Date(`${value}T00:00:00.000Z`));
 }
 
 /* -------------------------------------------------------------------------- */
@@ -142,20 +159,27 @@ export function AdminCreateAppointmentDialog({ services }: Props) {
     new Set(),
   );
 
-  // Étape 3 — créneau
+  // Étape 3 — professionnelle & horaire
   const [date, setDate] = useState(todayIsoDate());
-  const [slots, setSlots] = useState<AvailabilitySlot[]>([]);
-  const [isLoadingSlots, setIsLoadingSlots] = useState(false);
-  const [slotsMessage, setSlotsMessage] = useState<string | null>(null);
-  const [selectedSlot, setSelectedSlot] = useState<AvailabilitySlot | null>(
-    null,
-  );
-  const [depositCents, setDepositCents] = useState(0);
-  const [totalPriceCents, setTotalPriceCents] = useState(0);
+  const [time, setTime] = useState(DEFAULT_TIME);
+  const [staffOptions, setStaffOptions] = useState<StaffOption[]>([]);
+  const [isLoadingStaff, setIsLoadingStaff] = useState(false);
+  const [staffMessage, setStaffMessage] = useState<string | null>(null);
+  const [selectedStaffId, setSelectedStaffId] = useState<string | null>(null);
+
+  // Étape 4 — confirmation (paiement de l'acompte)
+  const [paymentOption, setPaymentOption] = useState<PaymentOption>("ONLINE");
+  const [offlinePaymentMethod, setOfflinePaymentMethod] =
+    useState<OfflinePaymentMethod>("CASH");
 
   const selectedServices = useMemo(
     () => services.filter((service) => selectedServiceIds.has(service.id)),
     [services, selectedServiceIds],
+  );
+
+  const selectedStaff = useMemo(
+    () => staffOptions.find((staff) => staff.staffId === selectedStaffId) ?? null,
+    [staffOptions, selectedStaffId],
   );
 
   /* -------------------------------------------------------------------- */
@@ -196,45 +220,68 @@ export function AdminCreateAppointmentDialog({ services }: Props) {
   }, [clientQuery]);
 
   /* -------------------------------------------------------------------- */
-  /*                       CRÉNEAUX DISPONIBLES                           */
+  /*                    PROFESSIONNELLES DISPONIBLES                      */
   /* -------------------------------------------------------------------- */
 
-  function loadSlots(): void {
+  /*
+   * Contrairement au tunnel de réservation public, cette liste ignore
+   * volontairement les réglages de réservation en ligne et les
+   * horaires configurés : une professionnelle créant un rendez-vous
+   * manuellement doit pouvoir planifier n'importe quelle membre de
+   * l'équipe compatible avec les prestations choisies, à n'importe
+   * quelle heure. Seul un vrai chevauchement de planning sera bloqué
+   * à la création (voir handleConfirm).
+   */
+  function loadStaffOptions(): void {
     if (selectedServiceIds.size === 0) {
       return;
     }
 
-    setIsLoadingSlots(true);
-    setSlotsMessage(null);
-    setSelectedSlot(null);
+    setIsLoadingStaff(true);
+    setStaffMessage(null);
+    setSelectedStaffId(null);
 
     const params = new URLSearchParams();
-
-    params.set("date", date);
 
     for (const serviceId of selectedServiceIds) {
       params.append("serviceId", serviceId);
     }
 
-    fetch(`/api/availability?${params.toString()}`)
-      .then((response) => response.json() as Promise<AvailabilityResponse>)
-      .then((payload) => {
-        setSlots(payload.slots ?? []);
-        setDepositCents(payload.depositCents ?? 0);
-        setTotalPriceCents(payload.totalPriceCents ?? 0);
+    fetch(`/api/admin/appointments/staff-options?${params.toString()}`)
+      .then(async (response) => {
+        const payload = (await response.json()) as StaffOptionsResponse;
 
-        if (!payload.slots || payload.slots.length === 0) {
-          setSlotsMessage(
-            payload.message ??
-              "Aucun créneau disponible à cette date pour ces prestations.",
+        if (!response.ok) {
+          throw new Error(
+            payload.error ??
+              "Impossible de charger les professionnelles disponibles.",
+          );
+        }
+
+        return payload;
+      })
+      .then((payload) => {
+        const options = payload.staff ?? [];
+
+        setStaffOptions(options);
+
+        if (options.length === 0) {
+          setStaffMessage(
+            "Aucune professionnelle ne réalise toutes les prestations sélectionnées.",
           );
         }
       })
-      .catch(() => {
-        setSlotsMessage("Impossible de charger les créneaux disponibles.");
+      .catch((error: unknown) => {
+        setStaffOptions([]);
+
+        setStaffMessage(
+          error instanceof Error
+            ? error.message
+            : "Impossible de charger les professionnelles disponibles.",
+        );
       })
       .finally(() => {
-        setIsLoadingSlots(false);
+        setIsLoadingStaff(false);
       });
   }
 
@@ -249,11 +296,12 @@ export function AdminCreateAppointmentDialog({ services }: Props) {
     setSelectedClient(null);
     setSelectedServiceIds(new Set());
     setDate(todayIsoDate());
-    setSlots([]);
-    setSlotsMessage(null);
-    setSelectedSlot(null);
-    setDepositCents(0);
-    setTotalPriceCents(0);
+    setTime(DEFAULT_TIME);
+    setStaffOptions([]);
+    setStaffMessage(null);
+    setSelectedStaffId(null);
+    setPaymentOption("ONLINE");
+    setOfflinePaymentMethod("CASH");
   }
 
   function closeDialog(): void {
@@ -287,11 +335,11 @@ export function AdminCreateAppointmentDialog({ services }: Props) {
     }
 
     setStep("slot");
-    loadSlots();
+    loadStaffOptions();
   }
 
   function handleConfirm(): void {
-    if (!selectedClient || !selectedSlot || isPending) {
+    if (!selectedClient || !selectedStaffId || isPending) {
       return;
     }
 
@@ -308,10 +356,13 @@ export function AdminCreateAppointmentDialog({ services }: Props) {
           body: JSON.stringify({
             clientId: selectedClient.id,
             serviceIds: Array.from(selectedServiceIds),
-            staffId: selectedSlot.staff.id,
-            workstationId: selectedSlot.workstation.id,
-            startsAt: selectedSlot.startsAt,
-            endsAt: selectedSlot.endsAt,
+            staffId: selectedStaffId,
+            date,
+            time,
+            paymentOption,
+
+            paymentMethod:
+              paymentOption === "ALREADY_PAID" ? offlinePaymentMethod : undefined,
           }),
         });
 
@@ -526,68 +577,98 @@ export function AdminCreateAppointmentDialog({ services }: Props) {
                 </div>
               ) : null}
 
-              {/* ---------------------------- ÉTAPE CRÉNEAU --------------------------- */}
+              {/* ------------------------- ÉTAPE PROFESSIONNELLE ----------------------- */}
               {step === "slot" ? (
                 <div className="space-y-4">
-                  <label className="block">
-                    <span className="mb-2 block text-sm font-bold text-zinc-800">
-                      Date
-                    </span>
+                  <div className="grid grid-cols-2 gap-3">
+                    <label className="block">
+                      <span className="mb-2 block text-sm font-bold text-zinc-800">
+                        Date
+                      </span>
 
-                    <input
-                      type="date"
-                      value={date}
-                      min={todayIsoDate()}
-                      onChange={(event) => {
-                        setDate(event.target.value);
-                      }}
-                      onBlur={loadSlots}
-                      className="h-12 w-full rounded-2xl border border-zinc-200 bg-white px-4 text-sm text-zinc-950 outline-none transition focus:border-rose-300 focus:ring-4 focus:ring-rose-100"
-                    />
-                  </label>
+                      <input
+                        type="date"
+                        value={date}
+                        min={todayIsoDate()}
+                        onChange={(event) => setDate(event.target.value)}
+                        className="h-12 w-full rounded-2xl border border-zinc-200 bg-white px-4 text-sm text-zinc-950 outline-none transition focus:border-rose-300 focus:ring-4 focus:ring-rose-100"
+                      />
+                    </label>
 
-                  {isLoadingSlots ? (
+                    <label className="block">
+                      <span className="mb-2 block text-sm font-bold text-zinc-800">
+                        Heure
+                      </span>
+
+                      <input
+                        type="time"
+                        value={time}
+                        onChange={(event) => setTime(event.target.value)}
+                        className="h-12 w-full rounded-2xl border border-zinc-200 bg-white px-4 text-sm text-zinc-950 outline-none transition focus:border-rose-300 focus:ring-4 focus:ring-rose-100"
+                      />
+                    </label>
+                  </div>
+
+                  <p className="text-sm font-bold text-zinc-800">
+                    Sélectionnez une professionnelle
+                  </p>
+
+                  <p className="text-xs text-zinc-500">
+                    Toutes les professionnelles réalisant ces prestations sont
+                    proposées, y compris en dehors de leurs disponibilités
+                    habituelles. Seul un rendez-vous déjà existant sur ce
+                    créneau sera bloqué.
+                  </p>
+
+                  {isLoadingStaff ? (
                     <p className="flex items-center gap-2 text-sm text-zinc-500">
                       <LoaderCircle className="size-4 animate-spin" />
-                      Chargement des créneaux...
+                      Chargement des professionnelles...
                     </p>
                   ) : null}
 
-                  {!isLoadingSlots && slotsMessage ? (
+                  {!isLoadingStaff && staffMessage ? (
                     <p className="rounded-2xl border border-dashed border-zinc-200 bg-zinc-50 px-4 py-6 text-center text-sm text-zinc-500">
-                      {slotsMessage}
+                      {staffMessage}
                     </p>
                   ) : null}
 
-                  {!isLoadingSlots && slots.length > 0 ? (
-                    <ul className="grid max-h-64 grid-cols-2 gap-2 overflow-y-auto pr-1 sm:grid-cols-3">
-                      {slots.map((slot) => {
-                        const isSelected =
-                          selectedSlot?.startsAt === slot.startsAt &&
-                          selectedSlot?.staff.id === slot.staff.id;
+                  {!isLoadingStaff && staffOptions.length > 0 ? (
+                    <ul className="max-h-64 space-y-2 overflow-y-auto pr-1">
+                      {staffOptions.map((staff) => {
+                        const isSelected = selectedStaffId === staff.staffId;
 
                         return (
-                          <li key={`${slot.startsAt}-${slot.staff.id}`}>
+                          <li key={staff.staffId}>
                             <button
                               type="button"
-                              onClick={() => setSelectedSlot(slot)}
-                              className={`w-full rounded-2xl border px-3 py-2.5 text-left text-xs transition ${
+                              onClick={() => setSelectedStaffId(staff.staffId)}
+                              className={`flex w-full items-center justify-between gap-3 rounded-2xl border px-4 py-3 text-left text-sm transition ${
                                 isSelected
                                   ? "border-rose-600 bg-rose-600 text-white"
                                   : "border-zinc-200 bg-white text-zinc-800 hover:border-rose-300"
                               }`}
                             >
-                              <span className="flex items-center gap-1.5 font-bold">
-                                <Clock3 className="size-3.5" />
-                                {formatSlotDate(slot.startsAt)}
+                              <span className="min-w-0">
+                                <span className="flex items-center gap-1.5 font-bold">
+                                  <UserRound className="size-3.5 shrink-0" />
+                                  <span className="truncate">
+                                    {staff.displayName}
+                                  </span>
+                                </span>
+
+                                <span
+                                  className={`mt-1 flex items-center gap-1 text-xs ${
+                                    isSelected ? "text-white/80" : "text-zinc-500"
+                                  }`}
+                                >
+                                  <Clock3 className="size-3 shrink-0" />
+                                  {staff.totalDurationMinutes} min
+                                </span>
                               </span>
 
-                              <span
-                                className={`mt-1 block truncate ${
-                                  isSelected ? "text-white/80" : "text-zinc-500"
-                                }`}
-                              >
-                                {slot.staff.displayName}
+                              <span className="shrink-0 text-sm font-bold">
+                                {formatEuros(staff.totalPriceCents)}
                               </span>
                             </button>
                           </li>
@@ -601,7 +682,7 @@ export function AdminCreateAppointmentDialog({ services }: Props) {
               {/* --------------------------- ÉTAPE CONFIRMATION ----------------------- */}
               {step === "confirm" &&
               selectedClient &&
-              selectedSlot ? (
+              selectedStaff ? (
                 <div className="space-y-4">
                   <div className="rounded-2xl border border-zinc-200 bg-zinc-50 p-4">
                     <p className="text-xs font-black uppercase tracking-[0.15em] text-zinc-500">
@@ -625,8 +706,8 @@ export function AdminCreateAppointmentDialog({ services }: Props) {
                     </p>
 
                     <p className="mt-1 text-sm text-zinc-800">
-                      {formatSlotDate(selectedSlot.startsAt)} avec{" "}
-                      {selectedSlot.staff.displayName}
+                      {formatCalendarDate(date)} à {time} avec{" "}
+                      {selectedStaff.displayName}
                     </p>
 
                     <div className="mt-4 flex items-center justify-between border-t border-zinc-200 pt-3">
@@ -635,25 +716,103 @@ export function AdminCreateAppointmentDialog({ services }: Props) {
                       </span>
 
                       <span className="text-sm font-black text-zinc-950">
-                        {formatEuros(totalPriceCents)}
+                        {formatEuros(selectedStaff.totalPriceCents)}
                       </span>
                     </div>
 
-                    {depositCents > 0 ? (
-                      <div className="mt-2 rounded-xl bg-rose-50 px-3 py-2 text-xs leading-5 text-rose-700">
-                        Un lien de paiement PayPal pour l’acompte de{" "}
-                        <strong>{formatEuros(depositCents)}</strong> sera
-                        envoyé automatiquement par e-mail à la cliente. Le
-                        rendez-vous sera confirmé dès réception du paiement.
-                      </div>
-                    ) : (
+                    {selectedStaff.depositCents === 0 ? (
                       <div className="mt-2 flex items-center gap-2 rounded-xl bg-emerald-50 px-3 py-2 text-xs text-emerald-700">
                         <CheckCircle2 className="size-4 shrink-0" />
                         Aucun acompte requis : le rendez-vous sera confirmé
                         immédiatement.
                       </div>
-                    )}
+                    ) : null}
                   </div>
+
+                  {selectedStaff.depositCents > 0 ? (
+                    <div className="space-y-3 rounded-2xl border border-zinc-200 bg-white p-4">
+                      <p className="text-xs font-black uppercase tracking-[0.15em] text-zinc-500">
+                        Acompte de {formatEuros(selectedStaff.depositCents)}
+                      </p>
+
+                      <label
+                        className={`flex cursor-pointer items-start gap-3 rounded-2xl border px-4 py-3 transition ${
+                          paymentOption === "ONLINE"
+                            ? "border-rose-600 bg-rose-50"
+                            : "border-zinc-200 hover:border-rose-300"
+                        }`}
+                      >
+                        <input
+                          type="radio"
+                          name="paymentOption"
+                          checked={paymentOption === "ONLINE"}
+                          onChange={() => setPaymentOption("ONLINE")}
+                          className="mt-1 size-4 accent-rose-600"
+                        />
+
+                        <span>
+                          <span className="block text-sm font-bold text-zinc-950">
+                            Envoyer un lien de paiement à la cliente
+                          </span>
+
+                          <span className="mt-0.5 block text-xs leading-5 text-zinc-500">
+                            Un e-mail avec un lien de paiement PayPal est
+                            envoyé immédiatement. La cliente a 24h pour régler
+                            l’acompte, sans quoi le rendez-vous sera
+                            automatiquement annulé.
+                          </span>
+                        </span>
+                      </label>
+
+                      <label
+                        className={`flex cursor-pointer items-start gap-3 rounded-2xl border px-4 py-3 transition ${
+                          paymentOption === "ALREADY_PAID"
+                            ? "border-rose-600 bg-rose-50"
+                            : "border-zinc-200 hover:border-rose-300"
+                        }`}
+                      >
+                        <input
+                          type="radio"
+                          name="paymentOption"
+                          checked={paymentOption === "ALREADY_PAID"}
+                          onChange={() => setPaymentOption("ALREADY_PAID")}
+                          className="mt-1 size-4 accent-rose-600"
+                        />
+
+                        <span className="min-w-0 flex-1">
+                          <span className="block text-sm font-bold text-zinc-950">
+                            L’acompte a déjà été réglé en institut
+                          </span>
+
+                          <span className="mt-0.5 block text-xs leading-5 text-zinc-500">
+                            Le rendez-vous est confirmé immédiatement ; la
+                            cliente reçoit l’e-mail de confirmation avec les
+                            rappels habituels.
+                          </span>
+
+                          {paymentOption === "ALREADY_PAID" ? (
+                            <select
+                              value={offlinePaymentMethod}
+                              onChange={(event) =>
+                                setOfflinePaymentMethod(
+                                  event.target.value as OfflinePaymentMethod,
+                                )
+                              }
+                              className="mt-3 h-11 w-full rounded-xl border border-zinc-200 bg-white px-3 text-sm text-zinc-950 outline-none transition focus:border-rose-300 focus:ring-4 focus:ring-rose-100"
+                            >
+                              {Object.entries(OFFLINE_PAYMENT_METHOD_LABELS).map(
+                                ([value, label]) => (
+                                  <option key={value} value={value}>
+                                    {label}
+                                  </option>
+                                ),
+                              )}
+                            </select>
+                          ) : null}
+                        </span>
+                      </label>
+                    </div>
+                  ) : null}
                 </div>
               ) : null}
             </div>
@@ -683,14 +842,14 @@ export function AdminCreateAppointmentDialog({ services }: Props) {
                   onClick={goToSlotStep}
                   className="inline-flex h-11 items-center justify-center rounded-2xl bg-rose-600 px-6 text-sm font-black text-white shadow-sm transition hover:bg-rose-700"
                 >
-                  Voir les créneaux
+                  Choisir la professionnelle
                 </button>
               ) : null}
 
               {step === "slot" ? (
                 <button
                   type="button"
-                  disabled={!selectedSlot}
+                  disabled={!selectedStaffId || !time}
                   onClick={() => setStep("confirm")}
                   className="inline-flex h-11 items-center justify-center rounded-2xl bg-rose-600 px-6 text-sm font-black text-white shadow-sm transition hover:bg-rose-700 disabled:cursor-not-allowed disabled:opacity-40"
                 >

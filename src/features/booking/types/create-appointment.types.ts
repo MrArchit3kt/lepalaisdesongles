@@ -40,7 +40,13 @@ export type CreateAppointmentResult = {
 
   status: "PENDING" | "CONFIRMED";
 
-  paymentStatus: "PENDING" | "NOT_REQUIRED";
+  /*
+   * "PAID" n'est produit que par la création manuelle admin, lorsque
+   * l'acompte a déjà été encaissé hors-ligne (voir
+   * `admin-create-appointment.service.ts`) — le tunnel de réservation
+   * public ne renvoie jamais cette valeur à la création.
+   */
+  paymentStatus: "PENDING" | "NOT_REQUIRED" | "PAID";
 
   /**
    * Montant encaissé lors de la réservation :

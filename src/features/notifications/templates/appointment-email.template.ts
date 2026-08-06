@@ -334,6 +334,10 @@ export function renderAppointmentEmail(
       ? formatEuros(data.depositAmountCents)
       : null;
 
+  const paymentDeadlineLabel = normalizeText(data.paymentDeadline)
+    ? formatAppointmentDate(data.paymentDeadline as string)
+    : null;
+
   const detailRows = [
     {
       label: "Référence",
@@ -362,6 +366,13 @@ export function renderAppointmentEmail(
           label: "Acompte à régler",
 
           value: depositAmountLabel,
+        }
+      : null,
+    paymentDeadlineLabel
+      ? {
+          label: "À régler avant le",
+
+          value: paymentDeadlineLabel,
         }
       : null,
   ].filter(
@@ -432,6 +443,11 @@ export function renderAppointmentEmail(
       `
     : "";
 
+  const closingMessage =
+    data.kind === "DEPOSIT_PAYMENT_REQUESTED" && paymentDeadlineLabel
+      ? `${presentation.closingMessage} Passé ce délai, la réservation sera automatiquement annulée.`
+      : presentation.closingMessage;
+
   const plainTextLines = [
     presentation.title,
     "",
@@ -444,8 +460,9 @@ export function renderAppointmentEmail(
     `${services.length > 1 ? "Prestations" : "Prestation"} : ${serviceLabel}`,
     staffName ? `Professionnelle : ${staffName}` : null,
     depositAmountLabel ? `Acompte à régler : ${depositAmountLabel}` : null,
+    paymentDeadlineLabel ? `À régler avant le : ${paymentDeadlineLabel}` : null,
     "",
-    presentation.closingMessage,
+    closingMessage,
     manageUrl ? `${presentation.ctaLabel} : ${manageUrl}` : null,
     SALON_ADDRESS ? `Adresse : ${SALON_ADDRESS}` : null,
     SALON_PHONE ? `Téléphone : ${SALON_PHONE}` : null,
@@ -751,7 +768,7 @@ export function renderAppointmentEmail(
                           text-align: center;
                         "
                       >
-                        ${escapeHtml(presentation.closingMessage)}
+                        ${escapeHtml(closingMessage)}
                       </p>
                     </td>
                   </tr>
