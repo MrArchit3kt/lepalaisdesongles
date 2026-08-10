@@ -16,6 +16,11 @@ module.exports = {
       name: "nailstudio-pro",
       cwd: __dirname + "/..",
       script: "node_modules/.bin/next",
+      // Port 3000 par défaut : si le VPS héberge déjà une autre app
+      // sur ce port, changez-le ici ET dans `env.PORT` ci-dessous ET
+      // dans `deploy/nginx.conf` (proxy_pass). `deploy/run-cron.sh`
+      // lit lui la valeur directement depuis `.env`, pas besoin de le
+      // modifier séparément.
       args: "start -p 3000",
 
       // Un seul process pour commencer : suffisant pour le trafic

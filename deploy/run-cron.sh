@@ -29,15 +29,17 @@ case "$TARGET" in
     ;;
 esac
 
-# Charge CRON_SECRET depuis le .env de l'app sans exposer le reste
-# des variables au shell appelant.
+# Charge CRON_SECRET et PORT depuis le .env de l'app sans exposer le
+# reste des variables au shell appelant.
 CRON_SECRET="$(grep -E '^CRON_SECRET=' "$APP_DIR/.env" | head -n1 | cut -d '=' -f2- | tr -d '"')"
+APP_PORT="$(grep -E '^PORT=' "$APP_DIR/.env" | head -n1 | cut -d '=' -f2- | tr -d '"')"
 
-# Appelle directement le process Node en local (127.0.0.1:3000),
-# sans repasser par nginx/HTTPS : plus robuste pour un cron (pas de
-# dépendance DNS), et le port doit correspondre à celui utilisé dans
-# deploy/ecosystem.config.cjs.
-APP_URL="http://127.0.0.1:3000"
+# Appelle directement le process Node en local, sans repasser par
+# nginx/HTTPS : plus robuste pour un cron (pas de dépendance DNS). Le
+# port est lu depuis .env plutôt que codé en dur, car plusieurs apps
+# peuvent cohabiter sur le même VPS avec des ports différents (voir
+# deploy/ecosystem.config.cjs, qui doit utiliser la même valeur).
+APP_URL="http://127.0.0.1:${APP_PORT:-3000}"
 
 if [ -z "$CRON_SECRET" ]; then
   echo "$(date -Is) [$TARGET] CRON_SECRET manquant dans $APP_DIR/.env" >&2
