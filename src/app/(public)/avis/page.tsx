@@ -14,6 +14,7 @@ import type {
   ReviewRatingDistribution,
   ReviewsSummary,
 } from "@/features/reviews/components/public/reviews.types";
+import { getGoogleReviews } from "@/features/reviews/services/google-reviews.service";
 import { prisma } from "@/lib/prisma";
 
 export const dynamic = "force-dynamic";
@@ -91,10 +92,23 @@ function createRatingDistribution(
   );
 }
 
-async function getPublishedReviews(): Promise<{
-  reviews: PublicReview[];
-  summary: ReviewsSummary;
-}> {
+function buildSummary(
+  reviews: PublicReview[],
+): ReviewsSummary {
+  const ratings = reviews.map((review) => review.rating);
+
+  return {
+    totalReviews: reviews.length,
+    averageRating: calculateAverageRating(ratings),
+    verifiedReviews: reviews.filter((review) => review.isVerified).length,
+    satisfactionRate: calculateSatisfactionRate(ratings),
+    distribution: createRatingDistribution(ratings),
+  };
+}
+
+async function getPublishedReviews(): Promise<
+  PublicReview[]
+> {
   const databaseReviews =
     await prisma.review.findMany({
       where: {
@@ -167,38 +181,26 @@ async function getPublishedReviews(): Promise<{
       }),
     );
 
-  const ratings =
-    reviews.map(
-      (review) =>
-        review.rating,
-    );
+  return reviews;
+}
 
-  const summary: ReviewsSummary =
-    {
-      totalReviews:
-        reviews.length,
-      averageRating:
-        calculateAverageRating(
-          ratings,
-        ),
-      verifiedReviews:
-        reviews.filter(
-          (review) =>
-            review.isVerified,
-        ).length,
-      satisfactionRate:
-        calculateSatisfactionRate(
-          ratings,
-        ),
-      distribution:
-        createRatingDistribution(
-          ratings,
-        ),
-    };
+async function getReviewsPageData(): Promise<{
+  reviews: PublicReview[];
+  summary: ReviewsSummary;
+}> {
+  const [internalReviews, googleResult] = await Promise.all([
+    getPublishedReviews(),
+    getGoogleReviews(),
+  ]);
+
+  const reviews = [...internalReviews, ...googleResult.reviews].sort(
+    (a, b) =>
+      new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime(),
+  );
 
   return {
     reviews,
-    summary,
+    summary: buildSummary(reviews),
   };
 }
 
@@ -207,7 +209,7 @@ export default async function ReviewsPage() {
     reviews,
     summary,
   } =
-    await getPublishedReviews();
+    await getReviewsPageData();
 
   return (
     <main className="overflow-hidden bg-[linear-gradient(180deg,#ffffff_0%,#FFF9FA_45%,#ffffff_100%)]">

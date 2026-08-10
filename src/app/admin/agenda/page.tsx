@@ -10,6 +10,9 @@ import {
 import {
   AdminCalendarClient,
 } from "@/features/admin/calendar/components/admin-calendar-client";
+import {
+  AdminCalendarSyncDialog,
+} from "@/features/admin/calendar/components/admin-calendar-sync-dialog";
 
 import {
   requireAdminUser,
@@ -88,6 +91,8 @@ export default async function AdminAgendaPage() {
                   <CalendarOff className="size-4" />
                 }
               />
+
+              <AdminCalendarSyncDialog />
             </nav>
           </div>
         </header>

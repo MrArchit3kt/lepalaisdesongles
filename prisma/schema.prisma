@@ -583,6 +583,15 @@ model User {
   createdAt     DateTime  @default(now())
   updatedAt     DateTime  @updatedAt
 
+  /**
+   * Jeton secret permettant de s'abonner à son agenda (rendez-vous)
+   * depuis une application de calendrier externe (ex. Calendrier
+   * iPhone), sans session ni cookie — l'URL du flux ICS embarque ce
+   * jeton. Généré à la demande, régénérable pour révoquer un lien
+   * partagé par erreur.
+   */
+  calendarFeedToken String? @unique
+
   // ==========================
   // PROFILS
   // ==========================

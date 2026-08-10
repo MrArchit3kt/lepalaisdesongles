@@ -1696,9 +1696,17 @@ function Grid({
       className="max-h-[75vh] overflow-auto rounded-3xl border border-pink-100 bg-white shadow-sm"
     >
       <div
-        className="grid min-w-[900px]"
+        className="grid w-full sm:min-w-[900px]"
         style={{
-          gridTemplateColumns: `80px repeat(${days.length}, minmax(150px, 1fr))`,
+          /*
+           * Pas de largeur plancher par colonne (minmax(0, 1fr)) :
+           * les colonnes se partagent l'espace disponible et
+           * rétrécissent librement sur mobile, pour que les 7 jours
+           * tiennent sans scroll horizontal. Sur desktop, le
+           * conteneur dépasse déjà largement min-w-[900px], donc
+           * 1fr distribue l'espace exactement comme avant.
+           */
+          gridTemplateColumns: `clamp(28px, 8vw, 80px) repeat(${days.length}, minmax(0, 1fr))`,
         }}
       >
         <div className="sticky top-0 z-50 border-b border-zinc-200 bg-zinc-50" />
@@ -1711,9 +1719,24 @@ function Grid({
                   day,
                 )
               }
-              className="sticky top-0 z-50 border-b border-l border-zinc-200 bg-zinc-50 p-3 text-center"
+              className="sticky top-0 z-50 border-b border-l border-zinc-200 bg-zinc-50 p-1 text-center sm:p-3"
             >
-              <b>
+              <b className="block text-[11px] leading-tight sm:hidden">
+                {new Intl.DateTimeFormat(
+                  "fr-FR",
+                  {
+                    weekday:
+                      "narrow",
+
+                    day:
+                      "2-digit",
+                  },
+                ).format(
+                  day,
+                )}
+              </b>
+
+              <b className="hidden sm:block">
                 {new Intl.DateTimeFormat(
                   "fr-FR",
                   {
@@ -1750,20 +1773,26 @@ function Grid({
                 key={
                   hour
                 }
-                className="absolute inset-x-0 border-t border-zinc-200 px-2 text-right text-xs text-zinc-400"
+                className="absolute inset-x-0 border-t border-zinc-200 px-1 text-right text-[10px] text-zinc-400 sm:px-2 sm:text-xs"
                 style={{
                   top:
                     index *
                     HOUR_HEIGHT,
                 }}
               >
-                {String(
-                  hour,
-                ).padStart(
-                  2,
-                  "0",
-                )}
-                :00
+                <span className="sm:hidden">
+                  {hour}h
+                </span>
+
+                <span className="hidden sm:inline">
+                  {String(
+                    hour,
+                  ).padStart(
+                    2,
+                    "0",
+                  )}
+                  :00
+                </span>
               </div>
             ),
           )}
@@ -2062,7 +2091,7 @@ function Grid({
                           tabIndex={
                             0
                           }
-                          className={`absolute left-1 right-1 z-20 overflow-hidden rounded-xl border p-2 text-xs shadow-sm transition hover:z-30 hover:shadow-lg ${
+                          className={`absolute left-0.5 right-0.5 z-20 overflow-hidden rounded-xl border p-1 text-[10px] shadow-sm transition hover:z-30 hover:shadow-lg sm:left-1 sm:right-1 sm:p-2 sm:text-xs ${
                             appointment.isMovable ===
                             false
                               ? "cursor-default"

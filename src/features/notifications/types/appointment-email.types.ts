@@ -5,7 +5,8 @@ export type AppointmentEmailKind =
   | "APPOINTMENT_REFUSED"
   | "REMINDER_24H"
   | "REMINDER_2H"
-  | "DEPOSIT_PAYMENT_REQUESTED";
+  | "DEPOSIT_PAYMENT_REQUESTED"
+  | "REVIEW_REQUEST";
 
 export type AppointmentEmailData = {
   kind: AppointmentEmailKind;

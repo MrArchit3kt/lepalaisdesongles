@@ -21,6 +21,8 @@ import { logAppointmentHistory } from "@/features/admin/calendar/services/appoin
 
 import { processCompletedAppointmentLoyalty } from "@/features/vip/services/process-completed-appointment-loyalty.service";
 
+import { getPublicSocialSettings } from "@/features/admin/settings/services/admin-settings.service";
+
 const BLOCKING_STATUSES: AppointmentStatus[] = [
   AppointmentStatus.PENDING,
   AppointmentStatus.CONFIRMED,
@@ -179,9 +181,11 @@ function emailKindForAdminAction(
     case "refuse":
       return "APPOINTMENT_REFUSED";
 
+    case "complete":
+      return "REVIEW_REQUEST";
+
     case "update_note":
     case "start":
-    case "complete":
     case "no_show":
       return null;
   }
@@ -645,6 +649,23 @@ export async function updateAdminAppointment(input: Input) {
         ),
       );
 
+      const appointmentUrl = `${siteUrl}/espace-client/rendez-vous/${encodeURIComponent(
+        result.appointment.reference,
+      )}`;
+
+      /*
+       * L'invitation à laisser un avis pointe directement vers la
+       * fiche Google du salon quand elle est configurée (admin >
+       * paramètres > réseaux sociaux) : la dépose d'avis n'est pas
+       * encore possible depuis l'espace client. À défaut, on retombe
+       * sur la fiche du rendez-vous.
+       */
+      const manageUrl =
+        emailKind === "REVIEW_REQUEST"
+          ? (await getPublicSocialSettings()).googleReviewUrl?.trim() ||
+            appointmentUrl
+          : appointmentUrl;
+
       await sendAppointmentEmail({
         kind: emailKind,
 
@@ -660,9 +681,7 @@ export async function updateAdminAppointment(input: Input) {
 
         staffName,
 
-        manageUrl: `${siteUrl}/espace-client/rendez-vous/${encodeURIComponent(
-          result.appointment.reference,
-        )}`,
+        manageUrl,
       });
     } catch (reason: unknown) {
       /*

@@ -220,6 +220,28 @@ function getPresentation(kind: AppointmentEmailKind): EmailPresentation {
         ctaLabel: "Gérer mon rendez-vous",
       };
 
+    case "REVIEW_REQUEST":
+      return {
+        eyebrow: "Merci pour votre visite",
+
+        title: "Merci de nous avoir fait confiance !",
+
+        intro:
+          "Nous espérons que vous repartez ravie de votre rendez-vous. Votre avis compte énormément pour nous et aide d’autres clientes à nous découvrir.",
+
+        badgeLabel: "Rendez-vous terminé",
+
+        accentColor: "#B4894A",
+
+        accentSoftColor: "#FCF3E4",
+
+        icon: "★",
+
+        closingMessage: "Merci encore pour votre confiance, à très bientôt au salon !",
+
+        ctaLabel: "Laisser un avis",
+      };
+
     case "DEPOSIT_PAYMENT_REQUESTED":
       return {
         eyebrow: "Demande de paiement",
