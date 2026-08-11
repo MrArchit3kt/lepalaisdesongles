@@ -21,31 +21,17 @@ type GalleryMasonryProps = {
   ) => void;
 };
 
-const CARD_HEIGHTS = [
-  "aspect-[4/5]",
-  "aspect-square",
-  "aspect-[3/4]",
-  "aspect-[5/6]",
-  "aspect-[4/3]",
-];
-
 export function GalleryMasonry({
   items,
   onSelect,
 }: GalleryMasonryProps) {
   return (
-    <div className="columns-1 gap-5 sm:columns-2 lg:columns-3 xl:columns-4">
+    <div className="grid grid-cols-1 gap-5 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
       {items.map(
         (
           item,
           index,
         ) => {
-          const cardHeight =
-            CARD_HEIGHTS[
-              index %
-                CARD_HEIGHTS.length
-            ];
-
           return (
             <motion.article
               key={
@@ -74,7 +60,7 @@ export function GalleryMasonry({
                   ) *
                   0.045,
               }}
-              className="group mb-5 break-inside-avoid"
+              className="group"
             >
               <button
                 type="button"
@@ -86,9 +72,7 @@ export function GalleryMasonry({
                 aria-label={`Voir la réalisation ${item.title}`}
                 className="relative block w-full overflow-hidden rounded-[2rem] border border-white/80 bg-white text-left shadow-[0_20px_60px_-30px_rgba(59,36,48,0.35)] outline-none transition duration-500 hover:-translate-y-1 hover:shadow-[0_30px_80px_-30px_rgba(139,64,90,0.4)] focus-visible:ring-4 focus-visible:ring-[#F0DCE3]"
               >
-                <div
-                  className={`relative overflow-hidden bg-[#F6E7EB] ${cardHeight}`}
-                >
+                <div className="relative aspect-[4/5] overflow-hidden bg-[#F6E7EB]">
                   <Image
                     src={
                       item.coverUrl
