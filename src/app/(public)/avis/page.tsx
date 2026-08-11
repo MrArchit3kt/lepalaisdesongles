@@ -112,6 +112,8 @@ async function getPublishedReviews(): Promise<
   const databaseReviews =
     await prisma.review.findMany({
       where: {
+        status: "APPROVED",
+
         publishedAt: {
           not: null,
         },

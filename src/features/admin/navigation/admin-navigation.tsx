@@ -21,6 +21,7 @@ import {
   LogOut,
   Menu,
   MessageCircle,
+  MessageSquareHeart,
   Settings,
   Settings2,
   Sparkles,
@@ -135,6 +136,13 @@ const MARKETING_NAVIGATION: NavigationItem[] = [
     href: "/admin/promotions",
 
     icon: Tags,
+  },
+  {
+    label: "Avis clientes",
+
+    href: "/admin/avis",
+
+    icon: MessageSquareHeart,
   },
   {
     label: "Programme fidélité",
