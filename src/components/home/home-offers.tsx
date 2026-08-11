@@ -23,7 +23,7 @@ export function HomeOffers({
   }
 
   return (
-    <section className="bg-[#FFFAFB] py-20 lg:py-24">
+    <section className="bg-[#FFFAFB] py-10 sm:py-14 lg:py-24">
       <div className="mx-auto grid max-w-7xl gap-6 px-5 lg:grid-cols-2 lg:px-8">
         {promotion ? (
           <article className="relative overflow-hidden rounded-[36px] bg-gradient-to-br from-[#3B2430] via-[#4A2A3A] to-[#2E1E28] p-8 text-white sm:p-10">

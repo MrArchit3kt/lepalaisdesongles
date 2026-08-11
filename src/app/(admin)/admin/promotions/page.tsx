@@ -57,12 +57,12 @@ export default async function AdminPromotionsPage() {
 
   return (
     <main className="min-h-screen">
-      <div className="mx-auto w-full max-w-[1600px] px-4 py-6 sm:px-6 lg:px-8 lg:py-8">
+      <div className="mx-auto w-full max-w-[1600px] px-3 py-4 sm:px-6 sm:py-6 lg:px-8 lg:py-8">
         {/* ---------------------------------------------------------------- */}
         {/*                                HERO                              */}
         {/* ---------------------------------------------------------------- */}
 
-        <section className="relative overflow-hidden rounded-[2rem] bg-gradient-to-br from-[#2F2027] via-[#5E3544] to-[#B45F7A] px-6 py-8 text-white shadow-xl shadow-[#843F59]/15 sm:px-8 lg:px-10">
+        <section className="relative overflow-hidden rounded-[2rem] bg-gradient-to-br from-[#2F2027] via-[#5E3544] to-[#B45F7A] px-4 py-5 text-white shadow-xl shadow-[#843F59]/15 sm:px-8 sm:py-8 lg:px-10">
           <div className="pointer-events-none absolute -right-24 -top-24 size-80 rounded-full bg-[#E8B4C0]/25 blur-3xl" />
 
           <div className="pointer-events-none absolute -bottom-32 left-1/3 size-72 rounded-full bg-white/10 blur-3xl" />
@@ -75,11 +75,11 @@ export default async function AdminPromotionsPage() {
                 Marketing et fidélisation
               </div>
 
-              <h1 className="mt-4 font-serif text-4xl font-semibold sm:text-5xl">
+              <h1 className="mt-2 font-serif text-2xl font-semibold sm:mt-4 sm:text-5xl">
                 Promotions
               </h1>
 
-              <p className="mt-4 max-w-2xl text-sm leading-7 text-white/75 sm:text-base">
+              <p className="mt-2 max-w-2xl text-xs leading-6 text-white/75 sm:mt-4 sm:text-base sm:leading-7">
                 Créez vos offres, programmez leur diffusion et contrôlez leur
                 visibilité sur le site et la page d’accueil.
               </p>
@@ -100,15 +100,15 @@ export default async function AdminPromotionsPage() {
         {/*                            STATISTIQUES                           */}
         {/* ---------------------------------------------------------------- */}
 
-        <section className="mt-6 grid gap-4 sm:grid-cols-2 xl:grid-cols-4">
-          <article className="rounded-[1.75rem] border border-[#E8B4C0]/45 bg-white p-5 shadow-sm">
+        <section className="mt-4 grid gap-3 sm:mt-6 sm:grid-cols-2 sm:gap-4 xl:grid-cols-4">
+          <article className="rounded-[1.75rem] border border-[#E8B4C0]/45 bg-white p-3.5 shadow-sm sm:p-5">
             <div className="flex items-center justify-between gap-4">
               <div>
                 <p className="text-sm font-medium text-[#816D75]">
                   Promotions
                 </p>
 
-                <p className="mt-2 text-3xl font-black text-[#2F2027]">
+                <p className="mt-1.5 text-xl font-black sm:mt-2 sm:text-3xl text-[#2F2027]">
                   {metrics.totalPromotions}
                 </p>
 
@@ -121,20 +121,20 @@ export default async function AdminPromotionsPage() {
                 </p>
               </div>
 
-              <div className="grid size-12 place-items-center rounded-2xl bg-[#FFF0F4] text-[#B45F7A]">
+              <div className="grid size-10 place-items-center rounded-2xl sm:size-12 bg-[#FFF0F4] text-[#B45F7A]">
                 <BadgePercent className="size-6" />
               </div>
             </div>
           </article>
 
-          <article className="rounded-[1.75rem] border border-[#E8B4C0]/45 bg-white p-5 shadow-sm">
+          <article className="rounded-[1.75rem] border border-[#E8B4C0]/45 bg-white p-3.5 shadow-sm sm:p-5">
             <div className="flex items-center justify-between gap-4">
               <div>
                 <p className="text-sm font-medium text-[#816D75]">
                   Actives
                 </p>
 
-                <p className="mt-2 text-3xl font-black text-[#2F2027]">
+                <p className="mt-1.5 text-xl font-black sm:mt-2 sm:text-3xl text-[#2F2027]">
                   {metrics.activePromotions}
                 </p>
 
@@ -147,20 +147,20 @@ export default async function AdminPromotionsPage() {
                 </p>
               </div>
 
-              <div className="grid size-12 place-items-center rounded-2xl bg-emerald-50 text-emerald-600">
+              <div className="grid size-10 place-items-center rounded-2xl sm:size-12 bg-emerald-50 text-emerald-600">
                 <TicketCheck className="size-6" />
               </div>
             </div>
           </article>
 
-          <article className="rounded-[1.75rem] border border-[#E8B4C0]/45 bg-white p-5 shadow-sm">
+          <article className="rounded-[1.75rem] border border-[#E8B4C0]/45 bg-white p-3.5 shadow-sm sm:p-5">
             <div className="flex items-center justify-between gap-4">
               <div>
                 <p className="text-sm font-medium text-[#816D75]">
                   Programmées
                 </p>
 
-                <p className="mt-2 text-3xl font-black text-[#2F2027]">
+                <p className="mt-1.5 text-xl font-black sm:mt-2 sm:text-3xl text-[#2F2027]">
                   {metrics.scheduledPromotions}
                 </p>
 
@@ -173,20 +173,20 @@ export default async function AdminPromotionsPage() {
                 </p>
               </div>
 
-              <div className="grid size-12 place-items-center rounded-2xl bg-blue-50 text-blue-600">
+              <div className="grid size-10 place-items-center rounded-2xl sm:size-12 bg-blue-50 text-blue-600">
                 <CalendarClock className="size-6" />
               </div>
             </div>
           </article>
 
-          <article className="rounded-[1.75rem] border border-[#E8B4C0]/45 bg-white p-5 shadow-sm">
+          <article className="rounded-[1.75rem] border border-[#E8B4C0]/45 bg-white p-3.5 shadow-sm sm:p-5">
             <div className="flex items-center justify-between gap-4">
               <div>
                 <p className="text-sm font-medium text-[#816D75]">
                   Sur l’accueil
                 </p>
 
-                <p className="mt-2 text-3xl font-black text-[#2F2027]">
+                <p className="mt-1.5 text-xl font-black sm:mt-2 sm:text-3xl text-[#2F2027]">
                   {metrics.promotionsShownOnHomepage}
                 </p>
 
@@ -199,7 +199,7 @@ export default async function AdminPromotionsPage() {
                 </p>
               </div>
 
-              <div className="grid size-12 place-items-center rounded-2xl bg-violet-50 text-violet-600">
+              <div className="grid size-10 place-items-center rounded-2xl sm:size-12 bg-violet-50 text-violet-600">
                 <House className="size-6" />
               </div>
             </div>

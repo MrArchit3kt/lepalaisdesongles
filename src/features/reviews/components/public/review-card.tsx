@@ -93,7 +93,7 @@ export function ReviewCard({
     );
 
   return (
-    <article className="group relative overflow-hidden rounded-[2rem] border border-[#F0DCE3] bg-white p-7 shadow-[0_30px_80px_-40px_rgba(139,64,90,0.35)] transition duration-300 hover:-translate-y-1 hover:shadow-[0_40px_100px_-35px_rgba(139,64,90,0.45)]">
+    <article className="group relative overflow-hidden rounded-[2rem] border border-[#F0DCE3] bg-white p-5 shadow-[0_30px_80px_-40px_rgba(139,64,90,0.35)] sm:p-7 transition duration-300 hover:-translate-y-1 hover:shadow-[0_40px_100px_-35px_rgba(139,64,90,0.45)]">
       <div
         aria-hidden="true"
         className="absolute -right-14 -top-14 h-40 w-40 rounded-full bg-[#E8B3C3]/20 blur-3xl transition duration-500 group-hover:bg-[#E8B3C3]/35"
@@ -103,7 +103,7 @@ export function ReviewCard({
         <div className="flex items-start justify-between gap-5">
           <div className="flex min-w-0 items-center gap-4">
             {review.authorAvatarUrl ? (
-              <div className="relative h-14 w-14 shrink-0 overflow-hidden rounded-full bg-[#FFF0F4] ring-2 ring-[#F0DCE3]">
+              <div className="relative h-11 w-11 shrink-0 overflow-hidden rounded-full bg-[#FFF0F4] ring-2 ring-[#F0DCE3] sm:h-14 sm:w-14">
                 <Image
                   src={
                     review.authorAvatarUrl
@@ -116,7 +116,7 @@ export function ReviewCard({
                 />
               </div>
             ) : (
-              <div className="flex h-14 w-14 shrink-0 items-center justify-center rounded-full bg-gradient-to-br from-[#AA526E] to-[#8B405A] text-sm font-black text-white shadow-lg shadow-[#8B405A]/25">
+              <div className="flex h-11 w-11 shrink-0 items-center justify-center rounded-full bg-gradient-to-br from-[#AA526E] to-[#8B405A] text-sm font-black text-white shadow-lg shadow-[#8B405A]/25 sm:h-14 sm:w-14">
                 {initials}
               </div>
             )}
@@ -154,7 +154,7 @@ export function ReviewCard({
         </div>
 
         <div
-          className="mt-6 flex gap-1"
+          className="mt-4 flex gap-1 sm:mt-6"
           aria-label={`${rating} étoiles sur 5`}
         >
           {Array.from({
@@ -188,12 +188,12 @@ export function ReviewCard({
           </div>
         ) : null}
 
-        <p className="mt-6 whitespace-pre-line break-words leading-8 text-[#5B4A52]">
+        <p className="mt-4 whitespace-pre-line break-words leading-7 text-[#5B4A52] sm:mt-6 sm:leading-8">
           {review.content}
         </p>
 
         {review.ownerResponse ? (
-          <div className="mt-8 rounded-2xl border border-[#F0DCE3] bg-[#FFF7F9] p-5">
+          <div className="mt-5 rounded-2xl border border-[#F0DCE3] bg-[#FFF7F9] p-4 sm:mt-8 sm:p-5">
             <div className="flex items-center gap-2">
               <MessageSquare className="h-5 w-5 shrink-0 text-[#A64D69]" />
 

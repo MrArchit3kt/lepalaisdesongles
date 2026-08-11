@@ -62,29 +62,29 @@ export default async function AdminServicesPage() {
 
   return (
     <main className="min-h-screen">
-      <div className="mx-auto w-full max-w-[1600px] px-4 py-6 sm:px-6 lg:px-8 lg:py-8">
+      <div className="mx-auto w-full max-w-[1600px] px-3 py-4 sm:px-6 sm:py-6 lg:px-8 lg:py-8">
         {/* ---------------------------------------------------------------- */}
         {/*                              EN-TÊTE                             */}
         {/* ---------------------------------------------------------------- */}
 
-        <section className="relative overflow-hidden rounded-[2rem] bg-gradient-to-br from-[#2F2027] via-[#5E3544] to-[#B45F7A] px-6 py-8 text-white shadow-xl shadow-[#843F59]/15 sm:px-8 lg:px-10 lg:py-10">
+        <section className="relative overflow-hidden rounded-[2rem] bg-gradient-to-br from-[#2F2027] via-[#5E3544] to-[#B45F7A] px-4 py-5 text-white shadow-xl shadow-[#843F59]/15 sm:px-8 sm:py-8 lg:px-10 lg:py-10">
           <div className="pointer-events-none absolute -right-24 -top-24 size-80 rounded-full bg-[#E8B4C0]/25 blur-3xl" />
 
           <div className="pointer-events-none absolute -bottom-32 left-1/3 size-80 rounded-full bg-[#D6B679]/15 blur-3xl" />
 
           <div className="relative flex flex-col gap-8 xl:flex-row xl:items-end xl:justify-between">
             <div className="max-w-3xl">
-              <div className="mb-5 inline-flex items-center gap-2 rounded-full border border-white/15 bg-white/10 px-4 py-2 text-sm font-medium text-[#FFF8FA] backdrop-blur">
+              <div className="mb-3 inline-flex items-center gap-2 rounded-full border border-white/15 bg-white/10 px-3 py-1.5 text-xs font-medium text-[#FFF8FA] backdrop-blur sm:mb-5 sm:px-4 sm:py-2 sm:text-sm">
                 <Sparkles className="size-4" />
 
                 Catalogue du salon
               </div>
 
-              <h1 className="font-serif text-4xl font-semibold tracking-tight sm:text-5xl">
+              <h1 className="font-serif text-2xl font-semibold tracking-tight sm:text-5xl">
                 Gérez vos prestations
               </h1>
 
-              <p className="mt-4 max-w-2xl text-sm leading-7 text-white/75 sm:text-base">
+              <p className="mt-2 max-w-2xl text-xs leading-6 text-white/75 sm:mt-4 sm:text-base sm:leading-7">
                 Ajoutez, modifiez, masquez ou mettez en avant les
                 prestations affichées sur le site. Les tarifs peuvent
                 rester facultatifs pour les services proposés sur devis.
@@ -106,15 +106,15 @@ export default async function AdminServicesPage() {
         {/*                           STATISTIQUES                            */}
         {/* ---------------------------------------------------------------- */}
 
-        <section className="mt-6 grid gap-4 sm:grid-cols-2 xl:grid-cols-4">
-          <article className="rounded-[1.75rem] border border-[#E8B4C0]/45 bg-white p-5 shadow-sm">
+        <section className="mt-4 grid gap-3 sm:mt-6 sm:grid-cols-2 sm:gap-4 xl:grid-cols-4">
+          <article className="rounded-[1.75rem] border border-[#E8B4C0]/45 bg-white p-3.5 shadow-sm sm:p-5">
             <div className="flex items-center justify-between gap-4">
               <div>
                 <p className="text-sm font-medium text-[#816D75]">
                   Prestations
                 </p>
 
-                <p className="mt-2 text-3xl font-black text-[#2F2027]">
+                <p className="mt-1.5 text-xl font-black sm:mt-2 sm:text-3xl text-[#2F2027]">
                   {formatNumber(
                     statistics.totalServices,
                   )}
@@ -131,20 +131,20 @@ export default async function AdminServicesPage() {
                 </p>
               </div>
 
-              <div className="grid size-12 place-items-center rounded-2xl bg-[#FFF0F4] text-[#B45F7A]">
+              <div className="grid size-10 place-items-center rounded-2xl sm:size-12 bg-[#FFF0F4] text-[#B45F7A]">
                 <Layers3 className="size-6" />
               </div>
             </div>
           </article>
 
-          <article className="rounded-[1.75rem] border border-[#E8B4C0]/45 bg-white p-5 shadow-sm">
+          <article className="rounded-[1.75rem] border border-[#E8B4C0]/45 bg-white p-3.5 shadow-sm sm:p-5">
             <div className="flex items-center justify-between gap-4">
               <div>
                 <p className="text-sm font-medium text-[#816D75]">
                   Visibles
                 </p>
 
-                <p className="mt-2 text-3xl font-black text-emerald-700">
+                <p className="mt-1.5 text-xl font-black sm:mt-2 sm:text-3xl text-emerald-700">
                   {formatNumber(
                     statistics.activeServices,
                   )}
@@ -161,20 +161,20 @@ export default async function AdminServicesPage() {
                 </p>
               </div>
 
-              <div className="grid size-12 place-items-center rounded-2xl bg-emerald-50 text-emerald-600">
+              <div className="grid size-10 place-items-center rounded-2xl sm:size-12 bg-emerald-50 text-emerald-600">
                 <Eye className="size-6" />
               </div>
             </div>
           </article>
 
-          <article className="rounded-[1.75rem] border border-[#E8B4C0]/45 bg-white p-5 shadow-sm">
+          <article className="rounded-[1.75rem] border border-[#E8B4C0]/45 bg-white p-3.5 shadow-sm sm:p-5">
             <div className="flex items-center justify-between gap-4">
               <div>
                 <p className="text-sm font-medium text-[#816D75]">
                   Réservables en ligne
                 </p>
 
-                <p className="mt-2 text-3xl font-black text-[#843F59]">
+                <p className="mt-1.5 text-xl font-black sm:mt-2 sm:text-3xl text-[#843F59]">
                   {formatNumber(
                     statistics.onlineBookingServices,
                   )}
@@ -185,20 +185,20 @@ export default async function AdminServicesPage() {
                 </p>
               </div>
 
-              <div className="grid size-12 place-items-center rounded-2xl bg-[#FFF0F4] text-[#B45F7A]">
+              <div className="grid size-10 place-items-center rounded-2xl sm:size-12 bg-[#FFF0F4] text-[#B45F7A]">
                 <CalendarCheck className="size-6" />
               </div>
             </div>
           </article>
 
-          <article className="rounded-[1.75rem] border border-[#E8B4C0]/45 bg-white p-5 shadow-sm">
+          <article className="rounded-[1.75rem] border border-[#E8B4C0]/45 bg-white p-3.5 shadow-sm sm:p-5">
             <div className="flex items-center justify-between gap-4">
               <div>
                 <p className="text-sm font-medium text-[#816D75]">
                   Prestations sur devis
                 </p>
 
-                <p className="mt-2 text-3xl font-black text-[#9B7628]">
+                <p className="mt-1.5 text-xl font-black sm:mt-2 sm:text-3xl text-[#9B7628]">
                   {formatNumber(
                     statistics.quoteOnlyServices,
                   )}
@@ -209,7 +209,7 @@ export default async function AdminServicesPage() {
                 </p>
               </div>
 
-              <div className="grid size-12 place-items-center rounded-2xl bg-[#FFF9E9] text-[#9B7628]">
+              <div className="grid size-10 place-items-center rounded-2xl sm:size-12 bg-[#FFF9E9] text-[#9B7628]">
                 <FileQuestion className="size-6" />
               </div>
             </div>

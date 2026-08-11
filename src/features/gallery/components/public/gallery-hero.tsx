@@ -35,8 +35,8 @@ export function GalleryHero({
 
       <div className="pointer-events-none absolute right-[8%] top-[12%] hidden size-4 rounded-full bg-white/80 shadow-[0_0_30px_10px_rgba(255,255,255,0.8)] lg:block" />
 
-      <div className="mx-auto max-w-[1440px] px-4 pb-10 pt-10 sm:px-6 sm:pb-12 sm:pt-14 lg:px-8 lg:pb-14 lg:pt-16">
-        <div className="grid min-h-[650px] items-center gap-14 lg:grid-cols-[0.94fr_1.06fr] lg:gap-10 xl:min-h-[700px]">
+      <div className="mx-auto max-w-[1440px] px-4 pb-6 pt-6 sm:px-6 sm:pb-10 sm:pt-10 lg:px-8 lg:pb-14 lg:pt-16">
+        <div className="grid items-center gap-14 lg:grid-cols-[0.94fr_1.06fr] lg:gap-10 xl:min-h-[700px]">
           <div className="relative z-20 mx-auto w-full max-w-2xl text-center lg:mx-0 lg:text-left">
             <div className="inline-flex items-center gap-2 rounded-full border border-white/90 bg-white/60 px-4 py-2 text-[10px] font-black uppercase tracking-[0.24em] text-[#A44E69] shadow-[0_12px_35px_rgba(91,45,61,0.08)] backdrop-blur-xl">
               <Camera className="size-4" />
@@ -47,7 +47,7 @@ export function GalleryHero({
               Chaque pose raconte
             </p>
 
-            <h1 className="mt-3 max-w-[11ch] font-serif text-[3.25rem] font-semibold leading-[0.98] tracking-[-0.045em] text-[#35242B] sm:text-[4.4rem] sm:leading-[0.96] lg:text-[4.8rem] xl:text-[5.3rem]">
+            <h1 className="mt-3 max-w-[11ch] font-serif text-[2.15rem] font-semibold leading-[1.05] tracking-[-0.03em] text-[#35242B] sm:text-[3.4rem] sm:leading-[1] lg:text-[4.8rem] xl:text-[5.3rem]">
               Une
               <span className="mt-1 block bg-gradient-to-r from-[#A64D69] via-[#C47890] to-[#8B3E59] bg-clip-text pb-2 italic text-transparent">
                 histoire
@@ -107,7 +107,7 @@ export function GalleryHero({
             </div>
           </div>
 
-          <div className="relative z-10 mx-auto flex min-h-[500px] w-full max-w-[720px] items-center justify-center sm:min-h-[580px] lg:min-h-[620px]">
+          <div className="relative z-10 mx-auto flex min-h-[260px] w-full max-w-[720px] items-center justify-center sm:min-h-[400px] lg:min-h-[620px]">
             <div className="pointer-events-none absolute left-1/2 top-1/2 size-[23rem] -translate-x-1/2 -translate-y-1/2 rounded-full border border-white/65 bg-white/20 shadow-[inset_0_0_80px_rgba(255,255,255,0.75),0_35px_100px_rgba(115,56,76,0.10)] backdrop-blur-sm sm:size-[31rem]" />
 
             <div className="pointer-events-none absolute left-[6%] top-[12%] size-28 rounded-full bg-[#D99DB0]/25 blur-2xl sm:size-40" />
@@ -117,7 +117,7 @@ export function GalleryHero({
             <div className="relative flex w-full max-w-[570px] items-center justify-center">
               <div className="absolute bottom-[2%] left-1/2 h-24 w-[70%] -translate-x-1/2 rounded-[50%] bg-[#7A3E53]/20 blur-3xl" />
 
-              <div className="relative z-10 flex size-[300px] items-center justify-center rounded-full border border-white/80 bg-[radial-gradient(circle_at_38%_30%,rgba(255,255,255,0.95),rgba(255,238,243,0.75)_42%,rgba(224,156,177,0.72)_100%)] shadow-[0_35px_90px_rgba(105,48,69,0.22),inset_0_1px_0_rgba(255,255,255,0.95)] sm:size-[390px]">
+              <div className="relative z-10 flex size-[190px] items-center justify-center rounded-full border border-white/80 bg-[radial-gradient(circle_at_38%_30%,rgba(255,255,255,0.95),rgba(255,238,243,0.75)_42%,rgba(224,156,177,0.72)_100%)] shadow-[0_35px_90px_rgba(105,48,69,0.22),inset_0_1px_0_rgba(255,255,255,0.95)] sm:size-[300px] lg:size-[390px]">
                 <div className="absolute inset-5 rounded-full border border-white/55" />
 
                 <div className="absolute inset-12 rounded-full border border-white/45" />

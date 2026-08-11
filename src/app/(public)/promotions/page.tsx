@@ -431,7 +431,7 @@ export default async function PromotionsPage() {
 
       <section
         id="active-promotions"
-        className="mx-auto max-w-7xl scroll-mt-24 px-5 py-16 lg:px-8 lg:py-24"
+        className="mx-auto max-w-7xl scroll-mt-24 px-5 py-9 sm:py-12 lg:px-8 lg:py-24"
       >
         <div>
           <p className="text-xs font-semibold uppercase tracking-[0.25em] text-[#A44E69]">
@@ -493,7 +493,7 @@ export default async function PromotionsPage() {
 
       {data.upcomingPromotions.length >
       0 ? (
-        <section className="bg-white py-16 lg:py-24">
+        <section className="bg-white py-9 sm:py-12 lg:py-24">
           <div className="mx-auto max-w-7xl px-5 lg:px-8">
             <div>
               <p className="text-xs font-semibold uppercase tracking-[0.25em] text-[#A44E69]">
@@ -538,7 +538,7 @@ export default async function PromotionsPage() {
       {/*                                CTA                                 */}
       {/* ------------------------------------------------------------------ */}
 
-      <section className="px-5 py-20 lg:px-8 lg:py-28">
+      <section className="px-5 py-10 sm:py-14 lg:px-8 lg:py-28">
         <div className="mx-auto flex max-w-7xl flex-col gap-7 rounded-[38px] bg-[#35242B] p-8 text-white sm:p-12 lg:flex-row lg:items-center lg:justify-between">
           <div>
             <p className="text-xs font-semibold uppercase tracking-[0.24em] text-[#E8B3C3]">

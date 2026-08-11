@@ -62,7 +62,7 @@ export function BookingCta({
   imageUrl = "",
 }: BookingCtaProps) {
   return (
-    <section className="bg-[#FFFAFB] py-20 lg:py-28">
+    <section className="bg-[#FFFAFB] py-10 sm:py-14 lg:py-28">
       <div className="mx-auto max-w-7xl px-5 lg:px-8">
         <div className="grid overflow-hidden rounded-[40px] bg-gradient-to-br from-[#3B2430] via-[#4A2A3A] to-[#2E1E28] shadow-2xl shadow-[#8B405A]/15 lg:grid-cols-[1.1fr_0.9fr]">
           {/* -------------------------------------------------------------- */}

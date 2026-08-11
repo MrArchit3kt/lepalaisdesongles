@@ -45,7 +45,7 @@ export default async function ServicesPage({
 
       <section
         id="services-catalog"
-        className="mx-auto max-w-7xl scroll-mt-24 px-5 py-16 lg:px-8 lg:py-20"
+        className="mx-auto max-w-7xl scroll-mt-24 px-5 py-9 sm:py-12 lg:px-8 lg:py-20"
       >
         <ServicesCatalog
           categories={categories}

@@ -41,26 +41,22 @@ if [ -z "$CRON_SECRET" ]; then
   exit 1
 fi
 
-# Port réel de l'app : d'abord PORT dans .env s'il y est (rare, la
-# plupart des déploiements ne le définissent que dans
-# deploy/ecosystem.config.cjs), sinon on le lit directement dans ce
-# fichier PM2 (source de vérité), sinon 3000 par défaut. Nécessaire
-# quand ce VPS héberge plusieurs apps sur des ports différents.
-APP_PORT="$(grep -E '^PORT=' "$APP_DIR/.env" 2>/dev/null | head -n1 | cut -d '=' -f2- | tr -d '"' || true)"
+# Appelle le vrai domaine public plutôt que 127.0.0.1:<port> : deviner
+# le port local est fragile sur un VPS qui héberge plusieurs apps (le
+# port réellement utilisé par PM2 au démarrage peut différer de celui
+# écrit dans deploy/ecosystem.config.cjs, par ex. si l'app a été
+# lancée avec un PORT= passé en ligne de commande). nginx, lui, route
+# déjà correctement vers le bon process : on s'appuie dessus plutôt
+# que de dupliquer cette logique ici.
+APP_URL="$(grep -E '^NEXT_PUBLIC_APP_URL=' "$APP_DIR/.env" 2>/dev/null | head -n1 | cut -d '=' -f2- | tr -d '"' || true)"
 
-if [ -z "$APP_PORT" ]; then
-  APP_PORT="$(node -e "
-    try {
-      const config = require('$APP_DIR/deploy/ecosystem.config.cjs');
-      const port = config.apps?.[0]?.env?.PORT;
-      if (port) process.stdout.write(String(port));
-    } catch {}
-  " 2>/dev/null || true)"
+if [ -z "$APP_URL" ]; then
+  APP_URL="$(grep -E '^NEXTAUTH_URL=' "$APP_DIR/.env" 2>/dev/null | head -n1 | cut -d '=' -f2- | tr -d '"' || true)"
 fi
 
-# Appelle directement le process Node en local, sans repasser par
-# nginx/HTTPS : plus robuste pour un cron (pas de dépendance DNS).
-APP_URL="http://127.0.0.1:${APP_PORT:-3000}"
+if [ -z "$APP_URL" ]; then
+  APP_URL="https://lepalaisdesongles.fr"
+fi
 
 RESPONSE=$(curl -sS -o /tmp/cron-response.$$ -w "%{http_code}" \
   -H "Authorization: Bearer $CRON_SECRET" \

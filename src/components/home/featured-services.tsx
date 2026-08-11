@@ -29,7 +29,7 @@ export function FeaturedServices({
   services,
 }: FeaturedServicesProps) {
   return (
-    <section className="bg-white py-20 lg:py-28">
+    <section className="bg-white py-10 sm:py-14 lg:py-28">
       <div className="mx-auto max-w-7xl px-5 lg:px-8">
         <div className="flex flex-col gap-6 sm:flex-row sm:items-end sm:justify-between">
           <div>
@@ -51,11 +51,11 @@ export function FeaturedServices({
           </Link>
         </div>
 
-        <div className="mt-12 grid gap-5 md:grid-cols-2 xl:grid-cols-3">
+        <div className="mt-8 grid gap-4 sm:mt-10 sm:gap-5 md:grid-cols-2 xl:grid-cols-3">
           {services.map((service, index) => (
             <article
               key={service.id}
-              className="group rounded-[30px] border border-[#F0DCE3] bg-[#FFFAFB] p-6 transition duration-300 hover:-translate-y-1 hover:shadow-xl hover:shadow-[#8B405A]/8"
+              className="group rounded-[30px] border border-[#F0DCE3] bg-[#FFFAFB] p-4 transition duration-300 sm:p-6 hover:-translate-y-1 hover:shadow-xl hover:shadow-[#8B405A]/8"
             >
               <div className="flex items-start justify-between gap-4">
                 <span
@@ -75,11 +75,11 @@ export function FeaturedServices({
                 </span>
               </div>
 
-              <p className="mt-6 text-[10px] font-black uppercase tracking-[0.18em] text-[#A44E69]">
+              <p className="mt-4 text-[10px] font-black uppercase tracking-[0.18em] text-[#A44E69] sm:mt-6">
                 {service.category.name}
               </p>
 
-              <h3 className="mt-3 font-serif text-3xl text-[#35242B]">
+              <h3 className="mt-3 font-serif text-xl text-[#35242B] sm:text-3xl">
                 {service.name}
               </h3>
 
@@ -87,7 +87,7 @@ export function FeaturedServices({
                 {service.shortDescription}
               </p>
 
-              <div className="mt-6 flex items-center justify-between border-t border-[#F0DCE3] pt-5">
+              <div className="mt-4 flex items-center justify-between border-t border-[#F0DCE3] pt-4 sm:mt-6 sm:pt-5">
                 <span className="flex items-center gap-2 text-sm text-[#79636C]">
                   <Clock3 className="size-4" />
                   {service.durationMinutes} min

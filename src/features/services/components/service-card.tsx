@@ -88,12 +88,12 @@ export function ServiceCard({
         ) : null}
       </Link>
 
-      <div className="flex flex-1 flex-col p-6">
+      <div className="flex flex-1 flex-col p-4 sm:p-6">
         <div className="flex items-start justify-between gap-4">
           <div>
             <Link
               href={`/prestations/${service.slug}`}
-              className="font-serif text-3xl leading-tight text-[#35242B] transition hover:text-[#A64D69]"
+              className="font-serif text-xl leading-tight text-[#35242B] transition hover:text-[#A64D69] sm:text-3xl"
             >
               {service.name}
             </Link>
@@ -129,14 +129,14 @@ export function ServiceCard({
           </div>
         </div>
 
-        <p className="mt-5 line-clamp-3 text-sm leading-7 text-[#79636C]">
+        <p className="mt-3 line-clamp-3 text-sm leading-6 text-[#79636C] sm:mt-5 sm:leading-7">
           {service.shortDescription ??
               "Découvrez cette prestation et ses différentes possibilités de personnalisation."}
         </p>
 
         {service.depositRequired &&
         service.depositCents ? (
-          <div className="mt-5 rounded-2xl bg-[#FFF0F4] px-4 py-3 text-sm text-[#6F5962]">
+          <div className="mt-3 rounded-2xl bg-[#FFF0F4] px-4 py-3 text-sm text-[#6F5962] sm:mt-5">
             Acompte demandé :{" "}
             <span className="font-semibold text-[#35242B]">
               {formatPrice(service.depositCents)}
@@ -144,7 +144,7 @@ export function ServiceCard({
           </div>
         ) : null}
 
-        <div className="mt-auto grid gap-3 pt-7 sm:grid-cols-2">
+        <div className="mt-auto grid gap-2 pt-4 sm:grid-cols-2 sm:gap-3 sm:pt-7">
           <Link
             href={`/prestations/${service.slug}`}
             className="inline-flex h-11 items-center justify-center gap-2 rounded-full border border-[#35242B]/10 bg-white px-4 text-sm font-semibold text-[#35242B] transition hover:bg-[#FFF0F4]"

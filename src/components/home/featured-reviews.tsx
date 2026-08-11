@@ -19,7 +19,7 @@ export function FeaturedReviews({
   }
 
   return (
-    <section className="bg-white py-20 lg:py-28">
+    <section className="bg-white py-10 sm:py-14 lg:py-28">
       <div className="mx-auto max-w-7xl px-5 lg:px-8">
         <div className="text-center">
           <p className="text-[10px] font-black uppercase tracking-[0.24em] text-[#A44E69]">
@@ -32,11 +32,11 @@ export function FeaturedReviews({
           </h2>
         </div>
 
-        <div className="mt-12 grid gap-5 md:grid-cols-2 xl:grid-cols-3">
+        <div className="mt-8 grid gap-4 sm:mt-10 sm:gap-5 md:grid-cols-2 xl:grid-cols-3">
           {reviews.map((review) => (
             <article
               key={review.id}
-              className="rounded-[30px] border border-[#F0DCE3] bg-[#FFFAFB] p-7"
+              className="rounded-[30px] border border-[#F0DCE3] bg-[#FFFAFB] p-5 sm:p-7"
             >
               <div className="flex items-center justify-between">
                 <div className="flex gap-1">
@@ -58,16 +58,16 @@ export function FeaturedReviews({
               </div>
 
               {review.title ? (
-                <h3 className="mt-6 font-serif text-2xl text-[#35242B]">
+                <h3 className="mt-4 font-serif text-xl text-[#35242B] sm:mt-6 sm:text-2xl">
                   {review.title}
                 </h3>
               ) : null}
 
-              <p className="mt-4 text-sm leading-7 text-[#5B4A52]">
+              <p className="mt-3 text-sm leading-6 text-[#5B4A52] sm:mt-4 sm:leading-7">
                 “{review.content}”
               </p>
 
-              <div className="mt-7 flex items-center justify-between border-t border-[#F0DCE3] pt-5">
+              <div className="mt-5 flex items-center justify-between border-t border-[#F0DCE3] pt-4 sm:mt-7 sm:pt-5">
                 <div>
                   <p className="font-semibold text-[#35242B]">
                     {review.authorName}

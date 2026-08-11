@@ -505,7 +505,7 @@ function MetricCard({
   trend?: DashboardTrend;
 }) {
   return (
-    <article className="group relative overflow-hidden rounded-[1.75rem] border border-[#EFDEE4] bg-white/95 p-5 shadow-[0_18px_45px_rgba(85,38,55,0.08)] backdrop-blur transition duration-300 hover:-translate-y-1 hover:border-[#E0BBC7] hover:shadow-[0_24px_55px_rgba(132,63,89,0.14)]">
+    <article className="group relative overflow-hidden rounded-[1.75rem] border border-[#EFDEE4] bg-white/95 p-4 shadow-[0_18px_45px_rgba(85,38,55,0.08)] backdrop-blur transition duration-300 hover:-translate-y-1 hover:border-[#E0BBC7] hover:shadow-[0_24px_55px_rgba(132,63,89,0.14)] sm:p-5">
       <div className="flex items-start justify-between gap-4">
         <div
           className={`relative flex size-12 items-center justify-center rounded-[1rem] shadow-sm transition duration-300 group-hover:scale-105 ${METRIC_ICON_CLASSES[tone]}`}
@@ -524,7 +524,7 @@ function MetricCard({
         {label}
       </p>
 
-      <p className="mt-2 font-serif text-3xl font-semibold tracking-tight text-[#2F2027]">
+      <p className="mt-1.5 font-serif text-xl font-semibold tracking-tight text-[#2F2027] sm:mt-2 sm:text-3xl">
         {value}
       </p>
 
@@ -1081,7 +1081,7 @@ export async function AdminDashboard({
         {/* HERO                                                               */}
         {/* ------------------------------------------------------------------ */}
 
-        <section className="relative overflow-hidden rounded-[2rem] border border-white/10 bg-[linear-gradient(135deg,#2F2027_0%,#5B3342_45%,#843F59_100%)] px-5 py-7 text-white shadow-[0_28px_70px_rgba(79,38,54,0.24)] sm:px-8 sm:py-9 lg:px-10">
+        <section className="relative overflow-hidden rounded-[2rem] border border-white/10 bg-[linear-gradient(135deg,#2F2027_0%,#5B3342_45%,#843F59_100%)] px-4 py-5 text-white shadow-[0_28px_70px_rgba(79,38,54,0.24)] sm:px-8 sm:py-9 lg:px-10">
           <div className="absolute -right-20 -top-24 size-72 rounded-full bg-[#E8B4C0]/25 blur-3xl" />
           <div className="absolute -bottom-32 left-1/3 size-72 rounded-full bg-[#D6B679]/18 blur-3xl" />
 
@@ -1099,7 +1099,7 @@ export async function AdminDashboard({
                 </span>
               </div>
 
-              <h1 className="mt-5 font-serif text-3xl font-semibold tracking-tight sm:text-4xl lg:text-5xl">
+              <h1 className="mt-3 font-serif text-2xl font-semibold tracking-tight sm:mt-5 sm:text-4xl lg:text-5xl">
                 Bonjour{" "}
                 {user.firstName}
                 <span className="text-[#E8B4C0]">
@@ -1142,7 +1142,7 @@ export async function AdminDashboard({
         {/* MÉTRIQUES PRINCIPALES                                              */}
         {/* ------------------------------------------------------------------ */}
 
-        <section className="grid gap-4 sm:grid-cols-2 xl:grid-cols-4">
+        <section className="grid gap-3 sm:grid-cols-2 sm:gap-4 xl:grid-cols-4">
           <MetricCard
             label="Rendez-vous aujourd’hui"
             value={formatNumber(
@@ -1213,7 +1213,7 @@ export async function AdminDashboard({
           />
         </section>
 
-        <section className="grid gap-4 sm:grid-cols-2 xl:grid-cols-4">
+        <section className="grid gap-3 sm:grid-cols-2 sm:gap-4 xl:grid-cols-4">
           <MetricCard
             label="Demandes en attente"
             value={formatNumber(
@@ -1324,7 +1324,7 @@ export async function AdminDashboard({
         {/* PILOTAGE DES PROMOTIONS                                            */}
         {/* ------------------------------------------------------------------ */}
 
-        <section className="relative overflow-hidden rounded-[2rem] border border-[#E7CCD5] bg-[linear-gradient(135deg,#FFF7FA_0%,#FFFFFF_48%,#FFF3F6_100%)] p-5 shadow-[0_20px_55px_rgba(85,38,55,0.09)] sm:p-7">
+        <section className="relative overflow-hidden rounded-[2rem] border border-[#E7CCD5] bg-[linear-gradient(135deg,#FFF7FA_0%,#FFFFFF_48%,#FFF3F6_100%)] p-4 shadow-[0_20px_55px_rgba(85,38,55,0.09)] sm:p-7">
           <div className="pointer-events-none absolute -right-16 -top-20 size-64 rounded-full bg-[#E8B4C0]/20 blur-3xl" />
           <div className="pointer-events-none absolute -bottom-24 left-1/3 size-56 rounded-full bg-[#D6B679]/10 blur-3xl" />
 
@@ -1388,7 +1388,7 @@ export async function AdminDashboard({
                   <Tags className="size-4 text-[#B45F7A]" />
                 </div>
 
-                <p className="mt-3 font-serif text-3xl font-semibold text-[#2F2027]">
+                <p className="mt-2 font-serif text-xl font-semibold sm:mt-3 sm:text-3xl text-[#2F2027]">
                   {formatNumber(
                     promotionMetrics.totalPromotions,
                   )}
@@ -1411,7 +1411,7 @@ export async function AdminDashboard({
                   <CheckCircle2 className="size-4 text-emerald-600" />
                 </div>
 
-                <p className="mt-3 font-serif text-3xl font-semibold text-emerald-800">
+                <p className="mt-2 font-serif text-xl font-semibold sm:mt-3 sm:text-3xl text-emerald-800">
                   {formatNumber(
                     promotionMetrics.activePromotions,
                   )}
@@ -1434,7 +1434,7 @@ export async function AdminDashboard({
                   <CalendarClock className="size-4 text-sky-600" />
                 </div>
 
-                <p className="mt-3 font-serif text-3xl font-semibold text-sky-800">
+                <p className="mt-2 font-serif text-xl font-semibold sm:mt-3 sm:text-3xl text-sky-800">
                   {formatNumber(
                     promotionMetrics.scheduledPromotions,
                   )}
@@ -1457,7 +1457,7 @@ export async function AdminDashboard({
                   <LayoutDashboard className="size-4 text-[#765083]" />
                 </div>
 
-                <p className="mt-3 font-serif text-3xl font-semibold text-[#5F3D6B]">
+                <p className="mt-2 font-serif text-xl font-semibold sm:mt-3 sm:text-3xl text-[#5F3D6B]">
                   {formatNumber(
                     promotionMetrics.promotionsShownOnHomepage,
                   )}
@@ -1480,7 +1480,7 @@ export async function AdminDashboard({
                   <AlertTriangle className="size-4 text-[#B6842E]" />
                 </div>
 
-                <p className="mt-3 font-serif text-3xl font-semibold text-[#8A601E]">
+                <p className="mt-2 font-serif text-xl font-semibold sm:mt-3 sm:text-3xl text-[#8A601E]">
                   {formatNumber(
                     promotionAlertsCount,
                   )}
@@ -1632,7 +1632,7 @@ export async function AdminDashboard({
 
         {data.alerts.length >
         0 ? (
-          <section className="rounded-[2rem] border border-[#EFDEE4] bg-white/95 p-5 shadow-[0_20px_55px_rgba(85,38,55,0.08)] backdrop-blur sm:p-6">
+          <section className="rounded-[2rem] border border-[#EFDEE4] bg-white/95 p-4 shadow-[0_20px_55px_rgba(85,38,55,0.08)] backdrop-blur sm:p-6">
             <SectionHeader
               eyebrow="À traiter"
               title="Alertes et priorités"
@@ -1673,7 +1673,7 @@ export async function AdminDashboard({
         {/* ------------------------------------------------------------------ */}
 
         <section className="grid gap-6 xl:grid-cols-[minmax(0,1.7fr)_minmax(320px,0.8fr)]">
-          <div className="rounded-[2rem] border border-[#EFDEE4] bg-white/95 p-5 shadow-[0_20px_55px_rgba(85,38,55,0.08)] backdrop-blur sm:p-6">
+          <div className="rounded-[2rem] border border-[#EFDEE4] bg-white/95 p-4 shadow-[0_20px_55px_rgba(85,38,55,0.08)] backdrop-blur sm:p-6">
             <SectionHeader
               eyebrow="Planning"
               title="Rendez-vous du jour"
@@ -1723,7 +1723,7 @@ export async function AdminDashboard({
           </div>
 
           <aside className="space-y-6">
-            <section className="rounded-[2rem] border border-[#EFDEE4] bg-white/95 p-5 shadow-[0_20px_55px_rgba(85,38,55,0.08)] backdrop-blur sm:p-6">
+            <section className="rounded-[2rem] border border-[#EFDEE4] bg-white/95 p-4 shadow-[0_20px_55px_rgba(85,38,55,0.08)] backdrop-blur sm:p-6">
               <SectionHeader
                 eyebrow="Gestion"
                 title="Actions rapides"
@@ -1852,7 +1852,7 @@ export async function AdminDashboard({
         {/* ------------------------------------------------------------------ */}
 
         <section className="grid gap-6 xl:grid-cols-[minmax(0,1.45fr)_minmax(340px,0.75fr)]">
-          <div className="rounded-[2rem] border border-[#EFDEE4] bg-white/95 p-5 shadow-[0_20px_55px_rgba(85,38,55,0.08)] backdrop-blur sm:p-6">
+          <div className="rounded-[2rem] border border-[#EFDEE4] bg-white/95 p-4 shadow-[0_20px_55px_rgba(85,38,55,0.08)] backdrop-blur sm:p-6">
             <SectionHeader
               eyebrow="À venir"
               title="Prochains rendez-vous"
@@ -1899,7 +1899,7 @@ export async function AdminDashboard({
             </div>
           </div>
 
-          <div className="rounded-[2rem] border border-[#EFDEE4] bg-white/95 p-5 shadow-[0_20px_55px_rgba(85,38,55,0.08)] backdrop-blur sm:p-6">
+          <div className="rounded-[2rem] border border-[#EFDEE4] bg-white/95 p-4 shadow-[0_20px_55px_rgba(85,38,55,0.08)] backdrop-blur sm:p-6">
             <SectionHeader
               eyebrow="Statistiques"
               title="Répartition du mois"
@@ -1997,7 +1997,7 @@ export async function AdminDashboard({
         {/* ------------------------------------------------------------------ */}
 
         <section className="grid gap-6 xl:grid-cols-2">
-          <div className="rounded-[2rem] border border-[#EFDEE4] bg-white/95 p-5 shadow-[0_20px_55px_rgba(85,38,55,0.08)] backdrop-blur sm:p-6">
+          <div className="rounded-[2rem] border border-[#EFDEE4] bg-white/95 p-4 shadow-[0_20px_55px_rgba(85,38,55,0.08)] backdrop-blur sm:p-6">
             <SectionHeader
               eyebrow="Clientèle"
               title="Clientes récentes"
@@ -2036,7 +2036,7 @@ export async function AdminDashboard({
 
           <div
             id="avis-en-attente"
-            className="rounded-[2rem] border border-[#EFDEE4] bg-white/95 p-5 shadow-[0_20px_55px_rgba(85,38,55,0.08)] backdrop-blur sm:p-6"
+            className="rounded-[2rem] border border-[#EFDEE4] bg-white/95 p-4 shadow-[0_20px_55px_rgba(85,38,55,0.08)] backdrop-blur sm:p-6"
           >
             <SectionHeader
               eyebrow="Réputation"

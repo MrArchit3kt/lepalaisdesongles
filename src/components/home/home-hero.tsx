@@ -37,7 +37,7 @@ export function HomeHero({
 
       <div className="absolute -right-40 bottom-0 size-[500px] rounded-full bg-[#D89CB0]/20 blur-3xl" />
 
-      <div className="relative mx-auto grid min-h-[760px] max-w-7xl items-center gap-12 px-5 py-16 lg:grid-cols-[1.05fr_0.95fr] lg:px-8 lg:py-24">
+      <div className="relative mx-auto grid max-w-7xl items-center gap-8 px-5 py-9 sm:gap-10 sm:py-14 lg:grid-cols-[1.05fr_0.95fr] lg:gap-12 lg:px-8 lg:py-24">
         {/* ---------------------------------------------------------------- */}
         {/*                               TEXTE                              */}
         {/* ---------------------------------------------------------------- */}
@@ -53,7 +53,7 @@ export function HomeHero({
             Votre prochain moment beauté
           </p>
 
-          <h1 className="mt-3 max-w-[13ch] font-serif text-[3.25rem] font-semibold leading-[0.98] tracking-[-0.045em] text-[#35242B] sm:text-[4.4rem] sm:leading-[0.96] lg:text-[4.8rem] xl:text-[5.3rem]">
+          <h1 className="mt-3 max-w-[13ch] font-serif text-[2.15rem] font-semibold leading-[1.05] tracking-[-0.03em] text-[#35242B] sm:text-[3.4rem] sm:leading-none lg:text-[4.8rem] xl:text-[5.3rem]">
             Sublimez vos ongles
             <span className="mt-1 block bg-gradient-to-r from-[#A64D69] via-[#C47890] to-[#8B3E59] bg-clip-text pb-2 italic text-transparent">
               avec une création qui vous ressemble
@@ -113,7 +113,7 @@ export function HomeHero({
         {/* ---------------------------------------------------------------- */}
 
         <div className="relative mx-auto w-full max-w-xl">
-          <div className="absolute -left-3 top-6 z-20 rounded-3xl border border-white/70 bg-white/90 p-4 shadow-xl backdrop-blur sm:-left-6 sm:top-10">
+          <div className="absolute -left-3 top-4 z-20 rounded-3xl border border-white/70 bg-white/90 p-3 shadow-xl backdrop-blur sm:-left-6 sm:top-10 sm:p-4">
             <div className="flex items-center gap-2">
               <div className="flex">
                 {Array.from({
@@ -179,16 +179,16 @@ export function HomeHero({
               </>
             )}
 
-            <div className="absolute inset-x-6 bottom-8 z-10 rounded-[30px] border border-white/35 bg-white/20 p-6 text-white backdrop-blur-lg sm:inset-x-10 sm:bottom-12">
+            <div className="absolute inset-x-4 bottom-5 z-10 rounded-[30px] border border-white/35 bg-white/20 p-4 text-white backdrop-blur-lg sm:inset-x-10 sm:bottom-12 sm:p-6">
               <p className="text-xs font-semibold uppercase tracking-[0.24em] text-white/75">
                 Votre prochain rendez-vous
               </p>
 
-              <h2 className="mt-3 font-serif text-3xl">
+              <h2 className="mt-2 font-serif text-xl sm:mt-3 sm:text-3xl">
                 Un moment rien que pour vous
               </h2>
 
-              <p className="mt-3 text-sm leading-6 text-white/75">
+              <p className="mt-2 text-xs leading-5 text-white/75 sm:mt-3 sm:text-sm sm:leading-6">
                 Choisissez votre prestation, votre
                 date et envoyez vos inspirations en
                 quelques minutes.
@@ -196,8 +196,8 @@ export function HomeHero({
             </div>
           </div>
 
-          <div className="absolute -bottom-7 -right-1 z-20 rounded-3xl bg-[#35242B] p-5 text-white shadow-2xl sm:-right-3">
-            <p className="font-serif text-3xl">
+          <div className="absolute -bottom-5 -right-1 z-20 rounded-3xl bg-[#35242B] p-3.5 text-white shadow-2xl sm:-bottom-7 sm:-right-3 sm:p-5">
+            <p className="font-serif text-xl sm:text-3xl">
               90+
             </p>
 

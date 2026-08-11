@@ -366,7 +366,7 @@ export function PublicGallery({
     <>
       <section
         id="gallery-grid"
-        className="relative py-16 sm:py-20 lg:py-24"
+        className="relative py-9 sm:py-14 lg:py-24"
       >
         <div
           aria-hidden="true"

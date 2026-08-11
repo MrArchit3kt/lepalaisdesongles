@@ -668,7 +668,7 @@ export function TeamClient() {
       {/*                              HEADER                                */}
       {/* ------------------------------------------------------------------ */}
 
-      <header className="overflow-hidden rounded-[32px] border border-rose-100 bg-gradient-to-br from-white via-rose-50/50 to-pink-100/50 p-6 shadow-sm sm:p-8">
+      <header className="overflow-hidden rounded-[32px] border border-rose-100 bg-gradient-to-br from-white via-rose-50/50 to-pink-100/50 p-4 shadow-sm sm:p-8">
         <div className="flex flex-col gap-6 xl:flex-row xl:items-center xl:justify-between">
           <div className="flex items-start gap-4">
             <span className="grid size-14 shrink-0 place-items-center rounded-3xl bg-gradient-to-br from-rose-500 to-pink-600 text-white shadow-lg shadow-rose-200">
@@ -680,11 +680,11 @@ export function TeamClient() {
                 Administration
               </p>
 
-              <h1 className="mt-2 text-3xl font-semibold tracking-tight text-zinc-950 sm:text-4xl">
+              <h1 className="mt-1.5 text-2xl font-semibold tracking-tight text-zinc-950 sm:mt-2 sm:text-4xl">
                 Gestion de l’équipe
               </h1>
 
-              <p className="mt-3 max-w-2xl text-sm leading-6 text-zinc-600 sm:text-base">
+              <p className="mt-2 max-w-2xl text-xs leading-5 text-zinc-600 sm:mt-3 sm:text-base sm:leading-6">
                 Gérez les professionnelles,
                 leurs prestations, leurs postes
                 et leur disponibilité pour la
@@ -712,7 +712,7 @@ export function TeamClient() {
       {/*                              STATS                                 */}
       {/* ------------------------------------------------------------------ */}
 
-      <section className="grid gap-4 sm:grid-cols-2 xl:grid-cols-5">
+      <section className="grid gap-3 sm:grid-cols-2 sm:gap-4 xl:grid-cols-5">
         <StatCard
           icon={UsersRound}
           label="Professionnelles"
@@ -1282,14 +1282,14 @@ function StatCard({
   helper,
 }: StatCardProps) {
   return (
-    <article className="rounded-3xl border border-zinc-200 bg-white p-5 shadow-sm">
+    <article className="rounded-3xl border border-zinc-200 bg-white p-3.5 shadow-sm sm:p-5">
       <div className="flex items-start justify-between gap-4">
         <div>
           <p className="text-sm font-medium text-zinc-500">
             {label}
           </p>
 
-          <p className="mt-2 text-2xl font-semibold tracking-tight text-zinc-950">
+          <p className="mt-1.5 text-lg font-semibold tracking-tight text-zinc-950 sm:mt-2 sm:text-2xl">
             {value}
           </p>
 

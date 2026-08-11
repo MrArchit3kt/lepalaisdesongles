@@ -38,8 +38,8 @@ export function PromotionsHero({
 
       <div className="pointer-events-none absolute right-[8%] top-[12%] hidden size-4 rounded-full bg-white/80 shadow-[0_0_30px_10px_rgba(255,255,255,0.8)] lg:block" />
 
-      <div className="mx-auto max-w-[1440px] px-4 pb-10 pt-10 sm:px-6 sm:pb-12 sm:pt-14 lg:px-8 lg:pb-14 lg:pt-16">
-        <div className="grid min-h-[650px] items-center gap-12 lg:grid-cols-[0.94fr_1.06fr] lg:gap-10 xl:min-h-[700px]">
+      <div className="mx-auto max-w-[1440px] px-4 pb-6 pt-6 sm:px-6 sm:pb-10 sm:pt-10 lg:px-8 lg:pb-14 lg:pt-16">
+        <div className="grid items-center gap-12 lg:grid-cols-[0.94fr_1.06fr] lg:gap-10 xl:min-h-[700px]">
           <div className="relative z-20 mx-auto max-w-2xl text-center lg:mx-0 lg:text-left">
             <div className="inline-flex items-center gap-2 rounded-full border border-white/90 bg-white/60 px-4 py-2 text-[10px] font-black uppercase tracking-[0.24em] text-[#A44E69] shadow-[0_12px_35px_rgba(91,45,61,0.08)] backdrop-blur-xl">
               <Sparkles className="size-4" />
@@ -50,7 +50,7 @@ export function PromotionsHero({
               Profitez de chaque occasion
             </p>
 
-            <h1 className="mt-3 max-w-[11ch] font-serif text-[3.25rem] font-semibold leading-[0.98] tracking-[-0.045em] text-[#35242B] sm:text-[4.4rem] sm:leading-[0.96] lg:text-[4.8rem] xl:text-[5.3rem]">
+            <h1 className="mt-3 max-w-[11ch] font-serif text-[2.15rem] font-semibold leading-[1.05] tracking-[-0.03em] text-[#35242B] sm:text-[3.4rem] sm:leading-[1] lg:text-[4.8rem] xl:text-[5.3rem]">
               Nos
               <span className="mt-1 block bg-gradient-to-r from-[#A64D69] via-[#C47890] to-[#8B3E59] bg-clip-text pb-2 italic text-transparent">
                 promotions
@@ -110,7 +110,7 @@ export function PromotionsHero({
             </div>
           </div>
 
-          <div className="relative z-10 mx-auto flex min-h-[500px] w-full max-w-[720px] items-center justify-center sm:min-h-[580px] lg:min-h-[620px]">
+          <div className="relative z-10 mx-auto flex min-h-[260px] w-full max-w-[720px] items-center justify-center sm:min-h-[400px] lg:min-h-[620px]">
             <div className="pointer-events-none absolute left-1/2 top-1/2 size-[24rem] -translate-x-1/2 -translate-y-1/2 rounded-full border border-white/60 bg-white/20 shadow-[inset_0_0_70px_rgba(255,255,255,0.65),0_35px_100px_rgba(115,56,76,0.10)] backdrop-blur-[2px] sm:size-[33rem]" />
 
             <div className="pointer-events-none absolute left-[8%] top-[15%] size-28 rounded-full bg-[#D99DB0]/25 blur-2xl sm:size-40" />
@@ -180,7 +180,7 @@ export function PromotionsHero({
 
         <div className="relative z-20 mt-8 overflow-hidden rounded-[2rem] border border-white/80 bg-white/55 shadow-[0_24px_65px_rgba(96,48,65,0.08)] backdrop-blur-2xl lg:mt-4">
           <div className="grid sm:grid-cols-3">
-            <div className="flex items-center gap-4 px-5 py-5 sm:px-6 lg:py-6">
+            <div className="flex items-center gap-4 px-4 py-3.5 sm:px-6 sm:py-5 lg:py-6">
               <span className="grid size-11 shrink-0 place-items-center rounded-2xl border border-[#F0DCE3] bg-[#FFF7F9] text-[#A64D69] shadow-sm">
                 <BadgePercent className="size-5" />
               </span>
@@ -196,7 +196,7 @@ export function PromotionsHero({
               </div>
             </div>
 
-            <div className="relative flex items-center gap-4 px-5 py-5 sm:px-6 lg:py-6">
+            <div className="relative flex items-center gap-4 px-4 py-3.5 sm:px-6 sm:py-5 lg:py-6">
               <div className="absolute left-0 top-1/2 hidden h-10 w-px -translate-y-1/2 bg-[#EAD4DC] sm:block" />
 
               <span className="grid size-11 shrink-0 place-items-center rounded-2xl border border-[#F0DCE3] bg-[#FFF7F9] text-[#A64D69] shadow-sm">
@@ -214,7 +214,7 @@ export function PromotionsHero({
               </div>
             </div>
 
-            <div className="relative flex items-center gap-4 px-5 py-5 sm:px-6 lg:py-6">
+            <div className="relative flex items-center gap-4 px-4 py-3.5 sm:px-6 sm:py-5 lg:py-6">
               <div className="absolute left-0 top-1/2 hidden h-10 w-px -translate-y-1/2 bg-[#EAD4DC] sm:block" />
 
               <span className="grid size-11 shrink-0 place-items-center rounded-2xl border border-[#F0DCE3] bg-[#FFF7F9] text-[#A64D69] shadow-sm">

@@ -618,15 +618,15 @@ export function AdminAppointmentsClient({ appointments }: Props) {
 
   return (
     <div className="space-y-6">
-      <div className="grid gap-4 md:grid-cols-4">
+      <div className="grid gap-3 sm:gap-4 md:grid-cols-4">
         {statistics.map((statistic) => (
           <div
             key={statistic.label}
-            className="rounded-3xl border border-pink-100 bg-white p-5 shadow-sm"
+            className="rounded-3xl border border-pink-100 bg-white p-3.5 shadow-sm sm:p-5"
           >
             <p className="text-sm text-zinc-500">{statistic.label}</p>
 
-            <p className="mt-2 text-3xl font-semibold">{statistic.value}</p>
+            <p className="mt-1.5 text-xl font-semibold sm:mt-2 sm:text-3xl">{statistic.value}</p>
           </div>
         ))}
       </div>
@@ -673,17 +673,17 @@ export function AdminAppointmentsClient({ appointments }: Props) {
           <table className="min-w-full text-left text-sm">
             <thead className="bg-zinc-50 text-xs uppercase text-zinc-500">
               <tr>
-                <th className="px-5 py-4">Rendez-vous</th>
+                <th className="px-3 py-3 sm:px-5 sm:py-4">Rendez-vous</th>
 
-                <th className="px-5 py-4">Cliente</th>
+                <th className="px-3 py-3 sm:px-5 sm:py-4">Cliente</th>
 
-                <th className="px-5 py-4">Prestations</th>
+                <th className="px-3 py-3 sm:px-5 sm:py-4">Prestations</th>
 
-                <th className="px-5 py-4">Statut</th>
+                <th className="px-3 py-3 sm:px-5 sm:py-4">Statut</th>
 
-                <th className="px-5 py-4">Montant</th>
+                <th className="px-3 py-3 sm:px-5 sm:py-4">Montant</th>
 
-                <th className="px-5 py-4">
+                <th className="px-3 py-3 sm:px-5 sm:py-4">
                   <span className="sr-only">Actions</span>
                 </th>
               </tr>
@@ -695,7 +695,7 @@ export function AdminAppointmentsClient({ appointments }: Props) {
                   key={appointment.id}
                   className="transition hover:bg-pink-50/40"
                 >
-                  <td className="px-5 py-4">
+                  <td className="px-3 py-3 sm:px-5 sm:py-4">
                     <b>{appointment.reference}</b>
 
                     <p className="text-zinc-500">
@@ -703,7 +703,7 @@ export function AdminAppointmentsClient({ appointments }: Props) {
                     </p>
                   </td>
 
-                  <td className="px-5 py-4">
+                  <td className="px-3 py-3 sm:px-5 sm:py-4">
                     <b>
                       {appointment.client.firstName}{" "}
                       {appointment.client.lastName}
@@ -720,7 +720,7 @@ export function AdminAppointmentsClient({ appointments }: Props) {
                       .join(", ")}
                   </td>
 
-                  <td className="px-5 py-4">
+                  <td className="px-3 py-3 sm:px-5 sm:py-4">
                     <span
                       className={`inline-flex rounded-full px-3 py-1 text-xs font-semibold ${
                         STATUS_STYLES[appointment.status]

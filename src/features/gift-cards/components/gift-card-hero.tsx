@@ -69,8 +69,8 @@ export function GiftCardHero() {
 
       <div className="pointer-events-none absolute right-[8%] top-[12%] hidden size-4 rounded-full bg-white/80 blur-[1px] shadow-[0_0_30px_10px_rgba(255,255,255,0.8)] lg:block" />
 
-      <div className="mx-auto max-w-[1440px] px-4 pb-8 pt-10 sm:px-6 sm:pb-10 sm:pt-14 lg:px-8 lg:pb-12 lg:pt-16">
-        <div className="grid min-h-[680px] items-center gap-12 lg:grid-cols-[0.92fr_1.08fr] lg:gap-8 xl:min-h-[730px]">
+      <div className="mx-auto max-w-[1440px] px-4 pb-5 pt-6 sm:px-6 sm:pb-9 sm:pt-10 lg:px-8 lg:pb-12 lg:pt-16">
+        <div className="grid items-center gap-12 lg:grid-cols-[0.92fr_1.08fr] lg:gap-8 xl:min-h-[730px]">
           <div className="relative z-20 mx-auto max-w-2xl text-center lg:mx-0 lg:text-left">
             <div className="inline-flex items-center gap-2 rounded-full border border-white/90 bg-white/60 px-4 py-2 text-[10px] font-black uppercase tracking-[0.24em] text-[#a44e69] shadow-[0_12px_35px_rgba(91,45,61,0.08)] backdrop-blur-xl">
               <Sparkles className="size-4" />
@@ -81,7 +81,7 @@ export function GiftCardHero() {
               Une attention unique
             </p>
 
-            <h1 className="mt-3 max-w-[10ch] font-serif text-[3.25rem] font-semibold leading-[0.98] tracking-[-0.045em] text-[#35242b] sm:text-[4.4rem] sm:leading-[0.96] lg:text-[4.8rem] xl:text-[5.3rem]">
+            <h1 className="mt-3 max-w-[10ch] font-serif text-[2.15rem] font-semibold leading-[1.05] tracking-[-0.03em] text-[#35242b] sm:text-[3.4rem] sm:leading-[1] lg:text-[4.8rem] xl:text-[5.3rem]">
               Carte
 
               <span className="mt-1 block bg-gradient-to-r from-[#a64d69] via-[#c47890] to-[#8b3e59] bg-clip-text pb-2 italic text-transparent">
@@ -149,7 +149,7 @@ export function GiftCardHero() {
             </div>
           </div>
 
-          <div className="relative z-10 mx-auto flex min-h-[500px] w-full max-w-[760px] items-center justify-center sm:min-h-[580px] lg:min-h-[650px]">
+          <div className="relative z-10 mx-auto flex min-h-[260px] w-full max-w-[760px] items-center justify-center sm:min-h-[400px] lg:min-h-[650px]">
             <div className="pointer-events-none absolute left-1/2 top-1/2 size-[24rem] -translate-x-1/2 -translate-y-1/2 rounded-full border border-white/60 bg-white/20 shadow-[inset_0_0_70px_rgba(255,255,255,0.65),0_35px_100px_rgba(115,56,76,0.10)] backdrop-blur-[2px] sm:size-[33rem]" />
 
             <div className="pointer-events-none absolute left-[12%] top-[17%] size-28 rounded-full bg-[#d99db0]/25 blur-2xl sm:size-40" />
@@ -242,7 +242,7 @@ export function GiftCardHero() {
               ({ icon: Icon, title, description }, index) => (
                 <div
                   key={title}
-                  className="relative flex items-center gap-4 px-5 py-5 sm:px-6 lg:py-6"
+                  className="relative flex items-center gap-4 px-4 py-3.5 sm:px-6 sm:py-5 lg:py-6"
                 >
                   {index > 0 ? (
                     <div className="absolute left-0 top-1/2 hidden h-10 w-px -translate-y-1/2 bg-[#ead4dc] xl:block" />
