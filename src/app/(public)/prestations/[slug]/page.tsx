@@ -17,11 +17,14 @@ import {
   getPublicWebsiteSettings,
 } from "@/features/admin/settings/services/admin-settings.service";
 
+import { FavoriteServiceButton } from "@/features/services/components/favorite-service-button";
 import { ServiceCard } from "@/features/services/components/service-card";
 import {
   getPublicServiceBySlug,
   getRelatedPublicServices,
 } from "@/features/services/services/public-services.service";
+import { prisma } from "@/lib/prisma";
+import { getCurrentUser } from "@/lib/session";
 import { formatPrice } from "@/lib/utils";
 
 type ServiceDetailsPageProps = {
@@ -61,6 +64,7 @@ export default async function ServiceDetailsPage({
   const [
     service,
     websiteSettings,
+    user,
   ] =
     await Promise.all([
       getPublicServiceBySlug(
@@ -68,6 +72,8 @@ export default async function ServiceDetailsPage({
       ),
 
       getPublicWebsiteSettings(),
+
+      getCurrentUser(),
     ]);
 
   if (!service) {
@@ -79,6 +85,24 @@ export default async function ServiceDetailsPage({
       categoryId: service.categoryId,
       excludedServiceId: service.id,
     });
+
+  const isAuthenticated = Boolean(user?.id) && user?.role === "CLIENT";
+
+  const favoriteServiceIds = isAuthenticated
+    ? new Set(
+        (
+          await prisma.favoriteService.findMany({
+            where: {
+              userId: user!.id,
+              serviceId: {
+                in: [service.id, ...relatedServices.map((item) => item.id)],
+              },
+            },
+            select: { serviceId: true },
+          })
+        ).map((favorite) => favorite.serviceId),
+      )
+    : new Set<string>();
 
   const displayedPrice =
     service.promotionalPriceCents ??
@@ -177,9 +201,18 @@ export default async function ServiceDetailsPage({
           </div>
 
           <div className="lg:sticky lg:top-28">
-            <span className="inline-flex rounded-full bg-[#FFF0F4] px-4 py-2 text-xs font-semibold uppercase tracking-[0.17em] text-[#A64D69]">
-              {service.category.name}
-            </span>
+            <div className="flex items-start justify-between gap-4">
+              <span className="inline-flex rounded-full bg-[#FFF0F4] px-4 py-2 text-xs font-semibold uppercase tracking-[0.17em] text-[#A64D69]">
+                {service.category.name}
+              </span>
+
+              <FavoriteServiceButton
+                serviceId={service.id}
+                initialIsFavorited={favoriteServiceIds.has(service.id)}
+                isAuthenticated={isAuthenticated}
+                className="grid size-11 shrink-0 place-items-center rounded-full border border-[#35242B]/8 bg-white text-[#A64D69] shadow-sm transition hover:scale-105 hover:bg-[#FFF0F4]"
+              />
+            </div>
 
             <h1 className="mt-5 font-serif text-5xl leading-[1.02] text-[#35242B] sm:text-6xl">
               {service.name}
@@ -385,6 +418,8 @@ export default async function ServiceDetailsPage({
                     defaultImageUrl={
                       websiteSettings.defaultServiceImageUrl
                     }
+                    isFavorited={favoriteServiceIds.has(relatedService.id)}
+                    isAuthenticated={isAuthenticated}
                   />
                 ),
               )}

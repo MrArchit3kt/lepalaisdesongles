@@ -7,8 +7,17 @@ export const REVIEW_SOURCES = [
   "OTHER",
 ] as const;
 
+export const REVIEW_STATUSES = [
+  "PENDING",
+  "APPROVED",
+  "REJECTED",
+  "HIDDEN",
+] as const;
+
 export const adminReviewSchema = z.object({
   source: z.enum(REVIEW_SOURCES),
+
+  status: z.enum(REVIEW_STATUSES),
 
   authorName: z
     .string()

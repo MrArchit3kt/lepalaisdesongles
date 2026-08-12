@@ -251,20 +251,20 @@ export default async function ClientSpacePage() {
       title: "Mon historique",
       description:
         "Retrouvez toutes vos anciennes prestations.",
-      href: "/espace-client/historique",
+      href: "/espace-client/rendez-vous?filtre=termines",
       icon: History,
     },
     {
-      title: "Mes poses",
+      title: "Mes photos",
       description:
-        "Découvrez les photos de vos réalisations.",
+        "Vos photos d’inspiration envoyées avec vos réservations.",
       href: "/espace-client/photos",
       icon: Sparkles,
     },
     {
       title: "Mes avis",
       description:
-        "Consultez et gérez vos avis publiés.",
+        "Consultez le statut de vos avis déposés.",
       href: "/espace-client/avis",
       icon: Star,
     },

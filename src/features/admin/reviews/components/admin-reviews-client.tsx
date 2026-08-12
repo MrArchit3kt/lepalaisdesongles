@@ -16,7 +16,10 @@ import { useRouter } from "next/navigation";
 import { toast } from "sonner";
 
 import type { AdminReviewListItem } from "@/features/admin/reviews/services/admin-reviews.service";
-import { REVIEW_SOURCES } from "@/features/admin/reviews/schemas/admin-review.schema";
+import {
+  REVIEW_SOURCES,
+  REVIEW_STATUSES,
+} from "@/features/admin/reviews/schemas/admin-review.schema";
 
 /* -------------------------------------------------------------------------- */
 /*                                   TYPES                                    */
@@ -27,9 +30,11 @@ type Props = {
 };
 
 type Source = (typeof REVIEW_SOURCES)[number];
+type Status = (typeof REVIEW_STATUSES)[number];
 
 type FormState = {
   source: Source;
+  status: Status;
   authorName: string;
   authorAvatar: string;
   rating: number;
@@ -52,6 +57,20 @@ const SOURCE_LABELS: Record<Source, string> = {
   OTHER: "Autre",
 };
 
+const STATUS_LABELS: Record<Status, string> = {
+  PENDING: "En attente",
+  APPROVED: "Publié",
+  REJECTED: "Refusé",
+  HIDDEN: "Masqué",
+};
+
+const STATUS_BADGE_CLASSES: Record<Status, string> = {
+  PENDING: "border-amber-200 bg-amber-50 text-amber-700",
+  APPROVED: "border-emerald-200 bg-emerald-50 text-emerald-700",
+  REJECTED: "border-rose-200 bg-rose-50 text-rose-700",
+  HIDDEN: "border-zinc-200 bg-zinc-100 text-zinc-600",
+};
+
 function todayIsoDate(): string {
   return new Intl.DateTimeFormat("en-CA", {
     timeZone: "Europe/Paris",
@@ -61,6 +80,7 @@ function todayIsoDate(): string {
 function emptyForm(): FormState {
   return {
     source: "GOOGLE",
+    status: "APPROVED",
     authorName: "",
     authorAvatar: "",
     rating: 5,
@@ -77,6 +97,9 @@ function formFromReview(review: AdminReviewListItem): FormState {
     source: (REVIEW_SOURCES as readonly string[]).includes(review.source)
       ? (review.source as Source)
       : "OTHER",
+    status: (REVIEW_STATUSES as readonly string[]).includes(review.status)
+      ? (review.status as Status)
+      : "PENDING",
     authorName: review.authorName,
     authorAvatar: review.authorAvatar ?? "",
     rating: review.rating,
@@ -160,6 +183,7 @@ export function AdminReviewsClient({ reviews }: Props) {
 
           body: JSON.stringify({
             source: form.source,
+            status: form.status,
             authorName: form.authorName,
             authorAvatar: form.authorAvatar,
             rating: form.rating,
@@ -278,9 +302,20 @@ export function AdminReviewsClient({ reviews }: Props) {
                 {sortedReviews.map((review) => (
                   <tr key={review.id} className="align-top transition hover:bg-pink-50/40">
                     <td className="px-4 py-3">
-                      <span className="inline-flex items-center gap-1 rounded-full border border-zinc-200 bg-zinc-50 px-2.5 py-1 text-xs font-bold text-zinc-700">
-                        {SOURCE_LABELS[review.source as Source] ?? review.source}
-                      </span>
+                      <div className="flex flex-wrap gap-1.5">
+                        <span className="inline-flex items-center gap-1 rounded-full border border-zinc-200 bg-zinc-50 px-2.5 py-1 text-xs font-bold text-zinc-700">
+                          {SOURCE_LABELS[review.source as Source] ?? review.source}
+                        </span>
+
+                        <span
+                          className={`inline-flex items-center gap-1 rounded-full border px-2.5 py-1 text-xs font-bold ${
+                            STATUS_BADGE_CLASSES[review.status as Status] ??
+                            STATUS_BADGE_CLASSES.PENDING
+                          }`}
+                        >
+                          {STATUS_LABELS[review.status as Status] ?? review.status}
+                        </span>
+                      </div>
 
                       <div className="mt-1.5 flex flex-wrap gap-1">
                         {review.isVerified ? (
@@ -404,7 +439,7 @@ export function AdminReviewsClient({ reviews }: Props) {
             </header>
 
             <div className="flex-1 space-y-4 overflow-y-auto px-5 py-6 sm:px-7">
-              <div className="grid gap-4 sm:grid-cols-2">
+              <div className="grid gap-4 sm:grid-cols-3">
                 <label className="block">
                   <span className="mb-2 block text-sm font-bold text-zinc-800">
                     Source
@@ -423,6 +458,29 @@ export function AdminReviewsClient({ reviews }: Props) {
                     {REVIEW_SOURCES.map((source) => (
                       <option key={source} value={source}>
                         {SOURCE_LABELS[source]}
+                      </option>
+                    ))}
+                  </select>
+                </label>
+
+                <label className="block">
+                  <span className="mb-2 block text-sm font-bold text-zinc-800">
+                    Statut
+                  </span>
+
+                  <select
+                    value={form.status}
+                    onChange={(event) =>
+                      setForm((current) => ({
+                        ...current,
+                        status: event.target.value as Status,
+                      }))
+                    }
+                    className="h-12 w-full rounded-2xl border border-zinc-200 bg-white px-4 text-sm text-zinc-950 outline-none transition focus:border-rose-300 focus:ring-4 focus:ring-rose-100"
+                  >
+                    {REVIEW_STATUSES.map((status) => (
+                      <option key={status} value={status}>
+                        {STATUS_LABELS[status]}
                       </option>
                     ))}
                   </select>

@@ -10,6 +10,8 @@ import {
   getPublicServiceCategories,
   getPublicServices,
 } from "@/features/services/services/public-services.service";
+import { prisma } from "@/lib/prisma";
+import { getCurrentUser } from "@/lib/session";
 
 export const metadata: Metadata = {
   title: "Prestations et tarifs",
@@ -30,11 +32,23 @@ export default async function ServicesPage({
 }: ServicesPageProps) {
   const { categorie } = await searchParams;
 
-  const [categories, services, websiteSettings] = await Promise.all([
+  const [categories, services, websiteSettings, user] = await Promise.all([
     getPublicServiceCategories(),
     getPublicServices(),
     getPublicWebsiteSettings(),
+    getCurrentUser(),
   ]);
+
+  const isAuthenticated = Boolean(user?.id) && user?.role === "CLIENT";
+
+  const favoriteServiceIds = isAuthenticated
+    ? (
+        await prisma.favoriteService.findMany({
+          where: { userId: user!.id },
+          select: { serviceId: true },
+        })
+      ).map((favorite) => favorite.serviceId)
+    : [];
 
   return (
     <main className="bg-[#FFFAFB]">
@@ -52,6 +66,8 @@ export default async function ServicesPage({
           services={services}
           initialCategory={categorie}
           defaultImageUrl={websiteSettings.defaultServiceImageUrl}
+          favoriteServiceIds={favoriteServiceIds}
+          isAuthenticated={isAuthenticated}
         />
       </section>
 

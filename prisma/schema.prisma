@@ -603,8 +603,9 @@ model User {
   // RENDEZ-VOUS
   // ==========================
 
-  appointments          Appointment[] @relation("ClientAppointments")
-  processedAppointments Appointment[] @relation("AppointmentProcessor")
+  appointments          Appointment[]     @relation("ClientAppointments")
+  processedAppointments Appointment[]     @relation("AppointmentProcessor")
+  favoriteServices      FavoriteService[]
 
   // ==========================
   // CARTES CADEAUX
@@ -786,10 +787,27 @@ model Service {
   promotionServices   PromotionService[]
   staffServices       StaffService[]
   workstationServices WorkstationService[]
+  favoritedBy         FavoriteService[]
 
   @@index([categoryId])
   @@index([isActive, sortOrder])
   @@index([isFeatured])
+}
+
+// Prestations mises en favori par une cliente depuis son espace
+// client, affichées dans /espace-client/favoris.
+model FavoriteService {
+  id        String   @id @default(cuid())
+  userId    String
+  serviceId String
+  createdAt DateTime @default(now())
+
+  user    User    @relation(fields: [userId], references: [id], onDelete: Cascade)
+  service Service @relation(fields: [serviceId], references: [id], onDelete: Cascade)
+
+  @@unique([userId, serviceId])
+  @@index([userId])
+  @@index([serviceId])
 }
 
 model ServiceImage {

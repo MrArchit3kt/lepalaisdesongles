@@ -23,6 +23,7 @@ import {
 import { prisma } from "@/lib/prisma";
 import { requireClientUser } from "@/lib/session";
 import { CancelAppointmentButton } from "@/features/client/components/cancel-appointment-button";
+import { LeaveReviewForm } from "@/features/client/components/leave-review-form";
 
 export const dynamic = "force-dynamic";
 
@@ -35,6 +36,7 @@ type AppointmentDetailPageProps = {
     cancelled?: string;
     late?: string;
     error?: string;
+    reviewSubmitted?: string;
   }>;
 };
 
@@ -397,6 +399,23 @@ export default async function AppointmentDetailPage({
                     conformément aux conditions du salon.
                   </p>
                 ) : null}
+              </div>
+            </div>
+          </div>
+        ) : null}
+
+        {query.reviewSubmitted === "1" ? (
+          <div className="mb-6 rounded-[1.5rem] border border-emerald-200 bg-gradient-to-br from-emerald-50 to-white p-5 text-emerald-800 shadow-[0_14px_35px_rgba(16,185,129,0.08)]">
+            <div className="flex gap-3">
+              <CheckCircle2 className="mt-0.5 size-5 shrink-0" />
+              <div>
+                <p className="font-semibold">
+                  Merci, votre avis a bien été envoyé !
+                </p>
+                <p className="mt-1 text-sm leading-6">
+                  Il sera visible sur le site dès sa validation par
+                  le salon.
+                </p>
               </div>
             </div>
           </div>
@@ -820,16 +839,7 @@ export default async function AppointmentDetailPage({
                 </div>
               ) : appointment.status ===
                 "COMPLETED" ? (
-                <div className="mt-6 rounded-[1.5rem] border border-[#EFDEE4] bg-gradient-to-br from-white to-[#FFF5F8] p-6">
-                  <h3 className="font-serif text-xl font-semibold text-[#2F2027]">
-                    Partagez votre expérience
-                  </h3>
-
-                  <p className="mt-2 text-sm leading-6 text-[#816D75]">
-                    Vous pourrez bientôt déposer un avis
-                    depuis votre espace cliente.
-                  </p>
-                </div>
+                <LeaveReviewForm reference={appointment.reference} />
               ) : (
                 <div className="mt-6 rounded-[1.5rem] border border-[#EFDEE4] bg-gradient-to-br from-white to-[#FFF5F8] p-6">
                   <p className="text-sm leading-6 text-[#816D75]">

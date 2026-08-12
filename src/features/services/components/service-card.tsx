@@ -8,6 +8,7 @@ import {
 import Image from "next/image";
 import Link from "next/link";
 
+import { FavoriteServiceButton } from "@/features/services/components/favorite-service-button";
 import type { PublicService } from "@/features/services/services/public-services.service";
 import { formatPrice } from "@/lib/utils";
 
@@ -15,11 +16,16 @@ type ServiceCardProps = {
   service: PublicService;
 
   defaultImageUrl?: string;
+
+  isFavorited?: boolean;
+  isAuthenticated?: boolean;
 };
 
 export function ServiceCard({
   service,
   defaultImageUrl = "",
+  isFavorited = false,
+  isAuthenticated = false,
 }: ServiceCardProps) {
   const displayedPrice =
     service.promotionalPriceCents ??
@@ -42,51 +48,60 @@ export function ServiceCard({
 
   return (
     <article className="group flex h-full flex-col overflow-hidden rounded-[30px] border border-[#35242B]/8 bg-white shadow-sm transition duration-300 hover:-translate-y-1 hover:shadow-xl hover:shadow-[#8B405A]/10">
-      <Link
-        href={`/prestations/${service.slug}`}
-        className="relative block aspect-[16/10] overflow-hidden bg-[#FFF0F4]"
-      >
-        {displayedImageUrl ? (
-          <Image
-            src={
-              displayedImageUrl
-            }
-            alt={
-              displayedImageAlt
-            }
-            fill
-            sizes="(max-width: 768px) 100vw, 33vw"
-            className="object-cover transition duration-500 group-hover:scale-105"
-          />
-        ) : (
-          <div
-            className="flex size-full items-center justify-center"
-            style={{
-              background: `linear-gradient(135deg, ${
-                service.color ?? "#F6E7EB"
-              }, ${service.category.color ?? "#A64D69"})`,
-            }}
-          >
-            <div className="flex size-24 items-center justify-center rounded-full border border-white/40 bg-white/20 text-white backdrop-blur">
-              <Sparkles className="size-10" />
+      <div className="relative aspect-[16/10] overflow-hidden bg-[#FFF0F4]">
+        <Link
+          href={`/prestations/${service.slug}`}
+          className="absolute inset-0 block"
+          aria-label={`Voir la prestation ${service.name}`}
+        >
+          {displayedImageUrl ? (
+            <Image
+              src={
+                displayedImageUrl
+              }
+              alt={
+                displayedImageAlt
+              }
+              fill
+              sizes="(max-width: 768px) 100vw, 33vw"
+              className="object-cover transition duration-500 group-hover:scale-105"
+            />
+          ) : (
+            <div
+              className="flex size-full items-center justify-center"
+              style={{
+                background: `linear-gradient(135deg, ${
+                  service.color ?? "#F6E7EB"
+                }, ${service.category.color ?? "#A64D69"})`,
+              }}
+            >
+              <div className="flex size-24 items-center justify-center rounded-full border border-white/40 bg-white/20 text-white backdrop-blur">
+                <Sparkles className="size-10" />
+              </div>
             </div>
-          </div>
-        )}
+          )}
+        </Link>
 
-        <div className="absolute left-4 top-4">
-          <span className="rounded-full bg-white/90 px-4 py-2 text-xs font-semibold text-[#4A3540] shadow-sm backdrop-blur">
+        <div className="pointer-events-none absolute inset-x-4 top-4 flex items-start justify-between gap-2">
+          <span className="pointer-events-auto rounded-full bg-white/90 px-4 py-2 text-xs font-semibold text-[#4A3540] shadow-sm backdrop-blur">
             {service.category.name}
           </span>
-        </div>
 
-        {hasPromotion ? (
-          <div className="absolute right-4 top-4">
-            <span className="rounded-full bg-gradient-to-r from-[#AA526E] to-[#8B405A] px-4 py-2 text-xs font-semibold text-white shadow-lg">
-              Offre spéciale
-            </span>
+          <div className="pointer-events-auto flex flex-col items-end gap-2">
+            <FavoriteServiceButton
+              serviceId={service.id}
+              initialIsFavorited={isFavorited}
+              isAuthenticated={isAuthenticated}
+            />
+
+            {hasPromotion ? (
+              <span className="rounded-full bg-gradient-to-r from-[#AA526E] to-[#8B405A] px-4 py-2 text-xs font-semibold text-white shadow-lg">
+                Offre spéciale
+              </span>
+            ) : null}
           </div>
-        ) : null}
-      </Link>
+        </div>
+      </div>
 
       <div className="flex flex-1 flex-col p-4 sm:p-6">
         <div className="flex items-start justify-between gap-4">

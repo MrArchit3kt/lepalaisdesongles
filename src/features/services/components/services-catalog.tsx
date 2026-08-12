@@ -30,6 +30,8 @@ type ServicesCatalogProps = {
   services: PublicServices;
   initialCategory?: string;
   defaultImageUrl?: string;
+  favoriteServiceIds?: string[];
+  isAuthenticated?: boolean;
 };
 
 function getDisplayedPrice(
@@ -77,7 +79,14 @@ export function ServicesCatalog({
   services,
   initialCategory,
   defaultImageUrl = "",
+  favoriteServiceIds = [],
+  isAuthenticated = false,
 }: ServicesCatalogProps) {
+  const favoriteServiceIdSet = useMemo(
+    () => new Set(favoriteServiceIds),
+    [favoriteServiceIds],
+  );
+
   const validInitialCategory =
     initialCategory &&
     categories.some(
@@ -328,6 +337,8 @@ export function ServicesCatalog({
                 defaultImageUrl={
                   defaultImageUrl
                 }
+                isFavorited={favoriteServiceIdSet.has(service.id)}
+                isAuthenticated={isAuthenticated}
               />
             ),
           )}

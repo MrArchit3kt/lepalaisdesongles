@@ -1,6 +1,6 @@
 import "server-only";
 
-import { ReviewSource } from "@/generated/prisma/client";
+import { ReviewSource, ReviewStatus } from "@/generated/prisma/client";
 import { prisma } from "@/lib/prisma";
 
 import type { AdminReviewPayload } from "../schemas/admin-review.schema";
@@ -12,6 +12,7 @@ import type { AdminReviewPayload } from "../schemas/admin-review.schema";
 export type AdminReviewListItem = {
   id: string;
   source: ReviewSource;
+  status: ReviewStatus;
   authorName: string;
   authorAvatar: string | null;
   rating: number;
@@ -36,11 +37,17 @@ export class AdminReviewNotFoundError extends Error {
 
 export async function getAdminReviews(): Promise<AdminReviewListItem[]> {
   const reviews = await prisma.review.findMany({
-    orderBy: [{ publishedAt: "desc" }, { createdAt: "desc" }],
+    /*
+     * Les avis en attente de validation (soumis par une cliente
+     * depuis son espace) remontent en premier, pour ne pas passer
+     * inaperçus.
+     */
+    orderBy: [{ status: "asc" }, { publishedAt: "desc" }, { createdAt: "desc" }],
 
     select: {
       id: true,
       source: true,
+      status: true,
       authorName: true,
       authorAvatar: true,
       rating: true,
@@ -72,15 +79,7 @@ function buildData(input: AdminReviewPayload) {
     rating: input.rating,
     title: input.title?.trim() || null,
     content: input.content,
-
-    /*
-     * `status` ne conditionne pas encore l'affichage public (seul
-     * `publishedAt` le fait, voir avis/page.tsx), mais on le pose à
-     * APPROVED par cohérence : un avis ajouté manuellement par
-     * l'équipe est par définition déjà validé.
-     */
-    status: "APPROVED" as const,
-
+    status: input.status as ReviewStatus,
     isVerified: input.isVerified,
     isFeatured: input.isFeatured,
     publishedAt: new Date(`${input.publishedAt}T12:00:00.000Z`),
