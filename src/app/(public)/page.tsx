@@ -16,7 +16,7 @@ export const metadata: Metadata = {
 
 export const dynamic = "force-dynamic";
 
-const DEFAULT_HOME_HERO_IMAGE = "/images/home/hero-nails-premium.png";
+const DEFAULT_HOME_HERO_IMAGE = "/images/home/hero-nails-premium.jpg";
 
 export default async function HomePage() {
   const data = await getHomePageData();

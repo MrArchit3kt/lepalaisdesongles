@@ -55,6 +55,10 @@ import {
   prisma,
 } from "@/lib/prisma";
 
+import {
+  cache,
+} from "react";
+
 /* -------------------------------------------------------------------------- */
 /*                                   TYPES                                    */
 /* -------------------------------------------------------------------------- */
@@ -737,85 +741,99 @@ export async function getAdminSettings():
 /*                         LECTURE PUBLIQUE DU SITE                           */
 /* -------------------------------------------------------------------------- */
 
-export async function getPublicWebsiteSettings():
-  Promise<WebsiteSettings> {
-  const row =
-    await prisma.setting.findUnique({
-      where: {
-        key:
-          ADMIN_SETTING_KEYS.website,
-      },
+/*
+ * Enveloppées avec `cache()` de React : plusieurs layouts et pages
+ * (racine, groupe public, pages individuelles) appellent ces
+ * lectures pour la même requête entrante. Sans ce cache par
+ * requête, une seule page pouvait déclencher jusqu'à 4 allers-retours
+ * base de données identiques, ce qui pénalisait le TTFB (et donc le
+ * FCP/LCP) sur mobile. `cache()` déduplique ces appels au sein d'une
+ * même requête serveur uniquement — il n'introduit aucun cache
+ * inter-requêtes, les changements effectués côté admin restent donc
+ * visibles immédiatement.
+ */
+export const getPublicWebsiteSettings = cache(
+  async (): Promise<WebsiteSettings> => {
+    const row =
+      await prisma.setting.findUnique({
+        where: {
+          key:
+            ADMIN_SETTING_KEYS.website,
+        },
 
-      select: {
-        id:
-          true,
+        select: {
+          id:
+            true,
 
-        key:
-          true,
+          key:
+            true,
 
-        value:
-          true,
+          value:
+            true,
 
-        updatedAt:
-          true,
-      },
-    });
+          updatedAt:
+            true,
+        },
+      });
 
-  return readStoredSection(
-    row ??
-      undefined,
-    DEFAULT_WEBSITE_SETTINGS,
-    websiteSettingsSchema,
-  );
-}
+    return readStoredSection(
+      row ??
+        undefined,
+      DEFAULT_WEBSITE_SETTINGS,
+      websiteSettingsSchema,
+    );
+  },
+);
 
-export async function getPublicSalonSettings():
-  Promise<SalonSettings> {
-  const row =
-    await prisma.setting.findUnique({
-      where: {
-        key:
-          ADMIN_SETTING_KEYS.salon,
-      },
+export const getPublicSalonSettings = cache(
+  async (): Promise<SalonSettings> => {
+    const row =
+      await prisma.setting.findUnique({
+        where: {
+          key:
+            ADMIN_SETTING_KEYS.salon,
+        },
 
-      select: {
-        id: true,
-        key: true,
-        value: true,
-        updatedAt: true,
-      },
-    });
+        select: {
+          id: true,
+          key: true,
+          value: true,
+          updatedAt: true,
+        },
+      });
 
-  return readStoredSection(
-    row ?? undefined,
-    DEFAULT_SALON_SETTINGS,
-    salonSettingsSchema,
-  );
-}
+    return readStoredSection(
+      row ?? undefined,
+      DEFAULT_SALON_SETTINGS,
+      salonSettingsSchema,
+    );
+  },
+);
 
-export async function getPublicSocialSettings():
-  Promise<SocialSettings> {
-  const row =
-    await prisma.setting.findUnique({
-      where: {
-        key:
-          ADMIN_SETTING_KEYS.social,
-      },
+export const getPublicSocialSettings = cache(
+  async (): Promise<SocialSettings> => {
+    const row =
+      await prisma.setting.findUnique({
+        where: {
+          key:
+            ADMIN_SETTING_KEYS.social,
+        },
 
-      select: {
-        id: true,
-        key: true,
-        value: true,
-        updatedAt: true,
-      },
-    });
+        select: {
+          id: true,
+          key: true,
+          value: true,
+          updatedAt: true,
+        },
+      });
 
-  return readStoredSection(
-    row ?? undefined,
-    DEFAULT_SOCIAL_SETTINGS,
-    socialSettingsSchema,
-  );
-} 
+    return readStoredSection(
+      row ?? undefined,
+      DEFAULT_SOCIAL_SETTINGS,
+      socialSettingsSchema,
+    );
+  },
+);
 
 /* -------------------------------------------------------------------------- */
 /*                              ENREGISTREMENT                                */

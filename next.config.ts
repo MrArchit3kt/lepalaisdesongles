@@ -378,6 +378,16 @@ const nextConfig: NextConfig = {
    * d’hôtes distants autorisés.
    */
   images: {
+    /*
+     * Par défaut, Next régénère les variantes optimisées au bout de
+     * 60 secondes. Nos images (photos de galerie, hero, logo) ne
+     * changent que lors d'une action admin explicite ; les laisser
+     * en cache 30 jours évite de retranscoder (coûteux en CPU sur le
+     * VPS) une image déjà générée à chaque expiration, ce qui a un
+     * impact direct sur le LCP mobile en cas de cache froid.
+     */
+    minimumCacheTTL: 2_592_000,
+
     remotePatterns: [
       {
         protocol: "https",
