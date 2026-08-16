@@ -154,6 +154,7 @@ export function HomeHero({
                   alt="Création ongulaire réalisée au Palais des Ongles"
                   fill
                   priority
+                  fetchPriority="high"
                   sizes="(max-width: 1023px) 100vw, 1px"
                   className="object-cover lg:hidden"
                 />
@@ -165,6 +166,7 @@ export function HomeHero({
                   alt="Création ongulaire réalisée au Palais des Ongles"
                   fill
                   priority
+                  fetchPriority="high"
                   sizes="(max-width: 1023px) 1px, 45vw"
                   className="hidden object-cover lg:block"
                 />

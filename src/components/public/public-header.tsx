@@ -75,6 +75,7 @@ export function PublicHeader({
               alt={`Logo ${siteTitle}`}
               fill
               priority
+              fetchPriority="high"
               sizes="(max-width: 640px) 56px, 64px"
               className="rounded-full object-contain"
             />

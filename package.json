@@ -5,6 +5,10 @@
   "engines": {
     "node": ">=22.0.0"
   },
+  "browserslist": [
+    "defaults and fully supports es6-module",
+    "maintained node versions"
+  ],
   "scripts": {
     "dev": "next dev",
     "build": "next build",
