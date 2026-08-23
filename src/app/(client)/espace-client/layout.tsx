@@ -9,6 +9,8 @@ import { getUnreadConversationCount } from "@/features/messages/services/convers
 
 import { getClientVipAccessState } from "@/features/vip/services/client-vip-access.service";
 
+import { WheelModal } from "@/features/wheel/components/wheel-modal";
+
 import { prisma } from "@/lib/prisma";
 
 import { requireClientUser } from "@/lib/session";
@@ -96,6 +98,8 @@ export default async function ClientSpaceLayout({
       }}
       navigation={navigation}
     >
+      <WheelModal trigger="DAILY" />
+
       {children}
     </ClientSpaceNavigation>
   );

@@ -13,6 +13,7 @@ import {
   UserRound,
 } from "lucide-react";
 
+import { WheelModal } from "@/features/wheel/components/wheel-modal";
 import { prisma } from "@/lib/prisma";
 import { requireClientUser } from "@/lib/session";
 
@@ -255,6 +256,13 @@ export default async function ConfirmationPage({
 
   return (
     <main className="min-h-screen bg-[linear-gradient(180deg,#FFF8FA_0%,#FFFDFD_46%,#FDF4F7_100%)] px-4 py-10 sm:px-6 lg:py-16">
+      {appointment.status === "CONFIRMED" && (
+        <WheelModal
+          trigger="BOOKING"
+          appointmentReference={appointment.reference}
+        />
+      )}
+
       <div className="mx-auto max-w-5xl">
         <section className="relative overflow-hidden rounded-[2.25rem] border border-[#EFDEE4] bg-white/95 shadow-[0_28px_75px_rgba(85,38,55,0.11)] backdrop-blur">
           <div className="relative border-b border-[#F0E1E6] bg-gradient-to-br from-white via-[#FFF8FA] to-[#FBECEF] px-6 py-10 text-center sm:px-10 sm:py-12">

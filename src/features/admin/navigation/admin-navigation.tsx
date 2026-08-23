@@ -15,6 +15,7 @@ import {
   ChevronRight,
   Clock3,
   Crown,
+  Disc3,
   Gift,
   Home,
   ImageIcon,
@@ -136,6 +137,13 @@ const MARKETING_NAVIGATION: NavigationItem[] = [
     href: "/admin/promotions",
 
     icon: Tags,
+  },
+  {
+    label: "Roue de la chance",
+
+    href: "/admin/roue-de-la-chance",
+
+    icon: Disc3,
   },
   {
     label: "Avis clientes",

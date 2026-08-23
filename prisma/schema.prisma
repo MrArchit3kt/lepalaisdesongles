@@ -129,6 +129,17 @@ enum PromotionType {
   CUSTOM
 }
 
+enum WheelSegmentKind {
+  LOSE
+  PERCENTAGE
+  FIXED_AMOUNT
+}
+
+enum WheelSpinTrigger {
+  BOOKING
+  DAILY
+}
+
 enum ContestStatus {
   DRAFT
   SCHEDULED
@@ -693,6 +704,12 @@ model User {
   notifications Notification[]
 
   // ==========================
+  // ROUE DE LA CHANCE
+  // ==========================
+
+  wheelSpins WheelSpin[]
+
+  // ==========================
   // CONTACT
   // ==========================
 
@@ -1089,10 +1106,11 @@ model Appointment {
   processedBy User?         @relation("AppointmentProcessor", fields: [processedById], references: [id], onDelete: SetNull)
   promotion   Promotion?    @relation(fields: [promotionId], references: [id], onDelete: SetNull)
 
-  services AppointmentService[]
-  images   AppointmentImage[]
-  review   Review?
-  history  AppointmentHistory[]
+  services  AppointmentService[]
+  images    AppointmentImage[]
+  review    Review?
+  history   AppointmentHistory[]
+  wheelSpin WheelSpin?
 
   @@index([clientId, startsAt])
   @@index([staffId, startsAt, endsAt])
@@ -1341,6 +1359,7 @@ model Promotion {
   services     PromotionService[]
   banners      Banner[]
   appointments Appointment[]
+  wheelSpin    WheelSpin?
 
   @@index([isActive, startsAt, endsAt])
   @@index([showOnHomepage])
@@ -1354,6 +1373,42 @@ model PromotionService {
   service   Service   @relation(fields: [serviceId], references: [id], onDelete: Cascade)
 
   @@id([promotionId, serviceId])
+}
+
+model WheelSegment {
+  id              String           @id @default(cuid())
+  label           String
+  kind            WheelSegmentKind
+  percentageValue Int?
+  amountCents     Int?
+  weight          Int              @default(1)
+  colorHex        String?
+  isActive        Boolean          @default(true)
+  sortOrder       Int              @default(0)
+  createdAt       DateTime         @default(now())
+  updatedAt       DateTime         @updatedAt
+
+  spins WheelSpin[]
+
+  @@index([isActive, sortOrder])
+}
+
+model WheelSpin {
+  id            String           @id @default(cuid())
+  userId        String
+  segmentId     String
+  trigger       WheelSpinTrigger
+  appointmentId String?          @unique
+  promotionId   String?          @unique
+  spunAt        DateTime         @default(now())
+  createdAt     DateTime         @default(now())
+
+  user        User         @relation(fields: [userId], references: [id], onDelete: Cascade)
+  segment     WheelSegment @relation(fields: [segmentId], references: [id], onDelete: Restrict)
+  appointment Appointment? @relation(fields: [appointmentId], references: [id], onDelete: SetNull)
+  promotion   Promotion?   @relation(fields: [promotionId], references: [id], onDelete: SetNull)
+
+  @@index([userId, trigger, spunAt])
 }
 
 model Banner {
