@@ -6,7 +6,9 @@ import {
   CalendarClock,
   CheckCircle2,
   CreditCard,
+  ExternalLink,
   History,
+  Images,
   Info,
   LoaderCircle,
   Play,
@@ -246,6 +248,10 @@ export function AdminAppointmentsClient({ appointments }: Props) {
   const [activeTab, setActiveTab] = useState<ModalTab>("details");
 
   const [historyRefreshKey, setHistoryRefreshKey] = useState(0);
+
+  const [selectedImage, setSelectedImage] = useState<
+    AdminAppointmentListItem["images"][number] | null
+  >(null);
 
   const statistics = useMemo(
     () => [
@@ -1167,6 +1173,46 @@ export function AdminAppointmentsClient({ appointments }: Props) {
                     ) : null}
                   </section>
 
+                  {selected.images.length > 0 ? (
+                    <div className="rounded-2xl border border-zinc-200 p-4">
+                      <b className="flex items-center gap-2">
+                        <Images className="size-4" />
+                        Photos d’inspiration ({selected.images.length})
+                      </b>
+
+                      <p className="mt-1 text-sm text-zinc-500">
+                        Photos transmises par la cliente lors de sa
+                        réservation.
+                      </p>
+
+                      <div className="mt-3 grid grid-cols-3 gap-3 sm:grid-cols-4">
+                        {selected.images.map((image, index) => (
+                          <button
+                            key={image.id}
+                            type="button"
+                            onClick={() => {
+                              setSelectedImage(image);
+                            }}
+                            className="group overflow-hidden rounded-xl border border-zinc-200 bg-zinc-50 transition hover:border-rose-300 hover:shadow-md focus:outline-none focus:ring-4 focus:ring-rose-100"
+                            aria-label={`Agrandir la photo d’inspiration ${index + 1}`}
+                          >
+                            <div className="relative aspect-square overflow-hidden bg-zinc-100">
+                              {/* eslint-disable-next-line @next/next/no-img-element */}
+                              <img
+                                src={image.url}
+                                alt={
+                                  image.fileName?.trim() ||
+                                  `Photo d’inspiration ${index + 1}`
+                                }
+                                className="size-full object-cover transition duration-300 group-hover:scale-105"
+                              />
+                            </div>
+                          </button>
+                        ))}
+                      </div>
+                    </div>
+                  ) : null}
+
                   {selected.clientComment ? (
                     <div className="rounded-2xl bg-blue-50 p-4 text-blue-950">
                       <b>Commentaire cliente</b>
@@ -1388,6 +1434,67 @@ export function AdminAppointmentsClient({ appointments }: Props) {
                   refreshKey={historyRefreshKey}
                 />
               )}
+            </div>
+          </div>
+        </div>
+      ) : null}
+
+      {selectedImage ? (
+        <div
+          className="fixed inset-0 z-[120] flex items-center justify-center bg-zinc-950/90 p-4 backdrop-blur-md sm:p-8"
+          role="dialog"
+          aria-modal="true"
+          aria-label="Aperçu de la photo d’inspiration"
+          onMouseDown={(event) => {
+            if (event.target === event.currentTarget) {
+              setSelectedImage(null);
+            }
+          }}
+        >
+          <div className="relative flex max-h-full w-full max-w-5xl flex-col overflow-hidden rounded-3xl bg-white shadow-2xl">
+            <header className="flex items-center justify-between gap-4 border-b border-zinc-100 px-4 py-3 sm:px-5">
+              <div className="min-w-0">
+                <p className="truncate text-sm font-semibold text-zinc-950">
+                  {selectedImage.fileName?.trim() || "Photo d’inspiration"}
+                </p>
+
+                <p className="mt-0.5 text-xs text-zinc-500">
+                  {selectedImage.mimeType || "Image envoyée par la cliente"}
+                </p>
+              </div>
+
+              <div className="flex shrink-0 items-center gap-2">
+                <a
+                  href={selectedImage.url}
+                  target="_blank"
+                  rel="noreferrer"
+                  className="grid size-10 place-items-center rounded-full border border-zinc-200 text-zinc-600 transition hover:bg-zinc-100 hover:text-zinc-950 focus:outline-none focus:ring-4 focus:ring-rose-100"
+                  aria-label="Ouvrir la photo dans un nouvel onglet"
+                >
+                  <ExternalLink className="size-4" />
+                </a>
+
+                <button
+                  type="button"
+                  onClick={() => setSelectedImage(null)}
+                  className="grid size-10 place-items-center rounded-full border border-zinc-200 text-zinc-600 transition hover:bg-zinc-100 hover:text-zinc-950 focus:outline-none focus:ring-4 focus:ring-rose-100"
+                  aria-label="Fermer l’aperçu"
+                  autoFocus
+                >
+                  <X className="size-4" />
+                </button>
+              </div>
+            </header>
+
+            <div className="flex-1 overflow-auto bg-zinc-950 p-2 sm:p-4">
+              {/* eslint-disable-next-line @next/next/no-img-element */}
+              <img
+                src={selectedImage.url}
+                alt={
+                  selectedImage.fileName?.trim() || "Photo d’inspiration"
+                }
+                className="mx-auto max-h-[75vh] w-auto max-w-full rounded-xl object-contain"
+              />
             </div>
           </div>
         </div>

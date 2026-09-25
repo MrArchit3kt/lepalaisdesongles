@@ -62,6 +62,20 @@ export default async function AdminAppointmentsPage() {
             durationMinutes: true,
           },
         },
+
+        images: {
+          orderBy: {
+            createdAt: "asc",
+          },
+
+          select: {
+            id: true,
+            url: true,
+            fileName: true,
+            mimeType: true,
+            sizeBytes: true,
+          },
+        },
       },
     }),
 
@@ -150,6 +164,7 @@ export default async function AdminAppointmentsPage() {
 
     workstation: appointment.workstation,
     services: appointment.services,
+    images: appointment.images,
   }));
 
   return (

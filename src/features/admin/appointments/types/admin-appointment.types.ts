@@ -66,6 +66,14 @@ export type AdminAppointmentListItem = {
     quantity: number;
     durationMinutes: number;
   }>;
+
+  images: Array<{
+    id: string;
+    url: string;
+    fileName: string | null;
+    mimeType: string | null;
+    sizeBytes: number | null;
+  }>;
 };
 
 export type AdminAppointmentMutation =
