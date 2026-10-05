@@ -705,6 +705,8 @@ model User {
 
   pushSubscriptions PushSubscription[]
 
+  passwordResetTokens PasswordResetToken[]
+
   // ==========================
   // ROUE DE LA CHANCE
   // ==========================
@@ -1699,6 +1701,19 @@ model PushSubscription {
   userAgent  String?
   createdAt  DateTime @default(now())
   lastUsedAt DateTime @default(now())
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId])
+}
+
+model PasswordResetToken {
+  id        String    @id @default(cuid())
+  userId    String
+  tokenHash String    @unique
+  expiresAt DateTime
+  usedAt    DateTime?
+  createdAt DateTime  @default(now())
 
   user User @relation(fields: [userId], references: [id], onDelete: Cascade)
 

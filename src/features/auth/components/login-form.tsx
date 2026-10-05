@@ -13,7 +13,7 @@ import {
   useRouter,
   useSearchParams,
 } from "next/navigation";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { useForm } from "react-hook-form";
 import { toast } from "sonner";
 
@@ -46,6 +46,15 @@ export function LoginForm() {
       password: "",
     },
   });
+
+  useEffect(() => {
+    if (searchParams.get("reset") === "1") {
+      toast.success("Mot de passe mis à jour", {
+        description: "Tu peux maintenant te connecter avec ton nouveau mot de passe.",
+      });
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
 
   async function onSubmit(data: LoginInput) {
     const result = await signIn("credentials", {
