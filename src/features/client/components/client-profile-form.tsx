@@ -17,6 +17,8 @@ import {
 } from "lucide-react";
 import { toast } from "sonner";
 
+import { PushSettingsCard } from "@/features/push/components/push-settings-card";
+
 import { updateClientProfileAction } from "@/features/client/actions/update-client-profile.action";
 
 import {
@@ -211,7 +213,8 @@ export function ClientProfileForm({ profile }: ClientProfileFormProps) {
   }, [state.message, state.status]);
 
   return (
-    <form action={formAction} className="space-y-6">
+    <>
+      <form action={formAction} className="space-y-6">
       {state.message ? (
         <div
           className={[
@@ -479,6 +482,11 @@ export function ClientProfileForm({ profile }: ClientProfileFormProps) {
           )}
         </button>
       </div>
-    </form>
+      </form>
+
+      <div className="mt-6">
+        <PushSettingsCard />
+      </div>
+    </>
   );
 }

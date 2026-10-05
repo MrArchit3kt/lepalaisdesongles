@@ -12,6 +12,7 @@ import { createNotification } from "@/features/notifications/services/notificati
 import { notifyAppointmentStatusChange } from "@/features/notifications/services/appointment-status-notification.service";
 
 import { sendAppointmentEmail } from "@/features/notifications/services/appointment-email.service";
+import { sendPushToUser } from "@/features/push/services/push.service";
 
 import { systemNotification } from "@/features/notifications/utils/notification-helper";
 
@@ -683,6 +684,14 @@ export async function updateAdminAppointment(input: Input) {
 
         manageUrl,
       });
+
+      if (emailKind === "REVIEW_REQUEST") {
+        void sendPushToUser(result.appointment.client.id, {
+          title: "Merci de votre visite !",
+          body: "Votre avis compte beaucoup pour nous, laissez-en un en quelques secondes.",
+          url: manageUrl,
+        });
+      }
     } catch (reason: unknown) {
       /*
        * L'action administrative est déjà enregistrée.

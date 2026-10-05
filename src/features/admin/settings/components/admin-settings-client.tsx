@@ -11,6 +11,7 @@ import {
 
 import {
   Bell,
+  BellRing,
   Building2,
   CalendarDays,
   Check,
@@ -45,6 +46,10 @@ import {
 } from "@/features/admin/settings/components/admin-site-image-field";
 
 import {
+  updatePushNotificationsEnabledAction,
+} from "@/features/push/actions/push-settings.actions";
+
+import {
   DEFAULT_BOOKING_SETTINGS,
   DEFAULT_LEGAL_SETTINGS,
   DEFAULT_NOTIFICATION_SETTINGS,
@@ -74,6 +79,7 @@ import type {
 
 type AdminSettingsClientProps = {
   initialData: AdminSettingsData;
+  initialPushEnabled: boolean;
 };
 
 type TabDefinition = {
@@ -1350,14 +1356,60 @@ function PaymentsSection({
 /*                         SECTION NOTIFICATIONS                              */
 /* -------------------------------------------------------------------------- */
 
+function PushNotificationsSafetyCard({
+  initialEnabled,
+}: {
+  initialEnabled: boolean;
+}) {
+  const [enabled, setEnabled] = useState(initialEnabled);
+  const [pending, startTransition] = useTransition();
+
+  function handleToggle(next: boolean) {
+    setEnabled(next);
+
+    startTransition(async () => {
+      const result = await updatePushNotificationsEnabledAction(next);
+
+      if (!result.success) {
+        setEnabled(!next);
+        toast.error(result.message);
+        return;
+      }
+
+      toast.success(result.message);
+    });
+  }
+
+  return (
+    <SettingsCard
+      title="Notifications push (PWA)"
+      description="Interrupteur de secours : coupe l'envoi de toutes les notifications push (rappels, avis, confirmations) sans toucher aux e-mails."
+      icon={<BellRing className="size-5" />}
+    >
+      <ToggleField
+        label="Notifications push activées"
+        description={
+          pending
+            ? "Mise à jour…"
+            : "Les clientes abonnées depuis l'espace client continuent de recevoir leurs push tant que c'est activé."
+        }
+        checked={enabled}
+        onChange={handleToggle}
+      />
+    </SettingsCard>
+  );
+}
+
 function NotificationsSection({
   value,
   onChange,
   errors,
+  initialPushEnabled,
 }: {
   value: NotificationSettings;
   onChange: (value: NotificationSettings) => void;
   errors: Record<string, string[]>;
+  initialPushEnabled: boolean;
 }) {
   function update<
     Key extends keyof NotificationSettings,
@@ -1373,6 +1425,8 @@ function NotificationsSection({
 
   return (
     <div className="space-y-6">
+      <PushNotificationsSafetyCard initialEnabled={initialPushEnabled} />
+
       <SettingsCard
         title="Envoi des e-mails"
         icon={
@@ -2609,6 +2663,7 @@ function LegalSection({
 
 export function AdminSettingsClient({
   initialData,
+  initialPushEnabled,
 }: AdminSettingsClientProps) {
   const [
     activeSection,
@@ -2933,6 +2988,7 @@ export function AdminSettingsClient({
               setNotifications
             }
             errors={fieldErrors}
+            initialPushEnabled={initialPushEnabled}
           />
         );
 

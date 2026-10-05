@@ -21,6 +21,8 @@ import {
   FaInstagram,
 } from "react-icons/fa6";
 
+import { InstallAppSection } from "@/features/push/components/install-app-section";
+
 const PHONE_DISPLAY = "07 49 85 31 88";
 const PHONE_LINK = "tel:+33749853188";
 
@@ -436,6 +438,8 @@ export default function ContactPage() {
           </div>
         </div>
       </section>
+
+      <InstallAppSection />
 
       <section className="px-5 py-20 lg:px-8 lg:py-24">
         <div className="mx-auto grid max-w-7xl gap-8 lg:grid-cols-[0.8fr_1.2fr]">

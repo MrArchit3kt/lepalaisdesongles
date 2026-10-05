@@ -17,6 +17,7 @@ import { loadAppointmentEmailContext } from "@/features/notifications/services/a
 import { createNotification } from "@/features/notifications/services/notification.service";
 import { appointmentCreatedNotification } from "@/features/notifications/utils/notification-helper";
 import { sendAppointmentEmail } from "@/features/notifications/services/appointment-email.service";
+import { sendPushToUser } from "@/features/push/services/push.service";
 import { prisma } from "@/lib/prisma";
 
 /* -------------------------------------------------------------------------- */
@@ -499,6 +500,12 @@ export async function adminCreateAppointment(
         manageUrl: `${siteUrl}/espace-client/rendez-vous/${encodeURIComponent(
           creation.reference,
         )}`,
+      });
+
+      void sendPushToUser(clientId, {
+        title: "Rendez-vous confirmé",
+        body: "Ton créneau est réservé. Ajoute-le à ton agenda en un clic.",
+        url: `/espace-client/rendez-vous/${encodeURIComponent(creation.reference)}`,
       });
     }
   } catch (reason: unknown) {

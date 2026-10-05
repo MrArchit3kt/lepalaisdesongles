@@ -1,6 +1,7 @@
 import { prisma } from "@/lib/prisma";
 
 import { sendAppointmentEmail } from "@/features/notifications/services/appointment-email.service";
+import { sendPushToUser } from "@/features/push/services/push.service";
 
 import type { AppointmentEmailKind } from "@/features/notifications/types/appointment-email.types";
 
@@ -25,6 +26,10 @@ const REMINDER_2H_MINIMUM_DELAY = 90 * 60 * 1000;
 
 const REMINDER_2H_MAXIMUM_DELAY = 150 * 60 * 1000;
 
+const PUSH_REMINDER_48H_MINIMUM_DELAY = 47 * HOUR_IN_MILLISECONDS;
+
+const PUSH_REMINDER_48H_MAXIMUM_DELAY = 49 * HOUR_IN_MILLISECONDS;
+
 const REVIEW_REQUEST_MINIMUM_DELAY = 2 * HOUR_IN_MILLISECONDS;
 
 const REVIEW_REQUEST_MAXIMUM_AGE = 14 * DAY_IN_MILLISECONDS;
@@ -39,6 +44,8 @@ type ReminderKind = "REMINDER_24H" | "REMINDER_2H";
 
 type ReminderEmailContext = {
   kind: ReminderKind;
+
+  clientId: string;
 
   recipientEmail: string;
 
@@ -59,6 +66,25 @@ type ReminderProcessingResult = {
   emailContexts: ReminderEmailContext[];
 };
 
+/*
+ * Contexte minimal pour un envoi push, découplé de ReminderKind /
+ * AppointmentEmailKind : le rappel 48h n'a pas d'équivalent e-mail.
+ */
+type PushReminderKind = "REMINDER_2H" | "PUSH_REMINDER_48H";
+
+type PushReminderContext = {
+  kind: PushReminderKind;
+  clientId: string;
+  appointmentReference: string;
+  startsAt: Date;
+};
+
+type PushReminderProcessingResult = {
+  created: number;
+
+  pushContexts: PushReminderContext[];
+};
+
 type ReminderEmailDeliveryResult = {
   reminder24hEmailsSent: number;
 
@@ -73,6 +99,8 @@ export type NotificationAutomationResult = {
   remindersCreated: number;
 
   reminder2hCreated: number;
+
+  pushReminder48hCreated: number;
 
   reminderEmailsSent: number;
 
@@ -159,6 +187,8 @@ function buildReminderEmailContext(
   kind: ReminderKind,
 
   appointment: {
+    clientId: string;
+
     reference: string;
 
     startsAt: Date;
@@ -190,6 +220,8 @@ function buildReminderEmailContext(
 ): ReminderEmailContext {
   return {
     kind,
+
+    clientId: appointment.clientId,
 
     recipientEmail: appointment.client.email,
 
@@ -538,6 +570,123 @@ async function processReminder2h(now: Date): Promise<ReminderProcessingResult> {
 }
 
 /* -------------------------------------------------------------------------- */
+/*                    TRAITEMENT DU RAPPEL PUSH 48 H (NOUVEAU)                */
+/* -------------------------------------------------------------------------- */
+
+/*
+ * Palier propre au push : pas d'équivalent e-mail (le rappel e-mail
+ * existant reste à 24h, inchangé). Même pattern de revendication
+ * atomique que les rappels 24h/2h, sur un champ dédié
+ * (pushReminder48hSentAt) pour ne pas interférer avec eux.
+ */
+async function processPushReminder48h(
+  now: Date,
+): Promise<PushReminderProcessingResult> {
+  const reminderStart = new Date(
+    now.getTime() + PUSH_REMINDER_48H_MINIMUM_DELAY,
+  );
+
+  const reminderEnd = new Date(
+    now.getTime() + PUSH_REMINDER_48H_MAXIMUM_DELAY,
+  );
+
+  return prisma.$transaction(async (transaction) => {
+    const appointments = await transaction.appointment.findMany({
+      where: {
+        status: "CONFIRMED",
+
+        pushReminder48hSentAt: null,
+
+        startsAt: {
+          gte: reminderStart,
+
+          lte: reminderEnd,
+        },
+      },
+
+      select: {
+        id: true,
+
+        clientId: true,
+
+        reference: true,
+
+        startsAt: true,
+      },
+
+      take: AUTOMATION_BATCH_SIZE,
+    });
+
+    let created = 0;
+
+    const pushContexts: PushReminderContext[] = [];
+
+    for (const appointment of appointments) {
+      const claimed = await transaction.appointment.updateMany({
+        where: {
+          id: appointment.id,
+
+          status: "CONFIRMED",
+
+          pushReminder48hSentAt: null,
+        },
+
+        data: {
+          pushReminder48hSentAt: now,
+        },
+      });
+
+      if (claimed.count === 0) {
+        continue;
+      }
+
+      const baseNotification = appointmentReminderNotification({
+        userId: appointment.clientId,
+
+        reference: appointment.reference,
+
+        startsAt: appointment.startsAt,
+      });
+
+      await transaction.notification.create({
+        data: {
+          userId: baseNotification.userId,
+
+          type: baseNotification.type,
+
+          title: "Rappel de rendez-vous",
+
+          message: "Votre rendez-vous est prévu dans environ 48 heures.",
+
+          actionUrl: baseNotification.actionUrl ?? null,
+
+          metadata: {
+            ...normalizeNotificationMetadata(baseNotification.metadata),
+
+            reminderKind: "PUSH_REMINDER_48H",
+          },
+        },
+      });
+
+      pushContexts.push({
+        kind: "PUSH_REMINDER_48H",
+        clientId: appointment.clientId,
+        appointmentReference: appointment.reference,
+        startsAt: appointment.startsAt,
+      });
+
+      created += 1;
+    }
+
+    return {
+      created,
+
+      pushContexts,
+    };
+  });
+}
+
+/* -------------------------------------------------------------------------- */
 /*                         TRAITEMENT DES DEMANDES D’AVIS                     */
 /* -------------------------------------------------------------------------- */
 
@@ -726,6 +875,38 @@ async function sendReminderEmails(
   };
 }
 
+/*
+ * Envoi des push (rappel 2h et rappel 48h) : toujours hors
+ * transaction, même raison que pour les e-mails. Le rappel 24h ne
+ * déclenche volontairement pas de push (non demandé, le palier
+ * e-mail existant à 24h reste inchangé).
+ */
+async function sendReminderPushes(
+  contexts: PushReminderContext[],
+): Promise<void> {
+  await Promise.allSettled(
+    contexts.map((context) => {
+      const url = `/espace-client/rendez-vous/${encodeURIComponent(
+        context.appointmentReference,
+      )}`;
+
+      if (context.kind === "PUSH_REMINDER_48H") {
+        return sendPushToUser(context.clientId, {
+          title: "Rappel de rendez-vous",
+          body: "Votre rendez-vous est prévu dans environ 48 heures.",
+          url,
+        });
+      }
+
+      return sendPushToUser(context.clientId, {
+        title: "Votre rendez-vous commence bientôt",
+        body: "Votre rendez-vous commence dans environ 2 heures.",
+        url,
+      });
+    }),
+  );
+}
+
 /* -------------------------------------------------------------------------- */
 /*                         AUTOMATISATION PUBLIQUE                            */
 /* -------------------------------------------------------------------------- */
@@ -736,12 +917,14 @@ export async function processNotificationAutomations(
   /*
    * Chaque groupe utilise sa propre transaction courte.
    *
-   * Aucun appel réseau vers Resend n’est exécuté
+   * Aucun appel réseau (Resend, push) n’est exécuté
    * pendant une transaction Prisma.
    */
   const reminder24hResult = await processReminder24h(now);
 
   const reminder2hResult = await processReminder2h(now);
+
+  const pushReminder48hResult = await processPushReminder48h(now);
 
   const reviewRequestsCreated = await processReviewRequests(now);
 
@@ -751,10 +934,25 @@ export async function processNotificationAutomations(
     ...reminder2hResult.emailContexts,
   ]);
 
+  await sendReminderPushes([
+    ...reminder2hResult.emailContexts.map(
+      (context): PushReminderContext => ({
+        kind: "REMINDER_2H",
+        clientId: context.clientId,
+        appointmentReference: context.appointmentReference,
+        startsAt: context.startsAt,
+      }),
+    ),
+
+    ...pushReminder48hResult.pushContexts,
+  ]);
+
   return {
     remindersCreated: reminder24hResult.created,
 
     reminder2hCreated: reminder2hResult.created,
+
+    pushReminder48hCreated: pushReminder48hResult.created,
 
     reminderEmailsSent: deliveryResult.reminder24hEmailsSent,
 

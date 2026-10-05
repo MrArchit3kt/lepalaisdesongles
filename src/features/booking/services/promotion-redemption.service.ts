@@ -3,6 +3,7 @@ import "server-only";
 import { AppointmentStatus, PaymentStatus } from "@/generated/prisma/client";
 import { loadAppointmentEmailContext } from "@/features/notifications/services/appointment-email-context.service";
 import { sendAppointmentEmail } from "@/features/notifications/services/appointment-email.service";
+import { sendPushToUser } from "@/features/push/services/push.service";
 import { prisma } from "@/lib/prisma";
 
 import { calculateRequiredPaymentCents } from "../utils/booking-rules";
@@ -109,6 +110,7 @@ async function sendFullyCoveredConfirmationEmail(
   appointmentId: string,
   startsAt: Date,
   reference: string,
+  clientId: string,
 ): Promise<void> {
   try {
     const context = await loadAppointmentEmailContext(appointmentId);
@@ -134,6 +136,12 @@ async function sendFullyCoveredConfirmationEmail(
   } catch (reason: unknown) {
     console.error("[PROMOTION_REDEMPTION_CONFIRMATION_EMAIL]", reason);
   }
+
+  void sendPushToUser(clientId, {
+    title: "Rendez-vous confirmé",
+    body: "Ton code promo couvre ta réservation : ton créneau est réservé. Ajoute-le à ton agenda en un clic.",
+    url: `/espace-client/rendez-vous/${encodeURIComponent(reference)}`,
+  });
 }
 
 /* -------------------------------------------------------------------------- */
@@ -349,6 +357,7 @@ export async function applyPromotionCode(
       appointment.id,
       appointment.startsAt,
       appointment.reference,
+      clientId,
     );
   }
 

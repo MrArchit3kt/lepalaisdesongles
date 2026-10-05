@@ -5,6 +5,7 @@ import {
   appointmentConfirmedNotification,
   appointmentRefusedNotification,
 } from "@/features/notifications/utils/notification-helper";
+import { sendPushToUser } from "@/features/push/services/push.service";
 
 type SupportedStatus =
   | "CONFIRMED"
@@ -71,6 +72,14 @@ export async function notifyAppointmentStatusChange(
       metadata: notification.metadata ?? undefined,
     },
   });
+
+  if (status === "CONFIRMED") {
+    void sendPushToUser(notification.userId, {
+      title: notification.title,
+      body: `${notification.message} Ajoute-le à ton agenda en un clic.`,
+      url: notification.actionUrl ?? `/espace-client/rendez-vous/${appointment.reference}`,
+    });
+  }
 
   return true;
 }

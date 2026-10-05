@@ -10,6 +10,7 @@ import { prisma } from "@/lib/prisma";
 import { createNotification } from "@/features/notifications/services/notification.service";
 import { appointmentCreatedNotification } from "@/features/notifications/utils/notification-helper";
 import { sendAppointmentEmail } from "@/features/notifications/services/appointment-email.service";
+import { sendPushToUser } from "@/features/push/services/push.service";
 
 import type {
   CreateAppointmentInput,
@@ -767,6 +768,12 @@ export async function createAppointment(
        */
       console.error("[APPOINTMENT_BOOKING_CONFIRMED_EMAIL]", reason);
     }
+
+    void sendPushToUser(clientId, {
+      title: "Rendez-vous confirmé",
+      body: "Ton créneau est réservé. Ajoute-le à ton agenda en un clic.",
+      url: `/espace-client/rendez-vous/${encodeURIComponent(result.reference)}`,
+    });
   }
 
   return {

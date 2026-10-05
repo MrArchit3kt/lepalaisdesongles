@@ -7,6 +7,10 @@ import {
 } from "@/features/admin/settings/services/admin-settings.service";
 
 import {
+  isPushNotificationsEnabled,
+} from "@/features/push/services/push-settings.service";
+
+import {
   requireAdminUser,
 } from "@/lib/session";
 
@@ -27,12 +31,15 @@ export const revalidate =
 export default async function AdminSettingsPage() {
   await requireAdminUser();
 
-  const settings =
-    await getAdminSettings();
+  const [settings, pushEnabled] = await Promise.all([
+    getAdminSettings(),
+    isPushNotificationsEnabled(),
+  ]);
 
   return (
     <AdminSettingsClient
       initialData={settings}
+      initialPushEnabled={pushEnabled}
     />
   );
 }
