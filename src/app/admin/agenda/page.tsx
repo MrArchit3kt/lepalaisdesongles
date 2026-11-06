@@ -13,6 +13,7 @@ import {
 import {
   AdminCalendarSyncDialog,
 } from "@/features/admin/calendar/components/admin-calendar-sync-dialog";
+import { AdminExternalCalendars } from "@/features/admin/calendar/components/admin-external-calendars";
 
 import {
   requireAdminUser,
@@ -96,6 +97,8 @@ export default async function AdminAgendaPage() {
             </nav>
           </div>
         </header>
+
+        <AdminExternalCalendars />
 
         <AdminCalendarClient />
       </div>

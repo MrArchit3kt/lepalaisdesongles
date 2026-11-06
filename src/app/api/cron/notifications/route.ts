@@ -1,6 +1,7 @@
 import { NextResponse } from "next/server";
 
 import { expirePendingAppointments } from "@/features/booking/services/appointment-expiration.service";
+import { syncAllExternalCalendars } from "@/features/calendar-import/service";
 import { processNotificationAutomations } from "@/features/notifications/services/notification-automation.service";
 
 export const runtime = "nodejs";
@@ -31,9 +32,16 @@ export async function GET(request: Request): Promise<Response> {
 
     const result = await processNotificationAutomations();
 
+    // Rafraîchit les agendas externes importés (iCal) : créneaux occupés.
+    const calendarsSynced = await syncAllExternalCalendars().catch((reason: unknown) => {
+      console.error("[CRON_CALENDAR_SYNC]", reason);
+      return 0;
+    });
+
     return NextResponse.json({
       success: true,
       expiredAppointmentsCount,
+      calendarsSynced,
       ...result,
       executedAt: new Date().toISOString(),
     });

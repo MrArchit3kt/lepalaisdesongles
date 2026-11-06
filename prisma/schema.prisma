@@ -3679,3 +3679,30 @@ model GiftCardTransaction {
   @@index([paypalOrderId])
   @@index([paypalCaptureId])
 }
+
+// Agenda externe (iCal) dont les créneaux occupés bloquent les disponibilités
+// du salon. Rafraîchi périodiquement + à la demande. (Import iCal)
+model ExternalCalendar {
+  id           String    @id @default(cuid())
+  url          String
+  name         String?
+  lastSyncedAt DateTime?
+  lastError    String?
+  createdAt    DateTime  @default(now())
+  updatedAt    DateTime  @updatedAt
+
+  busyBlocks CalendarBusyBlock[]
+}
+
+model CalendarBusyBlock {
+  id                 String   @id @default(cuid())
+  externalCalendarId String
+  startsAt           DateTime
+  endsAt             DateTime
+  uid                String?
+  createdAt          DateTime @default(now())
+
+  externalCalendar ExternalCalendar @relation(fields: [externalCalendarId], references: [id], onDelete: Cascade)
+
+  @@index([startsAt])
+}

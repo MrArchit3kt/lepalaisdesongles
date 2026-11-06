@@ -467,6 +467,7 @@ async function getStaffAvailability(
     workstationAppointments,
     staffTimeOffs,
     globalTimeOffs,
+    externalCalendarBusy,
   ] = await Promise.all([
     prisma.appointment.findMany({
       where: {
@@ -580,12 +581,31 @@ async function getStaffAvailability(
         endsAt: true,
       },
     }),
+
+    // Créneaux occupés importés d'agendas externes (iCal) : bloquent tout le salon.
+    prisma.calendarBusyBlock.findMany({
+      where: {
+        startsAt: {
+          lt: dayEnd,
+        },
+
+        endsAt: {
+          gt: dayStart,
+        },
+      },
+
+      select: {
+        startsAt: true,
+        endsAt: true,
+      },
+    }),
   ]);
 
   const staffBlocked: TimeWindow[] = [
     ...staffAppointments.map(appointmentToOccupiedWindow),
     ...staffTimeOffs,
     ...globalTimeOffs,
+    ...externalCalendarBusy,
   ];
 
   const now = new Date();
